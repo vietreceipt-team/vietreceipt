@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: VietReceipt API
-  version: 1.0.0-draft
+  version: 1.2.0-draft
   description: API Contract v1 for the VietReceipt core workflow.
 servers:
   - url: http://localhost:8000/api/v1
@@ -118,7 +118,7 @@ paths:
           in: query
           schema:
             $ref: '#/components/schemas/ReceiptStatus'
-        - name: merchant
+        - name: merchant_name
           in: query
           schema:
             type: string
@@ -246,6 +246,14 @@ paths:
       summary: Get normalized OCR output
       tags: [Receipts]
       operationId: getReceiptOcr
+      parameters:
+        - name: ocr_run_id
+          in: query
+          required: false
+          description: Specific immutable OCR run; omit for the latest successful run.
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: Normalized OCR result
@@ -265,6 +273,14 @@ paths:
       summary: Get extracted fields
       tags: [Verification]
       operationId: getReceiptFields
+      parameters:
+        - name: kie_run_id
+          in: query
+          required: false
+          description: Specific immutable KIE run; omit for the latest successful run.
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: Exactly five extracted fields
@@ -314,6 +330,31 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
 
+  /fields/{field_id}/correction:
+    parameters:
+      - name: field_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Clear a field correction
+      tags: [Verification]
+      operationId: clearFieldCorrection
+      description: Removes the human correction and falls back to the immutable KIE normalized value/status.
+      responses:
+        '200':
+          description: Field with machine value/status restored as effective output
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractedField'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
   /receipts/{receipt_id}/verify:
     parameters:
       - $ref: '#/components/parameters/ReceiptId'
@@ -321,7 +362,7 @@ paths:
       summary: Verify a receipt
       tags: [Verification]
       operationId: verifyReceipt
-      description: Valid only for NEEDS_REVIEW after all five final values pass validation.
+      description: Valid only for NEEDS_REVIEW after all five effective statuses are resolved and effective values match their status/type.
       responses:
         '200':
           description: Receipt is VERIFIED
@@ -468,10 +509,17 @@ components:
       enum: [PREPROCESSING, OCR, KIE, PERSISTING, null]
     FieldType:
       type: string
-      enum: [merchant, date, total, invoice_id, address]
-    ReviewLevel:
+      enum: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
+    ValueStatus:
       type: string
-      enum: [NEEDS_REVIEW, LOW_CONFIDENCE, LIKELY_CORRECT]
+      enum: [PRESENT, NOT_PRESENT, UNREADABLE, AMBIGUOUS, UNKNOWN]
+    NullableValueStatus:
+      oneOf:
+        - {$ref: '#/components/schemas/ValueStatus'}
+        - {type: 'null'}
+    ReviewReason:
+      type: string
+      enum: [LOW_CONFIDENCE, NOT_PRESENT, UNREADABLE, AMBIGUOUS, UNKNOWN, NORMALIZATION_FAILED, FORMAT_INVALID]
     RegisterRequest:
       type: object
       additionalProperties: false
@@ -510,9 +558,9 @@ components:
         receipt_id: {type: string, format: uuid}
         original_filename: {type: string}
         status: {$ref: '#/components/schemas/ReceiptStatus'}
-        merchant: {type: [string, 'null']}
+        merchant_name: {type: [string, 'null']}
         receipt_date: {type: [string, 'null'], format: date}
-        total: {type: [integer, 'null'], minimum: 0}
+        total_amount: {type: [integer, 'null'], minimum: 0}
         created_at: {type: string, format: date-time}
         verified_at: {type: [string, 'null'], format: date-time}
     ReceiptPage:
@@ -548,6 +596,8 @@ components:
         image_url: {type: string, format: uri, description: Authorized API URL or short-lived URL}
         image_width_px: {type: integer, minimum: 1}
         image_height_px: {type: integer, minimum: 1}
+        latest_ocr_run_id: {type: [string, 'null'], format: uuid}
+        latest_kie_run_id: {type: [string, 'null'], format: uuid}
         fields:
           type: array
           minItems: 0
@@ -601,10 +651,11 @@ components:
     OCRResult:
       type: object
       additionalProperties: false
-      required: [schema_version, receipt_id, engine, image, blocks, average_confidence, duration_ms]
+      required: [schema_version, receipt_id, ocr_run_id, engine, image, blocks, average_confidence, duration_ms]
       properties:
-        schema_version: {const: '1.0'}
+        schema_version: {const: '1.2'}
         receipt_id: {type: string, format: uuid}
+        ocr_run_id: {type: string, format: uuid}
         engine: {$ref: '#/components/schemas/ComponentVersion'}
         image:
           type: object
@@ -623,32 +674,57 @@ components:
         - {type: string}
         - {type: integer, minimum: 0}
         - {type: 'null'}
+    PredictedValue:
+      type: [string, 'null']
     ExtractedField:
       type: object
       additionalProperties: false
       required:
         - field_id
         - field_type
+        - ocr_run_id
+        - kie_run_id
         - raw_text
         - predicted_value
+        - normalized_value
+        - value_status
         - corrected_value
-        - final_value
+        - corrected_status
+        - has_correction
+        - effective_value
+        - effective_status
         - confidence
-        - review_level
+        - needs_review
+        - review_reasons
         - source_block_ids
         - verified
         - updated_at
       properties:
         field_id: {type: string, format: uuid}
         field_type: {$ref: '#/components/schemas/FieldType'}
+        ocr_run_id: {type: string, format: uuid}
+        kie_run_id: {type: string, format: uuid}
         raw_text: {type: [string, 'null']}
-        predicted_value: {$ref: '#/components/schemas/FieldValue'}
+        predicted_value: {$ref: '#/components/schemas/PredictedValue'}
+        normalized_value: {$ref: '#/components/schemas/FieldValue'}
+        value_status: {$ref: '#/components/schemas/ValueStatus'}
         corrected_value: {$ref: '#/components/schemas/FieldValue'}
-        final_value:
+        corrected_status: {$ref: '#/components/schemas/NullableValueStatus'}
+        has_correction:
+          type: boolean
+          description: Distinguishes no correction from an explicit null correction such as NOT_PRESENT.
+        effective_value:
           $ref: '#/components/schemas/FieldValue'
-          description: corrected_value when non-null, otherwise predicted_value.
+          description: corrected_value when has_correction=true, otherwise normalized_value.
+        effective_status:
+          $ref: '#/components/schemas/ValueStatus'
+          description: corrected_status when has_correction=true, otherwise value_status.
         confidence: {type: number, minimum: 0, maximum: 1}
-        review_level: {$ref: '#/components/schemas/ReviewLevel'}
+        needs_review: {type: boolean}
+        review_reasons:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/ReviewReason'}
         source_block_ids:
           type: array
           uniqueItems: true
@@ -658,25 +734,43 @@ components:
     FieldCorrectionRequest:
       type: object
       additionalProperties: false
-      required: [value, expected_updated_at]
+      required: [value, value_status, expected_updated_at]
       properties:
         value:
           $ref: '#/components/schemas/FieldValue'
-          description: Must match the type implied by field_type; null clears the correction.
+          description: Non-null and correctly typed for PRESENT; null for every other status. Null does not clear a correction.
+        value_status:
+          $ref: '#/components/schemas/ValueStatus'
         expected_updated_at:
           type: string
           format: date-time
           description: Optimistic concurrency token from the latest field response.
+      allOf:
+        - if:
+            properties:
+              value_status: {const: PRESENT}
+          then:
+            properties:
+              value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              value: {type: 'null'}
     CorrectionHistory:
       type: object
       additionalProperties: false
-      required: [correction_id, field_id, field_type, old_value, new_value, changed_by, changed_at]
+      required: [correction_id, field_id, field_type, kie_run_id, old_value, new_value, old_status, new_status, changed_by, changed_at]
       properties:
         correction_id: {type: string, format: uuid}
         field_id: {type: string, format: uuid}
         field_type: {$ref: '#/components/schemas/FieldType'}
+        kie_run_id: {type: string, format: uuid}
         old_value: {$ref: '#/components/schemas/FieldValue'}
         new_value: {$ref: '#/components/schemas/FieldValue'}
+        old_status: {$ref: '#/components/schemas/NullableValueStatus'}
+        new_status: {$ref: '#/components/schemas/NullableValueStatus'}
         changed_by: {type: string, format: uuid}
         changed_at: {type: string, format: date-time}
     ProcessingError:

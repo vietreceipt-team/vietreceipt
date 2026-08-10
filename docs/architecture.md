@@ -65,7 +65,9 @@ Python interface:
 from pathlib import Path
 
 class OCRProvider:
-    def recognize(self, *, receipt_id: str, image_path: Path) -> "OCRResult": ...
+    def recognize(
+        self, *, receipt_id: str, ocr_run_id: str, image_path: Path
+    ) -> "OCRResult": ...
 ```
 
 - Worker downloads the image to a temporary local path.
@@ -78,19 +80,22 @@ Python interface:
 
 ```python
 class KIEProvider:
-    def extract(self, *, receipt_id: str, ocr: "OCRResult") -> "KIEResult": ...
+    def extract(
+        self, *, receipt_id: str, kie_run_id: str, ocr: "OCRResult"
+    ) -> "KIEResult": ...
 ```
 
 - KIE consumes the normalized OCR schema, not raw PaddleOCR objects.
 - KIE returns all five field keys.
+- KIE links `kie_run_id` to the exact input `ocr_run_id` through `source_ocr_run_id`.
 - KIE must not update the database or receipt status directly.
 
 ### Backend/worker to data stores
 
 - PostgreSQL changes are performed through repository/service boundaries.
 - Upload order: validate file -> store object -> insert receipt metadata. If metadata insertion fails, schedule orphan-object cleanup.
-- Processing result order: calculate OCR/KIE -> open transaction -> replace prior unverified machine result -> set `NEEDS_REVIEW` -> commit.
-- Verification order: validate all field values -> create correction history -> update final values -> set `VERIFIED` -> commit.
+- Processing result order: create run IDs -> calculate OCR/KIE -> open transaction -> append immutable run output -> point receipt to latest run -> set `NEEDS_REVIEW` -> commit.
+- Verification order: validate all effective statuses/values -> create correction history with old/new status -> set `VERIFIED` -> commit.
 - Object storage is private. API returns an authorized image endpoint or short-lived signed URL; permanent public URLs are forbidden.
 
 ## 4. Processing sequence
@@ -154,7 +159,7 @@ vietreceipt/
 | OCR timeout/error | Worker/OCR | Receipt becomes `FAILED`, stage=`OCR` |
 | KIE error | Worker/KIE | Receipt becomes `FAILED`, stage=`KIE` |
 | Temporary queue error | Backend/DevOps | `503 PROCESSING_UNAVAILABLE`; receipt remains `UPLOADED` |
-| Unknown/missing field | KIE | Field value=`null`, confidence=`0`, receipt still reaches `NEEDS_REVIEW` |
+| Unknown/missing field | KIE | Normalized value=`null`, explicit value status, `needs_review=true`; receipt still reaches `NEEDS_REVIEW` |
 
 ## 7. Security baseline
 

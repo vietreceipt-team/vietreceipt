@@ -1,24 +1,40 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vietreceipt.local/schemas/kie-result.schema.json",
-  "title": "KIEResult v1",
+  "title": "KIEResult v1.2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "receipt_id", "extractor", "fields", "duration_ms"],
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "kie_run_id",
+    "source_ocr_run_id",
+    "extractor",
+    "fields",
+    "duration_ms"
+  ],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"const": "1.2"},
     "receipt_id": {"type": "string", "format": "uuid"},
+    "kie_run_id": {"type": "string", "format": "uuid"},
+    "source_ocr_run_id": {"type": "string", "format": "uuid"},
     "extractor": {"$ref": "#/$defs/componentVersion"},
     "fields": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["merchant", "date", "total", "invoice_id", "address"],
+      "required": [
+        "merchant_name",
+        "receipt_date",
+        "total_amount",
+        "invoice_id",
+        "merchant_address"
+      ],
       "properties": {
-        "merchant": {"$ref": "#/$defs/stringField"},
-        "date": {"$ref": "#/$defs/dateField"},
-        "total": {"$ref": "#/$defs/moneyField"},
+        "merchant_name": {"$ref": "#/$defs/stringField"},
+        "receipt_date": {"$ref": "#/$defs/dateField"},
+        "total_amount": {"$ref": "#/$defs/moneyField"},
         "invoice_id": {"$ref": "#/$defs/stringField"},
-        "address": {"$ref": "#/$defs/stringField"}
+        "merchant_address": {"$ref": "#/$defs/stringField"}
       }
     },
     "duration_ms": {"type": "integer", "minimum": 0}
@@ -33,75 +49,162 @@
         "version": {"type": "string", "minLength": 1}
       }
     },
-    "fieldBase": {
-      "type": "object",
-      "required": ["raw_text", "confidence", "source_block_ids"],
-      "properties": {
-        "raw_text": {"type": ["string", "null"]},
-        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-        "source_block_ids": {
-          "type": "array",
-          "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1, "maxLength": 64}
-        }
-      }
+    "valueStatus": {
+      "type": "string",
+      "enum": ["PRESENT", "NOT_PRESENT", "UNREADABLE", "AMBIGUOUS", "UNKNOWN"]
+    },
+    "reviewReason": {
+      "type": "string",
+      "enum": [
+        "LOW_CONFIDENCE",
+        "NOT_PRESENT",
+        "UNREADABLE",
+        "AMBIGUOUS",
+        "UNKNOWN",
+        "NORMALIZATION_FAILED",
+        "FORMAT_INVALID"
+      ]
+    },
+    "sourceBlockIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 64}
     },
     "stringField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_text",
+        "predicted_value",
+        "normalized_value",
+        "value_status",
+        "confidence",
+        "needs_review",
+        "review_reasons",
+        "source_block_ids"
+      ],
+      "properties": {
+        "raw_text": {"type": ["string", "null"]},
+        "predicted_value": {"type": ["string", "null"]},
+        "normalized_value": {"type": ["string", "null"]},
+        "value_status": {"$ref": "#/$defs/valueStatus"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "needs_review": {"type": "boolean"},
+        "review_reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/reviewReason"}
+        },
+        "source_block_ids": {"$ref": "#/$defs/sourceBlockIds"}
+      },
       "allOf": [
-        {"$ref": "#/$defs/fieldBase"},
         {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["raw_text", "normalized_value", "confidence", "source_block_ids"],
-          "properties": {
-            "raw_text": {"type": ["string", "null"]},
-            "normalized_value": {"type": ["string", "null"]},
-            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-            "source_block_ids": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {"type": "string", "minLength": 1, "maxLength": 64}
+          "if": {"properties": {"value_status": {"const": "PRESENT"}}},
+          "then": {
+            "properties": {
+              "raw_text": {"type": "string", "minLength": 1},
+              "predicted_value": {"type": "string", "minLength": 1},
+              "normalized_value": {"type": "string", "minLength": 1}
+            }
+          },
+          "else": {
+            "properties": {
+              "normalized_value": {"type": "null"},
+              "needs_review": {"const": true}
             }
           }
         }
       ]
     },
     "dateField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_text",
+        "predicted_value",
+        "normalized_value",
+        "value_status",
+        "confidence",
+        "needs_review",
+        "review_reasons",
+        "source_block_ids"
+      ],
+      "properties": {
+        "raw_text": {"type": ["string", "null"]},
+        "predicted_value": {"type": ["string", "null"]},
+        "normalized_value": {"type": ["string", "null"], "format": "date"},
+        "value_status": {"$ref": "#/$defs/valueStatus"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "needs_review": {"type": "boolean"},
+        "review_reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/reviewReason"}
+        },
+        "source_block_ids": {"$ref": "#/$defs/sourceBlockIds"}
+      },
       "allOf": [
-        {"$ref": "#/$defs/fieldBase"},
         {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["raw_text", "normalized_value", "confidence", "source_block_ids"],
-          "properties": {
-            "raw_text": {"type": ["string", "null"]},
-            "normalized_value": {"type": ["string", "null"], "format": "date"},
-            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-            "source_block_ids": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {"type": "string", "minLength": 1, "maxLength": 64}
+          "if": {"properties": {"value_status": {"const": "PRESENT"}}},
+          "then": {
+            "properties": {
+              "raw_text": {"type": "string", "minLength": 1},
+              "predicted_value": {"type": "string", "minLength": 1},
+              "normalized_value": {"type": "string", "format": "date"}
+            }
+          },
+          "else": {
+            "properties": {
+              "normalized_value": {"type": "null"},
+              "needs_review": {"const": true}
             }
           }
         }
       ]
     },
     "moneyField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "raw_text",
+        "predicted_value",
+        "normalized_value",
+        "currency",
+        "value_status",
+        "confidence",
+        "needs_review",
+        "review_reasons",
+        "source_block_ids"
+      ],
+      "properties": {
+        "raw_text": {"type": ["string", "null"]},
+        "predicted_value": {"type": ["string", "null"]},
+        "normalized_value": {"type": ["integer", "null"], "minimum": 0},
+        "currency": {"const": "VND"},
+        "value_status": {"$ref": "#/$defs/valueStatus"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "needs_review": {"type": "boolean"},
+        "review_reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/reviewReason"}
+        },
+        "source_block_ids": {"$ref": "#/$defs/sourceBlockIds"}
+      },
       "allOf": [
-        {"$ref": "#/$defs/fieldBase"},
         {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["raw_text", "normalized_value", "currency", "confidence", "source_block_ids"],
-          "properties": {
-            "raw_text": {"type": ["string", "null"]},
-            "normalized_value": {"type": ["integer", "null"], "minimum": 0},
-            "currency": {"const": "VND"},
-            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-            "source_block_ids": {
-              "type": "array",
-              "uniqueItems": true,
-              "items": {"type": "string", "minLength": 1, "maxLength": 64}
+          "if": {"properties": {"value_status": {"const": "PRESENT"}}},
+          "then": {
+            "properties": {
+              "raw_text": {"type": "string", "minLength": 1},
+              "predicted_value": {"type": "string", "minLength": 1},
+              "normalized_value": {"type": "integer", "minimum": 0}
+            }
+          },
+          "else": {
+            "properties": {
+              "normalized_value": {"type": "null"},
+              "needs_review": {"const": true}
             }
           }
         }

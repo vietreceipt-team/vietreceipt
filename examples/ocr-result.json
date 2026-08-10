@@ -1,6 +1,7 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.2",
   "receipt_id": "31915ef1-6fb4-4e7d-b6f5-53be51c50e3d",
+  "ocr_run_id": "b3ac8bb4-6383-4b97-9911-5a6900054608",
   "engine": {
     "name": "paddleocr",
     "version": "3.0.0"
@@ -72,7 +73,7 @@
     },
     {
       "block_id": "block_5",
-      "text": "325.OOO VND",
+      "text": "325.000 VND",
       "confidence": 0.71,
       "polygon": [
         {"x": 0.29, "y": 0.323},

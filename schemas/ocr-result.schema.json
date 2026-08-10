@@ -1,12 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vietreceipt.local/schemas/ocr-result.schema.json",
-  "title": "OCRResult v1",
+  "title": "OCRResult v1.2",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "receipt_id",
+    "ocr_run_id",
     "engine",
     "image",
     "blocks",
@@ -14,8 +15,9 @@
     "duration_ms"
   ],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"const": "1.2"},
     "receipt_id": {"type": "string", "format": "uuid"},
+    "ocr_run_id": {"type": "string", "format": "uuid"},
     "engine": {"$ref": "#/$defs/componentVersion"},
     "image": {
       "type": "object",

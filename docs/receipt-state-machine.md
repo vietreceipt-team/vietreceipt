@@ -8,7 +8,7 @@
 | `QUEUED` | A processing job has been accepted but not started | View, delete/cancel only if supported later |
 | `PROCESSING` | Worker is running preprocessing, OCR or KIE | View progress |
 | `NEEDS_REVIEW` | Machine results are stored and await human verification | Review, correct, verify, reprocess |
-| `VERIFIED` | User confirmed the final five fields | View, search, export |
+| `VERIFIED` | User confirmed the effective status/value of all five fields | View, search, export |
 | `FAILED` | Pipeline stopped due to a processing failure | View error, retry, delete |
 
 `QUEUED` is included in addition to the five required states so the API can distinguish accepted work from active work.
@@ -44,10 +44,10 @@ All other transitions return HTTP `409` with code `RECEIPT_STATE_CONFLICT`.
 ## Invariants
 
 1. `UPLOADED` implies an object-storage key and original filename exist.
-2. Only `PROCESSING` may write a new machine prediction set.
-3. `NEEDS_REVIEW` implies one OCR result and exactly five extracted field records exist.
-4. Missing KIE values are represented by `null`; missing fields do not force `FAILED`.
-5. `VERIFIED` implies all required values pass field validation and `verified_at` is non-null.
+2. Only `PROCESSING` may append a new machine prediction set; prior OCR/KIE runs are never overwritten.
+3. `NEEDS_REVIEW` implies a latest OCR/KIE run and exactly five canonical extracted field records exist.
+4. Missing KIE values use `null` plus an explicit `value_status`; missing fields do not force `FAILED`.
+5. `VERIFIED` implies every field has a human-resolved `effective_status`; `AMBIGUOUS` and `UNKNOWN` cannot remain unresolved.
 6. Only `VERIFIED` receipts are included in official export/dashboard spending totals by default.
 7. `FAILED` records contain a safe `last_error` object with stage and code; sensitive OCR text is excluded.
 8. Retry creates a new processing attempt but does not destroy correction history from an already-reviewed version.
@@ -76,4 +76,3 @@ PREPROCESSING | OCR | KIE | PERSISTING
 ```
 
 The public message must be safe for users. Stack traces and receipt text stay in protected server logs.
-

@@ -8,6 +8,7 @@ Each owner must answer every item with **Yes**, or open a linked Issue describin
 - [ ] I know how to start processing and poll receipt status.
 - [ ] I can render OCR polygons using normalized coordinates and returned image dimensions.
 - [ ] I know the canonical type of all five fields.
+- [ ] I understand `value_status`, `has_correction`, `effective_value` and `effective_status`.
 - [ ] I know how to edit a field, verify a receipt and display API errors.
 - [ ] I do not need to call OCR, KIE, database or storage directly.
 
@@ -17,13 +18,15 @@ Each owner must answer every item with **Yes**, or open a linked Issue describin
 - [ ] Every status transition is implemented in one domain service.
 - [ ] Processing requests and retries are idempotent.
 - [ ] Authorization scopes every receipt by the current user.
-- [ ] Predicted and corrected values plus correction history are preserved.
+- [ ] Raw, predicted, normalized, corrected and effective value layers remain distinct.
+- [ ] OCR/KIE outputs are append-only by `ocr_run_id` and `kie_run_id`.
+- [ ] A user can confirm `NOT_PRESENT` without that action being treated as clearing a correction.
 - [ ] Only verified receipts are exported by default.
 
 ## OCR owner
 
 - [ ] I accept `receipt_id` and a local image path from the worker.
-- [ ] I return `schema_version`, engine metadata, image dimensions and blocks.
+- [ ] I return `schema_version`, `ocr_run_id`, engine metadata, image dimensions and blocks.
 - [ ] Every block has text, confidence, a four-point normalized polygon and reading order.
 - [ ] Polygon point order and coordinate origin match the shared convention.
 - [ ] I return an empty block list for no detections and a typed error for engine failure.
@@ -32,10 +35,13 @@ Each owner must answer every item with **Yes**, or open a linked Issue describin
 ## KIE owner
 
 - [ ] I accept the engine-independent OCR result schema.
-- [ ] I always return exactly the five required field keys.
+- [ ] I always return `merchant_name`, `receipt_date`, `total_amount`, `invoice_id` and `merchant_address`.
+- [ ] I return `kie_run_id` and the exact `source_ocr_run_id`.
+- [ ] I keep `raw_text`, `predicted_value` and `normalized_value` distinct.
 - [ ] My normalized types are string/date/integer as specified.
-- [ ] Missing values use `null`, confidence `0` and an empty source list.
-- [ ] Every `source_block_id` exists in the OCR input.
+- [ ] I return an explicit `value_status` and do not invent missing values.
+- [ ] Every entry in `source_block_ids` exists in the referenced OCR run.
+- [ ] Ambiguous normalization returns `normalized_value=null` and `needs_review=true`.
 - [ ] Field confidence means confidence in the normalized business value.
 
 ## DevOps owner
@@ -57,11 +63,16 @@ Complete before merge:
 | OCR reading order | Unique, zero-based | OCR | Pending |
 | Raw field property | `raw_text` | KIE + Backend | Pending |
 | OCR source reference | `source_block_ids` array | OCR + KIE | Pending |
+| Value layers | raw / predicted / normalized / corrected / effective | KIE + Backend | Updated in v1.2; re-review pending |
+| Value status | PRESENT / NOT_PRESENT / UNREADABLE / AMBIGUOUS / UNKNOWN | KIE + Backend | Updated in v1.2; re-review pending |
+| Canonical field names | merchant_name / receipt_date / total_amount / invoice_id / merchant_address | All | Updated in v1.2; re-review pending |
+| Run preservation | Immutable `ocr_run_id` and `kie_run_id` | OCR + KIE + Backend | Updated in v1.2; re-review pending |
 | Total canonical type | Integer VND | KIE + Backend | Pending |
 | Date canonical type | ISO `YYYY-MM-DD` | KIE + Backend | Pending |
 | Queue implementation | Redis/Celery | Backend + DevOps | Pending |
 | Upload maximum | 10 MiB | Backend + Frontend | Pending |
 | Allowed formats | JPEG, PNG, WebP | Backend + Frontend | Pending |
+| Confidence thresholds | Configurable/TBD until calibration | KIE + Backend | Updated in v1.2; re-review pending |
 
 ## Sign-off
 
@@ -70,5 +81,5 @@ Complete before merge:
 | Frontend |  |  | Pending |
 | Backend |  |  | Pending |
 | OCR |  |  | Pending |
-| KIE |  |  | Pending |
+| KIE | minh-phuong0104 | 2026-08-10 | Changes requested; v1.2 re-review pending |
 | DevOps/Lead |  |  | Pending |

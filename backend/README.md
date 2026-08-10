@@ -49,6 +49,8 @@ Chuyển trạng thái hợp lệ được định nghĩa tại `../docs/receipt
 - Mọi truy vấn receipt phải giới hạn theo người dùng được xác thực.
 - Chuyển trạng thái phải đi qua một domain service chung.
 - OCR/KIE không ghi trực tiếp vào database của Backend.
-- Giữ cả predicted value, corrected value và correction history.
+- Giữ riêng raw, predicted, normalized, corrected và effective value.
+- Lưu OCR/KIE output bất biến theo `ocr_run_id` và `kie_run_id`; không ghi đè lần chạy cũ.
+- Correction history phải lưu cả thay đổi value và value status.
 - Chỉ dữ liệu `VERIFIED` được export chính thức theo mặc định.
 - Mọi thay đổi contract phải cập nhật OpenAPI, JSON Schema, ví dụ và consumer test trong cùng Pull Request.
