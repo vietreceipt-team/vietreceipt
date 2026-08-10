@@ -39,7 +39,7 @@ Mỗi trường cần có tối thiểu:
 - Tham chiếu tới vùng OCR liên quan
 - Thành viên phụ trách chính
 
-Bình Minh — KIE và kỹ thuật dữ liệu
+Phượng — KIE và kỹ thuật dữ liệu
 
 Nguyên tắc
 Không phụ thuộc cứng vào một định dạng OCR riêng nếu có thể tránh.
