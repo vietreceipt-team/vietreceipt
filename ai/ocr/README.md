@@ -28,7 +28,7 @@ Mỗi vùng OCR cần có tối thiểu:
 
 ## Thành viên phụ trách chính
 
-Đào Minh Phượng— OCR và xử lý ảnh
+Bình Minh— OCR và xử lý ảnh
 
 Nguyên tắc
 Không để OCR chỉ tồn tại dưới dạng script chạy thủ công.
