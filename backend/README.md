@@ -1,36 +1,54 @@
 # Backend VietReceipt
 
-Thư mục này chứa mã nguồn backend và các API chính của hệ thống VietReceipt.
+Backend cung cấp REST API, quản lý vòng đời hóa đơn và điều phối pipeline OCR/KIE của VietReceipt.
 
 ## Phạm vi chính
 
-- Xác thực người dùng
-- Quản lý tài khoản
-- API tải hóa đơn lên hệ thống
-- API lấy thông tin hóa đơn
-- API xử lý hóa đơn
-- API cập nhật các trường đã trích xuất
-- API xác nhận hóa đơn
-- API tìm kiếm và lọc hóa đơn
-- API xuất dữ liệu
-- Quản lý trạng thái xử lý hóa đơn
-- Kết nối với OCR, KIE, cơ sở dữ liệu và lưu trữ tệp
+- Xác thực và phân quyền người dùng.
+- Upload, kiểm tra và quản lý ảnh hóa đơn.
+- CRUD, tìm kiếm và lọc hóa đơn.
+- Điều phối job preprocessing, OCR và KIE.
+- Lưu OCR blocks, extracted fields và correction history.
+- Cho phép sửa field và xác minh hóa đơn.
+- Cung cấp dashboard và export dữ liệu đã xác minh.
+
+## Kiến trúc v1
+
+- Public API: FastAPI dưới prefix `/api/v1`.
+- Tác vụ dài: worker bất đồng bộ; queue đề xuất Redis/Celery.
+- Dữ liệu quan hệ: PostgreSQL.
+- Ảnh: MinIO hoặc S3-compatible storage ở chế độ private.
+- OCR/KIE: Python adapter tuân thủ schema trong `../schemas/`.
+- Frontend chỉ gọi Backend API, không truy cập trực tiếp OCR, KIE, database hoặc storage.
+
+## Trạng thái hóa đơn
+
+- `UPLOADED`
+- `QUEUED`
+- `PROCESSING`
+- `NEEDS_REVIEW`
+- `VERIFIED`
+- `FAILED`
+
+Chuyển trạng thái hợp lệ được định nghĩa tại `../docs/receipt-state-machine.md`.
+
+## Contract
+
+- Public API: `../openapi/openapi.yaml`
+- OCR/KIE integration: `../docs/integration-contracts.md`
+- OCR schema: `../schemas/ocr-result.schema.json`
+- KIE schema: `../schemas/kie-result.schema.json`
 
 ## Thành viên phụ trách chính
-Đỗ Xuân Nguyên-Đồng Sỹ Nguyên
 
-## Trạng thái xử lý chính
-
-- UPLOADED
-- PROCESSING
-- NEEDS_REVIEW
-- VERIFIED
-- FAILED
+Đỗ Xuân Nguyên - Đồng Sỹ Nguyên
 
 ## Nguyên tắc
 
-- Frontend không truy cập trực tiếp cơ sở dữ liệu.
-- Các module OCR và KIE phải có giao diện dữ liệu rõ ràng.
-- Không ghi khóa bí mật trực tiếp trong mã nguồn.
-- Các thay đổi ảnh hưởng kiến trúc chung phải được trao đổi trước.
-- Mọi thay đổi phải gắn với GitHub Issue tương ứng.
+- Không ghi secret trực tiếp trong mã nguồn hoặc log.
+- Mọi truy vấn receipt phải giới hạn theo người dùng được xác thực.
+- Chuyển trạng thái phải đi qua một domain service chung.
+- OCR/KIE không ghi trực tiếp vào database của Backend.
+- Giữ cả predicted value, corrected value và correction history.
+- Chỉ dữ liệu `VERIFIED` được export chính thức theo mặc định.
+- Mọi thay đổi contract phải cập nhật OpenAPI, JSON Schema, ví dụ và consumer test trong cùng Pull Request.
