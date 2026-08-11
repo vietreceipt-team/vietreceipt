@@ -1,0 +1,59 @@
+{
+  "record_type": "five-field-ground-truth-annotation",
+  "annotation_schema_version": "1.0",
+  "guideline_version": "1.0",
+  "example_only": true,
+  "data_provenance": "synthetic illustrative values; not a dataset record or model output",
+  "receipt_id": "00000000-0000-4000-8000-000000000001",
+  "source_ocr_run_id": "00000000-0000-4000-8000-000000000002",
+  "annotator_id": "example-annotator",
+  "annotated_at": null,
+  "fields": {
+    "merchant_name": {
+      "field_name": "merchant_name",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "CỬA HÀNG MINH HỌA",
+      "normalized_value": "CỬA HÀNG MINH HỌA",
+      "source_block_ids": ["block_0"],
+      "candidate_values": [],
+      "annotator_note": null
+    },
+    "receipt_date": {
+      "field_name": "receipt_date",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "02/01/2020",
+      "normalized_value": "2020-01-02",
+      "source_block_ids": ["block_2"],
+      "candidate_values": [],
+      "annotator_note": null
+    },
+    "total_amount": {
+      "field_name": "total_amount",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "123.000 VND",
+      "normalized_value": 123000,
+      "currency": "VND",
+      "source_block_ids": ["block_8"],
+      "candidate_values": [],
+      "annotator_note": null
+    },
+    "invoice_id": {
+      "field_name": "invoice_id",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "HD-000001",
+      "normalized_value": "HD-000001",
+      "source_block_ids": ["block_3"],
+      "candidate_values": [],
+      "annotator_note": "Leading zeroes are intentionally preserved."
+    },
+    "merchant_address": {
+      "field_name": "merchant_address",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "SỐ 1 ĐƯỜNG MẪU, PHƯỜNG MINH HỌA",
+      "normalized_value": "SỐ 1 ĐƯỜNG MẪU, PHƯỜNG MINH HỌA",
+      "source_block_ids": ["block_1a", "block_1b"],
+      "candidate_values": [],
+      "annotator_note": null
+    }
+  }
+}
