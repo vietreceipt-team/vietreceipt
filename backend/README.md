@@ -51,6 +51,8 @@ Chuyển trạng thái hợp lệ được định nghĩa tại `../docs/receipt
 - OCR/KIE không ghi trực tiếp vào database của Backend.
 - Giữ riêng raw, predicted, normalized, corrected và effective value.
 - Lưu OCR/KIE output bất biến theo `ocr_run_id` và `kie_run_id`; không ghi đè lần chạy cũ.
+- Giữ nguyên `machine_needs_review` từ KIE và tính `effective_needs_review` sau correction/verification để Frontend hiển thị trạng thái hiện tại.
+- Tính `effective_value` từ `corrected_value` khi có correction, nếu không dùng `normalized_value`; không fallback sang `predicted_value`.
 - Correction history phải lưu cả thay đổi value và value status.
 - Chỉ dữ liệu `VERIFIED` được export chính thức theo mặc định.
 - Mọi thay đổi contract phải cập nhật OpenAPI, JSON Schema, ví dụ và consumer test trong cùng Pull Request.

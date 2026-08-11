@@ -159,7 +159,7 @@ vietreceipt/
 | OCR timeout/error | Worker/OCR | Receipt becomes `FAILED`, stage=`OCR` |
 | KIE error | Worker/KIE | Receipt becomes `FAILED`, stage=`KIE` |
 | Temporary queue error | Backend/DevOps | `503 PROCESSING_UNAVAILABLE`; receipt remains `UPLOADED` |
-| Unknown/missing field | KIE | Normalized value=`null`, explicit value status, `needs_review=true`; receipt still reaches `NEEDS_REVIEW` |
+| Unknown/missing field | KIE | Normalized value=`null`, explicit value status, `machine_needs_review=true`; receipt still reaches `NEEDS_REVIEW` |
 
 ## 7. Security baseline
 

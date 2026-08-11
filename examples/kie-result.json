@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "receipt_id": "31915ef1-6fb4-4e7d-b6f5-53be51c50e3d",
   "kie_run_id": "d25e0b13-0a14-4f71-8dc4-edbc7be78232",
   "source_ocr_run_id": "b3ac8bb4-6383-4b97-9911-5a6900054608",
@@ -14,7 +14,7 @@
       "normalized_value": "WINMART+",
       "value_status": "PRESENT",
       "confidence": 0.98,
-      "needs_review": false,
+      "machine_needs_review": false,
       "review_reasons": [],
       "source_block_ids": ["block_0"]
     },
@@ -24,7 +24,7 @@
       "normalized_value": "2026-08-08",
       "value_status": "PRESENT",
       "confidence": 0.91,
-      "needs_review": false,
+      "machine_needs_review": false,
       "review_reasons": [],
       "source_block_ids": ["block_2"]
     },
@@ -35,7 +35,7 @@
       "currency": "VND",
       "value_status": "PRESENT",
       "confidence": 0.91,
-      "needs_review": false,
+      "machine_needs_review": false,
       "review_reasons": [],
       "source_block_ids": ["block_5"]
     },
@@ -45,7 +45,7 @@
       "normalized_value": "001238",
       "value_status": "PRESENT",
       "confidence": 0.84,
-      "needs_review": true,
+      "machine_needs_review": true,
       "review_reasons": ["LOW_CONFIDENCE"],
       "source_block_ids": ["block_3"]
     },
@@ -55,7 +55,7 @@
       "normalized_value": "12 NGUYỄN TRÃI",
       "value_status": "PRESENT",
       "confidence": 0.94,
-      "needs_review": false,
+      "machine_needs_review": false,
       "review_reasons": [],
       "source_block_ids": ["block_1"]
     }

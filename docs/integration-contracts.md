@@ -1,4 +1,4 @@
-# Shared Integration Contracts v1.2
+# Shared Integration Contracts v1.3
 
 The machine-readable definitions are in `schemas/`. This document fixes semantics that JSON Schema alone cannot explain.
 
@@ -15,8 +15,8 @@ The machine-readable definitions are in `schemas/`. This document fixes semantic
 | Money | Integer VND after safe normalization, e.g. `325000` |
 | Date | ISO `YYYY-MM-DD` after safe normalization |
 | Coordinates | Proposed normalized `[0,1]`, origin at image top-left, x right, y down; pending OCR sign-off |
-| Unknown properties | Rejected by v1.2 schemas (`additionalProperties: false`) |
-| Schema version | Exact string `1.2` in OCR/KIE documents |
+| Unknown properties | Rejected by v1.3 schemas (`additionalProperties: false`) |
+| Schema version | Exact string `1.3` in OCR/KIE documents |
 
 ## Canonical field names
 
@@ -40,9 +40,11 @@ Aliases such as `merchant`, `date`, `total` and `address` must not cross a modul
 | `predicted_value` | KIE | Selected business candidate before canonical normalization; string or `null` |
 | `normalized_value` | KIE | Safely normalized typed value; string/date/integer or `null` |
 | `corrected_value` | Backend/Human | Typed value explicitly supplied by a user; may be `null` when status is not `PRESENT` |
-| `effective_value` | Backend | Correction value when a correction exists, otherwise normalized value |
+| `effective_value` | Backend | `corrected_value` when `has_correction=true`; otherwise `normalized_value` |
 
 KIE never returns `corrected_value` or `effective_value`. Backend never rewrites KIE's `raw_text`, `predicted_value` or `normalized_value`.
+
+`effective_value` never falls back to `predicted_value`. An unnormalized or ambiguous prediction is useful evidence, but it is not an effective business value.
 
 ## Value status
 
@@ -106,7 +108,7 @@ KIE guarantees:
 - `raw_text` preserves source OCR text.
 - `predicted_value` is the selected, unnormalized candidate string.
 - `normalized_value` is populated only when a tested normalization rule succeeds.
-- Non-`PRESENT` statuses have `normalized_value=null` and `needs_review=true`.
+- Non-`PRESENT` statuses have `normalized_value=null` and `machine_needs_review=true`.
 - `source_block_ids` contains only IDs from the referenced OCR run.
 - `invoice_id` remains a string so leading zeroes are preserved.
 - `total_amount.normalized_value` is an integer VND when safely normalized.
@@ -126,7 +128,7 @@ Until such a rule is tested, return:
   "currency": "VND",
   "value_status": "AMBIGUOUS",
   "confidence": 0.4,
-  "needs_review": true,
+  "machine_needs_review": true,
   "review_reasons": ["AMBIGUOUS", "NORMALIZATION_FAILED"],
   "source_block_ids": ["block_5"]
 }
@@ -164,11 +166,23 @@ DELETE /api/v1/fields/{field_id}/correction
 
 Correction history stores both value and status transitions: `old_value`, `new_value`, `old_status`, `new_status`.
 
-## Review flag and provisional thresholds
+## Machine and effective review flags
 
-`needs_review` is the stable integration field. It is always true for `NOT_PRESENT`, `UNREADABLE`, `AMBIGUOUS`, `UNKNOWN`, normalization failure or format failure.
+KIE returns immutable `machine_needs_review`. It describes the machine result at the time of the KIE run and is true for unresolved `NOT_PRESENT`, `UNREADABLE`, `AMBIGUOUS`, `UNKNOWN`, normalization failure or format failure. Human actions never overwrite this historical flag.
 
-Confidence thresholds `0.60` and `0.85` are **provisional configuration only**. They have not been calibrated on VietReceipt evaluation data and are not acceptance criteria for contract v1.2. The thresholds must remain configurable/TBD until measured on a validation set.
+Backend returns `effective_needs_review`, which describes the field's current review state:
+
+1. It is `false` when the field or receipt has been verified.
+2. When `has_correction=true`, it is `false` for a resolved correction status (`PRESENT`, `NOT_PRESENT` or `UNREADABLE`) and `true` for `AMBIGUOUS` or `UNKNOWN`.
+3. Otherwise it equals `machine_needs_review`.
+
+Frontend uses `effective_needs_review` for current warning indicators. It may show `machine_needs_review` only as provenance/history.
+
+Confidence thresholds `0.60` and `0.85` are **provisional configuration only**. They have not been calibrated on VietReceipt evaluation data and are not acceptance criteria for contract v1.3. The thresholds must remain configurable/TBD until measured on a validation set.
+
+## Example-data disclaimer
+
+Values in `examples/` illustrate contract shape and linkage only. Confidence values, durations, engine/extractor names and versions, UUIDs, run IDs and block IDs are not benchmark results, production defaults, performance claims or evaluation evidence.
 
 ## Public API error envelope
 

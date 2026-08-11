@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: VietReceipt API
-  version: 1.2.0-draft
+  version: 1.3.0-draft
   description: API Contract v1 for the VietReceipt core workflow.
 servers:
   - url: http://localhost:8000/api/v1
@@ -653,7 +653,7 @@ components:
       additionalProperties: false
       required: [schema_version, receipt_id, ocr_run_id, engine, image, blocks, average_confidence, duration_ms]
       properties:
-        schema_version: {const: '1.2'}
+        schema_version: {const: '1.3'}
         receipt_id: {type: string, format: uuid}
         ocr_run_id: {type: string, format: uuid}
         engine: {$ref: '#/components/schemas/ComponentVersion'}
@@ -694,7 +694,8 @@ components:
         - effective_value
         - effective_status
         - confidence
-        - needs_review
+        - machine_needs_review
+        - effective_needs_review
         - review_reasons
         - source_block_ids
         - verified
@@ -715,12 +716,17 @@ components:
           description: Distinguishes no correction from an explicit null correction such as NOT_PRESENT.
         effective_value:
           $ref: '#/components/schemas/FieldValue'
-          description: corrected_value when has_correction=true, otherwise normalized_value.
+          description: corrected_value when has_correction=true, otherwise normalized_value. Never falls back to predicted_value.
         effective_status:
           $ref: '#/components/schemas/ValueStatus'
           description: corrected_status when has_correction=true, otherwise value_status.
         confidence: {type: number, minimum: 0, maximum: 1}
-        needs_review: {type: boolean}
+        machine_needs_review:
+          type: boolean
+          description: Immutable review signal produced by the KIE run.
+        effective_needs_review:
+          type: boolean
+          description: Current Backend-derived review state after correction and verification; Frontend uses this flag for warnings.
         review_reasons:
           type: array
           uniqueItems: true
