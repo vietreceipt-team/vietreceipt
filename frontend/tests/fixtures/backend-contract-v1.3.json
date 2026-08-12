@@ -1,7 +1,7 @@
 {
   "source": {
-    "branch": "feat/backend-w1-contract",
-    "commit": "119e740",
+    "branch": "docs/2-week1-backend-contract",
+    "commit": "8eb8ee6",
     "openapi_path": "openapi/openapi.yaml",
     "schema_version": "1.3"
   },
@@ -42,7 +42,7 @@
   "public_paths": {
     "upload": "/api/v1/receipts",
     "receipt": "/api/v1/receipts/{receipt_id}",
-    "field_correction": "/api/v1/receipts/{receipt_id}/fields/{field_name}",
+    "field_correction": "/api/v1/receipts/{receipt_id}/fields/{field_name}/correction",
     "verify": "/api/v1/receipts/{receipt_id}/verify"
   },
   "has_public_process_endpoint": false

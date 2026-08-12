@@ -22,8 +22,8 @@ export const apiPaths = {
   receipts: `${API_BASE_PATH}/receipts`,
   receipt: (receiptId: string) =>
     `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}`,
-  field: (receiptId: string, fieldName: FieldType) =>
-    `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}/fields/${encodePathSegment(fieldName)}`,
+  fieldCorrection: (receiptId: string, fieldName: FieldType) =>
+    `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}/fields/${encodePathSegment(fieldName)}/correction`,
   verifyReceipt: (receiptId: string) =>
     `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}/verify`,
 } as const;
@@ -53,26 +53,26 @@ export type FetchLike = (
 
 export function createApplyCorrectionRequest(
   field: Pick<ReceiptField, "updated_at">,
-  correctedValue: FieldValue,
-  correctedStatus: ValueStatus,
+  value: FieldValue,
+  valueStatus: ValueStatus,
 ): ApplyCorrectionRequest {
-  const isPresent = correctedStatus === "PRESENT";
+  const isPresent = valueStatus === "PRESENT";
   const hasPresentValue =
-    typeof correctedValue === "number" ||
-    (typeof correctedValue === "string" && correctedValue.trim().length > 0);
+    typeof value === "number" ||
+    (typeof value === "string" && value.trim().length > 0);
 
   if (isPresent !== hasPresentValue) {
     throw new Error(
       isPresent
-        ? "PRESENT requires a non-null string or integer corrected_value."
-        : `${correctedStatus} requires corrected_value null.`,
+        ? "PRESENT requires a non-null string or integer value."
+        : `${valueStatus} requires value null.`,
     );
   }
 
   return {
     operation: "APPLY",
-    corrected_status: correctedStatus,
-    corrected_value: correctedValue,
+    value_status: valueStatus,
+    value,
     expected_updated_at: field.updated_at,
   };
 }
@@ -117,11 +117,14 @@ export async function submitFieldCorrection(
   fieldName: FieldType,
   request: FieldCorrectionRequest,
 ): Promise<ReceiptField> {
-  const response = await fetcher(apiPaths.field(receiptId, fieldName), {
-    method: "PATCH",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(request),
-  });
+  const response = await fetcher(
+    apiPaths.fieldCorrection(receiptId, fieldName),
+    {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    },
+  );
   return parseResponse<ReceiptField>(response);
 }
 

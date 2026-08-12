@@ -41,13 +41,13 @@ Không commit project ID, token hoặc thông tin triển khai cá nhân vào re
 
 ## Contract được pin cho lần đồng bộ này
 
-Types, mocks, API adapter và tests bám theo `openapi/openapi.yaml` trên `feat/backend-w1-contract` tại commit `119e740`. Snapshot kiểm thử nằm tại `tests/fixtures/backend-contract-v1.3.json`; nếu contract team thay đổi, fixture và runtime constants phải được cập nhật cùng một commit.
+Types, mocks, API adapter và tests bám theo `openapi/openapi.yaml` trên `docs/2-week1-backend-contract` tại commit `8eb8ee6`. Snapshot kiểm thử nằm tại `tests/fixtures/backend-contract-v1.3.json`; nếu contract team thay đổi, fixture và runtime constants phải được cập nhật cùng một commit.
 
 - Receipt state: `UPLOADED`, `PROCESSING`, `NEEDS_REVIEW`, `VERIFIED`, `FAILED`; không còn `QUEUED`.
 - `POST /api/v1/receipts` tự kích hoạt xử lý; không có public `/process`.
 - `fields` là object có đúng năm key: `merchant_name`, `receipt_date`, `total_amount`, `invoice_id`, `merchant_address`.
-- Correction dùng `PATCH /receipts/{receipt_id}/fields/{field_name}`.
-- `APPLY` gửi `corrected_status`, `corrected_value`, `expected_updated_at`; `CLEAR` chỉ gửi `operation` và `expected_updated_at`.
+- Correction dùng `PATCH /receipts/{receipt_id}/fields/{field_name}/correction`.
+- `APPLY` gửi `value_status`, `value`, `expected_updated_at`; `CLEAR` chỉ gửi `operation` và `expected_updated_at`.
 - Verify gửi `expected_updated_at = receipt.updated_at`; stale field/receipt token trả `409`.
 - `review_reasons` dùng object `{ code, message? }` và enum KIE v1.1 trong contract.
 - `raw_text`, prediction, normalized, correction và effective projection được giữ riêng; effective value không fallback sang prediction chưa chuẩn hóa.

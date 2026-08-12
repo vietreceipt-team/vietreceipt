@@ -162,8 +162,8 @@ export interface ReceiptAccepted {
 
 export interface ApplyCorrectionRequest {
   operation: "APPLY";
-  corrected_status: ValueStatus;
-  corrected_value: FieldValue;
+  value_status: ValueStatus;
+  value: FieldValue;
   expected_updated_at: string;
 }
 

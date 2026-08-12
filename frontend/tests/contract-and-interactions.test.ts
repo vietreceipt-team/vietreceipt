@@ -50,8 +50,12 @@ test("runtime constants mirror the frozen Backend/KIE v1.3 fixture", () => {
   assert.equal(Object.hasOwn(apiPaths, "processReceipt"), false);
   assert.equal(apiPaths.receipts, contract.public_paths.upload);
   assert.equal(
-    apiPaths.field("receipt id", "total_amount"),
-    "/api/v1/receipts/receipt%20id/fields/total_amount",
+    contract.public_paths.field_correction,
+    "/api/v1/receipts/{receipt_id}/fields/{field_name}/correction",
+  );
+  assert.equal(
+    apiPaths.fieldCorrection("receipt id", "total_amount"),
+    "/api/v1/receipts/receipt%20id/fields/total_amount/correction",
   );
 });
 
@@ -68,8 +72,8 @@ test("creates exact APPLY, CLEAR and verify optimistic concurrency payloads", ()
     createApplyCorrectionRequest(totalField, 113000, "PRESENT"),
     {
       operation: "APPLY",
-      corrected_status: "PRESENT",
-      corrected_value: 113000,
+      value_status: "PRESENT",
+      value: 113000,
       expected_updated_at: totalField.updated_at,
     },
   );
@@ -88,7 +92,7 @@ test("creates exact APPLY, CLEAR and verify optimistic concurrency payloads", ()
   );
 });
 
-test("PATCH correction uses field_name path and serializes APPLY", async () => {
+test("PATCH correction uses canonical correction path and serializes APPLY", async () => {
   const calls: Array<{ input: string; init?: RequestInit }> = [];
   const request = createApplyCorrectionRequest(totalField, 113000, "PRESENT");
   const fetcher = async (input: string | URL | Request, init?: RequestInit) => {
@@ -109,7 +113,7 @@ test("PATCH correction uses field_name path and serializes APPLY", async () => {
   assert.equal(calls.length, 1);
   assert.equal(
     calls[0].input,
-    `/api/v1/receipts/${reviewReceipt.receipt_id}/fields/total_amount`,
+    `/api/v1/receipts/${reviewReceipt.receipt_id}/fields/total_amount/correction`,
   );
   assert.equal(calls[0].init?.method, "PATCH");
   assert.deepEqual(JSON.parse(String(calls[0].init?.body)), request);
