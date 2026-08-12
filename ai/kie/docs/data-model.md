@@ -4,7 +4,7 @@
 - **Version:** 1.1
 - **Owner:** Dao Minh Phuong
 - **Related issue:** #1
-- **Aligned contract:** Shared Integration Contracts v1.3
+- **Target shared contract:** Shared Integration Contracts v1.3; Backend schema sync pending
 
 ## 1. Purpose
 

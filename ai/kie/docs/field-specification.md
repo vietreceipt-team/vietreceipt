@@ -2,7 +2,7 @@
 
 - **Status:** Conditionally approved for implementation
 - **Document version:** 1.1
-- **Aligned contract:** Shared Integration Contracts v1.3 (Backend PR branch)
+- **Target shared contract:** Shared Integration Contracts v1.3; Backend JSON Schema/OpenAPI sync pending
 - **Owner:** Dao Minh Phuong
 - **Module:** KIE & Data Engineering
 - **Related issue:** #1
@@ -418,10 +418,10 @@ Ví dụ năm hai chữ số không được normalize trong v1:
 
 | Decision | Current position | Owner/action required |
 |---|---|---|
-| Canonical field names | Accepted: `merchant_name`, `receipt_date`, `total_amount`, `invoice_id`, `merchant_address` | All owners must use these names |
-| Value statuses | Accepted: `PRESENT`, `NOT_PRESENT`, `UNREADABLE`, `AMBIGUOUS`, `UNKNOWN` | Backend/KIE aligned |
-| Total canonical type | Accepted: non-negative JSON integer VND | Backend/KIE aligned |
-| Date canonical type | Accepted: ISO `YYYY-MM-DD` | Backend/KIE aligned |
+| Canonical field names | Accepted: `merchant_name`, `receipt_date`, `total_amount`, `invoice_id`, `merchant_address` | Backend/OCR/Frontend must mirror these names and remove interface aliases |
+| Value statuses | Accepted: `PRESENT`, `NOT_PRESENT`, `UNREADABLE`, `AMBIGUOUS`, `UNKNOWN` | Backend shared schema/API must mirror and enforce |
+| Total canonical type | Accepted: non-negative JSON integer VND | Backend shared schema/API must mirror and enforce |
+| Date canonical type | Accepted: ISO `YYYY-MM-DD` | Backend shared schema/API must mirror and enforce |
 | Run preservation | Accepted: immutable `ocr_run_id`, `kie_run_id` and `source_ocr_run_id` | OCR/KIE/Backend must implement append-only runs |
 | OCR polygon and coordinate convention | KIE Owner accepted: normalized four-point polygon ordered TL, TR, BR, BL after EXIF orientation | OCR Owner must confirm production and shared-schema enforcement |
 | OCR reading order | KIE Owner accepted: unique zero-based integer within OCR run | OCR Owner must confirm production and shared-schema enforcement |
@@ -447,7 +447,7 @@ Tài liệu có thể chuyển từ `Conditionally approved` sang `Approved` khi
 
 ## 8. Shared contract references
 
-Sau khi Backend contract PR được merge, machine-readable sources of truth là:
+Sau khi Backend contract PR đồng bộ các quyết định v1.1 và được merge, machine-readable sources of truth là:
 
 - `/schemas/kie-result.schema.json` cho KIE output;
 - `/schemas/ocr-result.schema.json` cho OCR input;
@@ -455,3 +455,5 @@ Sau khi Backend contract PR được merge, machine-readable sources of truth l�
 - `/docs/integration-contracts.md` cho semantics giữa các module.
 
 Không tạo một KIE schema thứ hai trong `ai/kie/` vì hai schema cạnh tranh sẽ dễ bị lệch. Nếu tài liệu này mâu thuẫn với shared JSON Schema/OpenAPI đã được tất cả owner sign-off, phải mở Issue và cập nhật contract qua PR thay vì tự sửa một phía.
+
+Cho tới khi việc đồng bộ hoàn tất, tài liệu này là semantic decision record của KIE Owner nhưng không được dùng để tuyên bố shared Backend/OCR contract đã freeze.
