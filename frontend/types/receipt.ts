@@ -1,6 +1,5 @@
 export const RECEIPT_STATUSES = [
   "UPLOADED",
-  "QUEUED",
   "PROCESSING",
   "NEEDS_REVIEW",
   "VERIFIED",
@@ -8,15 +7,6 @@ export const RECEIPT_STATUSES = [
 ] as const;
 
 export type ReceiptStatus = (typeof RECEIPT_STATUSES)[number];
-
-export const PROCESSING_STAGES = [
-  "PREPROCESSING",
-  "OCR",
-  "KIE",
-  "PERSISTING",
-] as const;
-
-export type ProcessingStage = (typeof PROCESSING_STAGES)[number];
 
 export const CORE_FIELD_TYPES = [
   "merchant_name",
@@ -46,18 +36,32 @@ export const VALUE_STATUSES = [
 
 export type ValueStatus = (typeof VALUE_STATUSES)[number];
 
-export const REVIEW_REASONS = [
+export const REVIEW_REASON_CODES = [
+  "NO_CANDIDATE",
   "LOW_CONFIDENCE",
-  "NOT_PRESENT",
-  "UNREADABLE",
-  "AMBIGUOUS",
-  "UNKNOWN",
+  "MULTIPLE_CANDIDATES",
+  "AMBIGUOUS_FORMAT",
+  "UNREADABLE_SOURCE",
+  "UNSUPPORTED_CURRENCY",
+  "NEGATIVE_AMOUNT",
+  "MISSING_DATE_COMPONENT",
+  "UNSUPPORTED_TWO_DIGIT_YEAR",
+  "SOURCE_ROLE_UNCLEAR",
   "NORMALIZATION_FAILED",
-  "FORMAT_INVALID",
 ] as const;
 
-export type ReviewReason = (typeof REVIEW_REASONS)[number];
+export type ReviewReasonCode = (typeof REVIEW_REASON_CODES)[number];
 export type FieldValue = string | number | null;
+
+export interface ReviewReason {
+  code: ReviewReasonCode;
+  message?: string;
+}
+
+export interface Normalization {
+  rule: string;
+  version: string;
+}
 
 export interface Point {
   x: number;
@@ -72,40 +76,68 @@ export interface OcrBlock {
   reading_order: number;
 }
 
-export interface ExtractedField {
-  field_id: string;
-  field_type: FieldType;
-  ocr_run_id: string;
-  kie_run_id: string;
+export interface MachineFieldState {
   raw_text: string | null;
   predicted_value: string | null;
   normalized_value: FieldValue;
   value_status: ValueStatus;
-  corrected_value: FieldValue;
-  corrected_status: ValueStatus | null;
-  has_correction: boolean;
-  effective_value: FieldValue;
-  effective_status: ValueStatus;
   confidence: number;
   machine_needs_review: boolean;
-  effective_needs_review: boolean;
   review_reasons: ReviewReason[];
+  normalization?: Normalization;
   source_block_ids: string[];
-  verified: boolean;
-  updated_at: string;
+  currency?: "VND";
 }
 
+export interface ReceiptField<TFieldName extends FieldType = FieldType> {
+  field_name: TFieldName;
+  machine: MachineFieldState;
+  has_correction: boolean;
+  corrected_status: ValueStatus | null;
+  corrected_value: FieldValue;
+  effective_status: ValueStatus;
+  effective_value: FieldValue;
+  effective_needs_review: boolean;
+  updated_at: string;
+  corrected_by?: string | null;
+  corrected_at?: string | null;
+}
+
+export type CanonicalFields = {
+  [TFieldName in FieldType]: ReceiptField<TFieldName>;
+};
+
 export interface ProcessingError {
-  stage: ProcessingStage;
   code: string;
   message: string;
-  retryable: boolean;
-  occurred_at: string;
+}
+
+export interface ReceiptDetail {
+  receipt_id: string;
+  status: ReceiptStatus;
+  latest_ocr_run_id?: string | null;
+  latest_kie_run_id?: string | null;
+  fields?: CanonicalFields;
+  processing_error?: ProcessingError | null;
+  created_at: string;
+  updated_at: string;
+  verified_by?: string | null;
+  verified_at?: string | null;
+
+  // Presentation evidence is returned by the future authenticated receipt view.
+  // It is kept separate from machine field values so the UI never reconstructs
+  // an "original" image from OCR/KIE output.
+  original_filename: string;
+  image_url?: string;
+  image_width_px?: number;
+  image_height_px?: number;
+  ocr_blocks?: OcrBlock[];
 }
 
 export interface ReceiptSummary {
   receipt_id: string;
   original_filename: string;
+  image_url?: string;
   status: ReceiptStatus;
   merchant_name?: string | null;
   receipt_date?: string | null;
@@ -122,60 +154,67 @@ export interface ReceiptPage {
   total_pages: number;
 }
 
-export interface ReceiptDetail {
+export interface ReceiptAccepted {
   receipt_id: string;
-  original_filename: string;
-  status: ReceiptStatus;
-  processing_stage: ProcessingStage | null;
-  image_url?: string;
-  image_width_px: number;
-  image_height_px: number;
-  latest_ocr_run_id?: string | null;
-  latest_kie_run_id?: string | null;
-  fields: ExtractedField[];
-  ocr_blocks: OcrBlock[];
-  last_error?: ProcessingError | null;
+  status: "UPLOADED" | "PROCESSING";
   created_at: string;
-  processed_at?: string | null;
-  verified_at?: string | null;
 }
 
-export interface ProcessAccepted {
-  receipt_id: string;
-  status: "QUEUED";
-}
-
-export interface FieldCorrectionRequest {
-  value: FieldValue;
-  value_status: ValueStatus;
+export interface ApplyCorrectionRequest {
+  operation: "APPLY";
+  corrected_status: ValueStatus;
+  corrected_value: FieldValue;
   expected_updated_at: string;
 }
 
-export interface CorrectionHistory {
-  correction_id: string;
-  field_id: string;
-  field_type: FieldType;
-  kie_run_id: string;
-  old_value: FieldValue;
-  new_value: FieldValue;
-  old_status: ValueStatus | null;
-  new_status: ValueStatus | null;
-  changed_by: string;
-  changed_at: string;
+export interface ClearCorrectionRequest {
+  operation: "CLEAR";
+  expected_updated_at: string;
+}
+
+export type FieldCorrectionRequest =
+  | ApplyCorrectionRequest
+  | ClearCorrectionRequest;
+
+export interface VerifyRequest {
+  expected_updated_at: string;
+}
+
+export interface VerifyResponse {
+  receipt_id: string;
+  status: "VERIFIED";
+  verified_by: string;
+  verified_at: string;
+  updated_at: string;
 }
 
 export interface ApiErrorResponse {
   error: {
     code: string;
     message: string;
-    details?: Record<string, unknown>;
-    request_id: string;
   };
 }
 
-export function getExtractedField(
+export function getExtractedField<TFieldName extends FieldType>(
   receipt: Pick<ReceiptDetail, "fields">,
-  fieldType: FieldType,
-): ExtractedField | undefined {
-  return receipt.fields.find((field) => field.field_type === fieldType);
+  fieldType: TFieldName,
+): ReceiptField<TFieldName> | undefined {
+  return receipt.fields?.[fieldType];
+}
+
+export function getSourceBlocksForField(
+  receipt: Pick<ReceiptDetail, "ocr_blocks">,
+  field: Pick<ReceiptField, "machine">,
+): OcrBlock[] {
+  const sourceIds = new Set(field.machine.source_block_ids);
+  return (receipt.ocr_blocks ?? []).filter((block) => sourceIds.has(block.block_id));
+}
+
+export function findFieldForSourceBlock(
+  fields: CanonicalFields,
+  blockId: string,
+): FieldType | undefined {
+  return CORE_FIELD_TYPES.find((fieldType) =>
+    fields[fieldType].machine.source_block_ids.includes(blockId),
+  );
 }

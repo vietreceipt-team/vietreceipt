@@ -9,11 +9,6 @@ const statusConfig: Record<
     className: "bg-slate-100 text-slate-700 ring-slate-200",
     dot: "bg-slate-400",
   },
-  QUEUED: {
-    label: "Đang chờ",
-    className: "bg-indigo-50 text-indigo-700 ring-indigo-200",
-    dot: "bg-indigo-500",
-  },
   PROCESSING: {
     label: "Đang xử lý",
     className: "bg-sky-50 text-sky-700 ring-sky-200",

@@ -22,7 +22,6 @@ import {
 import { mockReceiptPage } from "../../data/mock-receipts";
 import { StatusBadge } from "../../components/status-badge";
 import { ReceiptThumbnail } from "../../components/receipt-thumbnail";
-import { apiPaths } from "../../lib/vietreceipt-api";
 import type { ReceiptStatus, ReceiptSummary } from "../../types/receipt";
 
 type ReceiptTab = "ALL" | "NEEDS_REVIEW" | "IN_PROGRESS" | "VERIFIED" | "FAILED";
@@ -37,7 +36,7 @@ const tabLabels: Record<ReceiptTab, string> = {
   FAILED: "Thất bại",
 };
 
-const inProgressStatuses: ReceiptStatus[] = ["UPLOADED", "QUEUED", "PROCESSING"];
+const inProgressStatuses: ReceiptStatus[] = ["UPLOADED", "PROCESSING"];
 const pageSize = 5;
 const receiptSummaries = mockReceiptPage.items;
 
@@ -89,12 +88,8 @@ function ReviewState({ receipt }: { receipt: ReceiptSummary }) {
     );
   }
 
-  if (receipt.status === "QUEUED") {
-    return <p className="text-sm font-medium text-slate-600">Đang chờ trong hàng OCR</p>;
-  }
-
   if (receipt.status === "UPLOADED") {
-    return <p className="text-sm font-medium text-slate-600">Đã nhận tệp · Chưa bắt đầu xử lý</p>;
+    return <p className="text-sm font-medium text-slate-600">Đã nhận tệp · Backend sẽ tự kích hoạt xử lý</p>;
   }
 
   return (
@@ -324,7 +319,7 @@ export default function ReceiptsPage() {
                   <tr key={receipt.receipt_id} className={`group transition-colors hover:bg-slate-50/70 ${receipt.status === "NEEDS_REVIEW" ? "bg-teal-50/40 shadow-[inset_0_1px_0_rgb(204_251_241),inset_0_-1px_0_rgb(204_251_241)]" : ""}`}>
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
-                        <ReceiptThumbnail label={receipt.original_filename} src={apiPaths.receiptImage(receipt.receipt_id)} />
+                        <ReceiptThumbnail label={receipt.original_filename} src={receipt.image_url} />
                         <div className="min-w-0">
                           <p className="max-w-sm truncate text-sm font-semibold leading-5 text-slate-900">{receipt.original_filename}</p>
                           <p className="max-w-sm truncate text-xs font-normal uppercase leading-4 text-slate-500">{receipt.merchant_name ?? "Chưa có kết quả KIE"}</p>
