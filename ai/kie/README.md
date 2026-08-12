@@ -34,7 +34,7 @@ KIE nhận một immutable OCR run gồm:
 - image width/height;
 - OCR blocks có `block_id`, `text`, `polygon`, `confidence`, `reading_order`.
 
-Polygon/coordinate convention và reading-order rule vẫn cần OCR Owner sign-off. KIE không phụ thuộc trực tiếp vào raw object của một OCR engine cụ thể.
+KIE input contract dùng polygon bốn điểm normalized theo thứ tự top-left, top-right, bottom-right, bottom-left trên ảnh sau EXIF orientation; `reading_order` là integer duy nhất, zero-based trong OCR run. KIE Owner đã chấp nhận representation này; OCR Owner và shared OCR schema vẫn phải xác nhận/enforce trước khi freeze contract chung. KIE không phụ thuộc trực tiếp vào raw object của một OCR engine cụ thể.
 
 ## KIE-owned output
 
@@ -61,7 +61,7 @@ KIE không tạo:
 - `effective_needs_review`;
 - correction history.
 
-Backend giữ các lớp này tách khỏi machine output. `effective_value` dùng correction khi có, nếu không dùng `normalized_value`; không fallback sang `predicted_value`.
+Backend giữ các lớp này tách khỏi machine output. `effective_value` chỉ dùng correction/normalization khi effective status là `PRESENT`; mọi non-`PRESENT` effective status có value `null`. Giá trị hiệu lực không fallback sang `predicted_value`.
 
 ## Shared sources of truth
 
@@ -81,7 +81,11 @@ Không tạo schema KIE thứ hai trong module này. Contract conflict phải đ
 - Không ghi đè OCR raw, prediction hoặc normalization bằng correction.
 - JSON `null` biểu diễn giá trị không có; không dùng chuỗi `N/A` hoặc chuỗi rỗng.
 - Non-`PRESENT` phải có `normalized_value=null`.
+- `PRESENT` phải có ít nhất một source block thuộc `source_ocr_run_id`.
+- `machine_needs_review=true` phải có ít nhất một versioned review reason code.
+- `raw_text` ghép nguyên văn source blocks theo `reading_order` bằng `\n`.
 - Rule-based inference phải có version và test.
+- V1 không suy luận năm hai chữ số; trường hợp này là `AMBIGUOUS` và normalized value `null`.
 - Keyword/regex match chỉ tạo candidate, không tự quyết định ground truth.
 - Không commit ảnh hóa đơn thật hoặc dữ liệu nhạy cảm chưa được phép.
 

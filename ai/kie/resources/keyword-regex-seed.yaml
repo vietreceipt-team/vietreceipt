@@ -1,6 +1,6 @@
 metadata:
   name: vietreceipt-five-field-keyword-regex-seed
-  version: '1.0'
+  version: '1.1'
   status: seed-only
   owner: Dao Minh Phuong
   language: vi
@@ -54,7 +54,7 @@ canonical_fields:
       - email
     layout_hints:
       - Prefer prominent text near the receipt header.
-      - Prefer customer-facing brand over legal entity when the policy is applicable.
+      - Prefer customer-facing brand over legal entity; use legal entity only when no brand exists.
       - Do not infer a name from a logo without readable text.
     regex_candidates:
       - id: merchant_legal_or_store_prefix
@@ -91,15 +91,15 @@ canonical_fields:
       - Keep multiple plausible dates as AMBIGUOUS instead of choosing by position alone.
     regex_candidates:
       - id: numeric_date_four_digit_year
-        pattern: '\b(?:0?[1-9]|[12]\d|3[01])[\/.-](?:0?[1-9]|1[0-2])[\/.-](?:19|20)\d{2}\b'
+        pattern: '\b(?:0?[1-9]|[12]\d|3[01])[\/.-](?:0?[1-9]|[12]\d|3[01])[\/.-](?:19|20)\d{2}\b'
         flags:
           - UNICODE
-        usage: Candidate only; calendar validity and date role still require validation.
+        usage: Candidate only; apply the approved locale/order rule, then validate the calendar date and date role.
       - id: numeric_date_two_digit_year_requires_review
-        pattern: '\b(?:0?[1-9]|[12]\d|3[01])[\/.-](?:0?[1-9]|1[0-2])[\/.-]\d{2}\b'
+        pattern: '\b(?:0?[1-9]|[12]\d|3[01])[\/.-](?:0?[1-9]|[12]\d|3[01])[\/.-]\d{2}\b'
         flags:
           - UNICODE
-        usage: Always requires review until the team approves a two-digit-year rule.
+        usage: Always AMBIGUOUS with normalized_value null in v1; use review reason UNSUPPORTED_TWO_DIGIT_YEAR.
       - id: iso_date_candidate
         pattern: '\b(?:19|20)\d{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])\b'
         flags:

@@ -1,7 +1,7 @@
 # VietReceipt Annotation Guidelines for Five Core Fields
 
 - **Status:** Ready for annotation pilot
-- **Version:** 1.0
+- **Version:** 1.1
 - **Owner:** Dao Minh Phuong
 - **Related issue:** #1
 - **Scope:** Five core receipt fields only
@@ -198,15 +198,17 @@ Chạy checklist cuối tài liệu trước khi submit annotation.
 ### Merchant name
 
 - Ưu tiên customer-facing brand ở header.
+- Nếu có cả brand và legal entity, chọn brand; chỉ dùng legal entity khi không có brand.
 - Không chọn tên khách hàng, ngân hàng hoặc cổng thanh toán.
-- Nếu brand và legal entity đều hợp lý nhưng không xác định được chính sách áp dụng, dùng `AMBIGUOUS` và đưa vào adjudication.
+- Nếu sau khi áp dụng thứ tự ưu tiên vẫn không xác định được người bán chính, dùng `AMBIGUOUS` và đưa vào adjudication.
 
 ### Receipt date
 
 - Chọn ngày giao dịch/bán hàng/thanh toán theo ngữ cảnh.
 - Không chọn hạn đổi trả hoặc ngày chương trình thành viên.
 - Canonical form là `YYYY-MM-DD`.
-- Không tự suy năm bị thiếu hoặc năm hai chữ số khi chưa có rule được duyệt.
+- Nhãn giao dịch tiếng Việt cho phép áp dụng rule `DD/MM/YYYY`; nếu không có bằng chứng locale, chỉ normalize khi calendar cho phép đúng một thứ tự.
+- Không tự suy năm bị thiếu. Năm hai chữ số luôn dùng `AMBIGUOUS`, `normalized_value=null` và đưa vào review trong v1.
 
 ### Total amount
 
@@ -274,6 +276,6 @@ Không sửa im lặng annotation cũ mà không lưu audit record.
 ## 12. Pending owner confirmations
 
 - **NOTE — OCR Owner:** xác nhận polygon, coordinate convention, reading order và tính duy nhất của `block_id`.
-- **NOTE — KIE + Backend:** xác nhận schema enforce `review_reasons` không rỗng khi machine review là true.
-- **NOTE — Team:** khóa rule cho năm hai chữ số sau annotation pilot; trước thời điểm đó không tự suy diễn.
-- **NOTE — Team:** xác nhận chính sách brand/legal entity dựa trên mẫu hóa đơn thực tế.
+- **NOTE — Backend Owner:** mirror rule `review_reasons` không rỗng khi machine review là true trong shared schema.
+- **DECIDED — KIE Owner:** v1 không suy luận năm hai chữ số; mọi policy tương lai phải có version mới và contract tests.
+- **DECIDED — KIE Owner:** ưu tiên customer-facing brand, chỉ dùng legal entity khi không có brand; annotation pilot dùng để thu thập edge case, không thay đổi ngầm policy.

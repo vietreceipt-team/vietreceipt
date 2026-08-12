@@ -1,7 +1,7 @@
 # VietReceipt KIE Data Model and ER Draft
 
 - **Status:** Draft for cross-owner sign-off
-- **Version:** 1.0
+- **Version:** 1.1
 - **Owner:** Dao Minh Phuong
 - **Related issue:** #1
 - **Aligned contract:** Shared Integration Contracts v1.3
@@ -94,6 +94,9 @@ erDiagram
         decimal confidence
         boolean machine_needs_review
         json review_reasons
+        string normalization_rule
+        string normalization_version
+        string review_policy_version
         datetime updated_at
     }
 
@@ -147,12 +150,14 @@ Thuộc tính nghiệp vụ chính:
 
 Đại diện cho một vùng text OCR.
 
-Invariants đề xuất:
+KIE input-contract invariants:
 
 - `block_id` duy nhất trong một `ocr_run_id`;
-- `reading_order` duy nhất và zero-based trong OCR run sau OCR Owner sign-off;
-- polygon có đúng bốn điểm normalized sau OCR Owner sign-off;
+- `reading_order` là integer duy nhất và zero-based trong OCR run;
+- polygon có đúng bốn điểm normalized theo thứ tự top-left, top-right, bottom-right, bottom-left, tính trên ảnh sau EXIF orientation;
 - text và confidence không bị KIE hoặc Backend sửa.
+
+KIE Owner đã chấp nhận các invariants trên làm input contract. OCR Owner vẫn phải xác nhận khả năng sản xuất và shared OCR schema phải enforce trước khi freeze contract chung.
 
 Khóa database nội bộ có thể là UUID riêng hoặc composite key. Public contract chỉ cần `block_id` ổn định trong run.
 
@@ -174,7 +179,12 @@ Invariants:
 - unique `(kie_run_id, field_type)`;
 - một completed KIE run có đúng năm canonical field types;
 - `raw_text`, `predicted_value`, `normalized_value`, `value_status`, `confidence`, `machine_needs_review` và `review_reasons` là immutable machine result;
+- `raw_text` là OCR block text không chỉnh sửa, ghép theo `reading_order` bằng `\n`;
 - non-`PRESENT` có `normalized_value=null`;
+- `PRESENT` có ít nhất một source block thuộc `source_ocr_run_id`;
+- `machine_needs_review=true` có ít nhất một review reason code;
+- normalized value khác `null` truy vết được normalization rule/version;
+- machine review decision truy vết được `review_policy_version`;
 - `total_amount` khi `PRESENT` là non-negative integer VND;
 - `receipt_date` khi `PRESENT` là ISO `YYYY-MM-DD`;
 - `invoice_id` luôn được biểu diễn bằng string để giữ số 0 đầu.
@@ -220,13 +230,15 @@ Backend public API có thể trả một projection kết hợp machine result v
 ```text
 has_correction = có active human correction
 
-effective_value =
-    corrected_value, nếu has_correction = true
-    normalized_value, nếu has_correction = false
+nếu has_correction = true:
+    effective_status = corrected_status
+    effective_value = corrected_value, nếu corrected_status = PRESENT
+                      null,            nếu corrected_status != PRESENT
 
-effective_status =
-    corrected_status, nếu has_correction = true
-    value_status, nếu has_correction = false
+nếu has_correction = false:
+    effective_status = value_status
+    effective_value = normalized_value, nếu value_status = PRESENT
+                      null,             nếu value_status != PRESENT
 ```
 
 `effective_value` không fallback sang `predicted_value`.
@@ -314,10 +326,12 @@ Ground truth không dùng các tên `predicted_value` hoặc `corrected_value`. 
 Backend Owner cân nhắc các constraints/indexes sau khi thiết kế SQL schema:
 
 - unique `(ocr_run_id, block_id)`;
-- unique `(ocr_run_id, reading_order)` sau OCR sign-off;
+- unique `(ocr_run_id, reading_order)`;
 - unique `(kie_run_id, field_type)`;
 - foreign key bảo đảm KIE source run thuộc cùng receipt;
 - foreign key/join validation bảo đảm source blocks thuộc source OCR run;
+- check/schema constraint bảo đảm `PRESENT` có ít nhất một source block;
+- check/schema validation bảo đảm machine review có ít nhất một review reason;
 - index receipt theo `(user_id, status, created_at)`;
 - index normalized merchant/date/total phục vụ search sau khi verified;
 - index correction history theo `(field_id, changed_at)`.
@@ -337,7 +351,7 @@ Không index hoặc log raw receipt text rộng hơn nhu cầu nghiệp vụ n�
 - [ ] Backend xác nhận entity boundaries và effective-value projection.
 - [ ] Backend xác nhận correction concurrency/audit strategy.
 - [ ] OCR xác nhận polygon, coordinate system, `block_id` và `reading_order`.
-- [ ] KIE xác nhận đúng năm fields, run linkage và source-block mapping.
+- [x] KIE xác nhận đúng năm fields, run linkage và source-block mapping.
 - [ ] Frontend xác nhận có đủ dữ liệu cho bidirectional highlighting và review state.
 - [ ] DevOps xác nhận storage/queue không trở thành source of truth cho business state.
 
