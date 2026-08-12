@@ -1,6 +1,6 @@
 metadata:
   name: vietreceipt-five-field-keyword-regex-seed
-  version: '1.1'
+  version: '1.2'
   status: seed-only
   owner: Dao Minh Phuong
   language: vi
@@ -266,14 +266,14 @@ candidate_resolution:
     - Normalize only when deterministic and safe.
     - Return AMBIGUOUS or UNKNOWN instead of guessing.
   review_reason_seeds:
-  - NO_CANDIDATE
-  - LOW_CONFIDENCE
-  - MULTIPLE_CANDIDATES
-  - AMBIGUOUS_FORMAT
-  - UNREADABLE_SOURCE
-  - UNSUPPORTED_CURRENCY
-  - NEGATIVE_AMOUNT
-  - MISSING_DATE_COMPONENT
-  - UNSUPPORTED_TWO_DIGIT_YEAR
-  - SOURCE_ROLE_UNCLEAR
-  - NORMALIZATION_FAILED
+    - NO_CANDIDATE
+    - LOW_CONFIDENCE
+    - MULTIPLE_CANDIDATES
+    - AMBIGUOUS_FORMAT
+    - UNREADABLE_SOURCE
+    - UNSUPPORTED_CURRENCY
+    - NEGATIVE_AMOUNT
+    - MISSING_DATE_COMPONENT
+    - UNSUPPORTED_TWO_DIGIT_YEAR
+    - SOURCE_ROLE_UNCLEAR
+    - NORMALIZATION_FAILED
