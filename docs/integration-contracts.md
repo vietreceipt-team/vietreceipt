@@ -186,7 +186,7 @@ Values in `examples/` illustrate contract shape and linkage only. Confidence val
 
 ## Ground-truth annotation contract
 
-Human dataset annotations use `docs/field-specification.md`, `schemas/annotation-record.schema.json` and `examples/annotation-record.example.json`.
+Human dataset annotations use `docs/annotation-contract.md`, `schemas/annotation-record.schema.json` and `examples/annotation-record.example.json`. Field meaning and annotation decisions remain owned by `ai/kie/docs/field-specification.md` and `ai/kie/docs/annotation-guidelines.md` v1.1.
 
 This is intentionally separate from KIE runtime output:
 
@@ -198,7 +198,7 @@ This is intentionally separate from KIE runtime output:
 | `candidate_values` | No direct field | Annotation alternatives are evaluation evidence, not a selected prediction |
 | No confidence/review flag | `confidence`, `machine_needs_review` | Ground truth must not claim machine confidence |
 
-Both contracts use the same five canonical field names and typed normalized values. Annotation `source_block_ids` must refer to blocks in its exact `source_ocr_run_id`.
+Both contracts use the same five canonical field names and typed normalized values. Annotation evidence is explicit through `evidence_status`; `OCR_OMISSION` permits a human-visible `PRESENT` field with no OCR block. When block IDs are supplied, they must exist in the exact `source_ocr_run_id`.
 
 ## Public API error envelope
 

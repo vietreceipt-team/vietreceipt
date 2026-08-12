@@ -8,6 +8,9 @@
     "record_type",
     "annotation_schema_version",
     "guideline_version",
+    "annotation_id",
+    "batch_id",
+    "dataset_snapshot",
     "example_only",
     "data_provenance",
     "receipt_id",
@@ -19,7 +22,10 @@
   "properties": {
     "record_type": {"const": "five-field-ground-truth-annotation"},
     "annotation_schema_version": {"const": "1.0"},
-    "guideline_version": {"type": "string", "minLength": 1, "maxLength": 32},
+    "guideline_version": {"const": "1.1"},
+    "annotation_id": {"type": "string", "format": "uuid"},
+    "batch_id": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "dataset_snapshot": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
     "example_only": {"type": "boolean"},
     "data_provenance": {"type": "string", "minLength": 1, "maxLength": 500},
     "receipt_id": {"type": "string", "format": "uuid"},
@@ -29,13 +35,7 @@
     "fields": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "merchant_name",
-        "receipt_date",
-        "total_amount",
-        "invoice_id",
-        "merchant_address"
-      ],
+      "required": ["merchant_name", "receipt_date", "total_amount", "invoice_id", "merchant_address"],
       "properties": {
         "merchant_name": {"$ref": "#/$defs/merchantNameAnnotation"},
         "receipt_date": {"$ref": "#/$defs/receiptDateAnnotation"},
@@ -56,77 +56,143 @@
       "type": "string",
       "enum": ["PRESENT", "NOT_PRESENT", "UNREADABLE", "AMBIGUOUS", "UNKNOWN"]
     },
+    "evidenceStatus": {
+      "type": "string",
+      "enum": ["OCR_LINKED", "OCR_OMISSION", "NO_OCR_EVIDENCE"]
+    },
     "sourceBlockIds": {
       "type": "array",
       "uniqueItems": true,
       "items": {"type": "string", "minLength": 1, "maxLength": 64}
     },
-    "stringStatusRules": {
+    "evidenceRules": {
+      "allOf": [
+        {
+          "if": {"type": "object", "properties": {"evidence_status": {"const": "OCR_LINKED"}}},
+          "then": {"type": "object", "properties": {"source_block_ids": {"type": "array", "minItems": 1}}}
+        },
+        {
+          "if": {"type": "object", "properties": {"evidence_status": {"const": "OCR_OMISSION"}}},
+          "then": {
+            "type": "object",
+            "properties": {
+              "source_block_ids": {"type": "array", "maxItems": 0},
+              "annotator_note": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        {
+          "if": {"type": "object", "properties": {"evidence_status": {"const": "NO_OCR_EVIDENCE"}}},
+          "then": {"type": "object", "properties": {"source_block_ids": {"type": "array", "maxItems": 0}}}
+        }
+      ]
+    },
+    "statusRules": {
       "allOf": [
         {
           "if": {"type": "object", "properties": {"annotation_status": {"const": "PRESENT"}}},
           "then": {
             "type": "object",
             "properties": {
+              "evidence_status": {"enum": ["OCR_LINKED", "OCR_OMISSION"]},
               "transcribed_value": {"type": "string", "minLength": 1},
-              "normalized_value": {"type": "string", "minLength": 1},
-              "source_block_ids": {"type": "array", "minItems": 1}
+              "normalized_value": {"not": {"type": "null"}},
+              "candidate_values": {"type": "array", "maxItems": 0}
             }
-          },
-          "else": {"type": "object", "properties": {"normalized_value": {"type": "null"}}}
+          }
+        },
+        {
+          "if": {"type": "object", "properties": {"annotation_status": {"const": "NOT_PRESENT"}}},
+          "then": {
+            "type": "object",
+            "properties": {
+              "evidence_status": {"const": "NO_OCR_EVIDENCE"},
+              "transcribed_value": {"type": "null"},
+              "normalized_value": {"type": "null"},
+              "source_block_ids": {"type": "array", "maxItems": 0},
+              "candidate_values": {"type": "array", "maxItems": 0}
+            }
+          }
+        },
+        {
+          "if": {"type": "object", "properties": {"annotation_status": {"const": "UNREADABLE"}}},
+          "then": {
+            "type": "object",
+            "properties": {
+              "evidence_status": {"enum": ["OCR_LINKED", "NO_OCR_EVIDENCE"]},
+              "normalized_value": {"type": "null"},
+              "candidate_values": {"type": "array", "maxItems": 0},
+              "annotator_note": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        {
+          "if": {"type": "object", "properties": {"annotation_status": {"const": "AMBIGUOUS"}}},
+          "then": {
+            "type": "object",
+            "properties": {
+              "normalized_value": {"type": "null"},
+              "candidate_values": {"type": "array", "minItems": 1},
+              "annotator_note": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        {
+          "if": {"type": "object", "properties": {"annotation_status": {"const": "UNKNOWN"}}},
+          "then": {
+            "type": "object",
+            "properties": {
+              "evidence_status": {"const": "NO_OCR_EVIDENCE"},
+              "transcribed_value": {"type": "null"},
+              "normalized_value": {"type": "null"},
+              "source_block_ids": {"type": "array", "maxItems": 0},
+              "candidate_values": {"type": "array", "maxItems": 0},
+              "annotator_note": {"type": "string", "minLength": 1}
+            }
+          }
         }
       ]
     },
     "merchantNameAnnotation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["field_name", "annotation_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
+      "required": ["field_name", "annotation_status", "evidence_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
       "properties": {
         "field_name": {"const": "merchant_name"},
         "annotation_status": {"$ref": "#/$defs/annotationStatus"},
+        "evidence_status": {"$ref": "#/$defs/evidenceStatus"},
         "transcribed_value": {"type": ["string", "null"], "minLength": 1},
         "normalized_value": {"type": ["string", "null"], "minLength": 1},
         "source_block_ids": {"$ref": "#/$defs/sourceBlockIds"},
         "candidate_values": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "annotator_note": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000}
       },
-      "allOf": [{"$ref": "#/$defs/stringStatusRules"}]
+      "allOf": [{"$ref": "#/$defs/evidenceRules"}, {"$ref": "#/$defs/statusRules"}]
     },
     "receiptDateAnnotation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["field_name", "annotation_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
+      "required": ["field_name", "annotation_status", "evidence_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
       "properties": {
         "field_name": {"const": "receipt_date"},
         "annotation_status": {"$ref": "#/$defs/annotationStatus"},
+        "evidence_status": {"$ref": "#/$defs/evidenceStatus"},
         "transcribed_value": {"type": ["string", "null"], "minLength": 1},
         "normalized_value": {"type": ["string", "null"], "format": "date"},
         "source_block_ids": {"$ref": "#/$defs/sourceBlockIds"},
         "candidate_values": {"type": "array", "uniqueItems": true, "items": {"type": "string", "format": "date"}},
         "annotator_note": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000}
       },
-      "allOf": [
-        {
-          "if": {"type": "object", "properties": {"annotation_status": {"const": "PRESENT"}}},
-          "then": {
-            "type": "object",
-            "properties": {
-              "transcribed_value": {"type": "string", "minLength": 1},
-              "normalized_value": {"type": "string", "format": "date"},
-              "source_block_ids": {"type": "array", "minItems": 1}
-            }
-          },
-          "else": {"type": "object", "properties": {"normalized_value": {"type": "null"}}}
-        }
-      ]
+      "allOf": [{"$ref": "#/$defs/evidenceRules"}, {"$ref": "#/$defs/statusRules"}]
     },
     "totalAmountAnnotation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["field_name", "annotation_status", "transcribed_value", "normalized_value", "currency", "source_block_ids", "candidate_values", "annotator_note"],
+      "required": ["field_name", "annotation_status", "evidence_status", "transcribed_value", "normalized_value", "currency", "source_block_ids", "candidate_values", "annotator_note"],
       "properties": {
         "field_name": {"const": "total_amount"},
         "annotation_status": {"$ref": "#/$defs/annotationStatus"},
+        "evidence_status": {"$ref": "#/$defs/evidenceStatus"},
         "transcribed_value": {"type": ["string", "null"], "minLength": 1},
         "normalized_value": {"type": ["integer", "null"], "minimum": 0},
         "currency": {"const": "VND"},
@@ -134,50 +200,39 @@
         "candidate_values": {"type": "array", "uniqueItems": true, "items": {"type": "integer", "minimum": 0}},
         "annotator_note": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000}
       },
-      "allOf": [
-        {
-          "if": {"type": "object", "properties": {"annotation_status": {"const": "PRESENT"}}},
-          "then": {
-            "type": "object",
-            "properties": {
-              "transcribed_value": {"type": "string", "minLength": 1},
-              "normalized_value": {"type": "integer", "minimum": 0},
-              "source_block_ids": {"type": "array", "minItems": 1}
-            }
-          },
-          "else": {"type": "object", "properties": {"normalized_value": {"type": "null"}}}
-        }
-      ]
+      "allOf": [{"$ref": "#/$defs/evidenceRules"}, {"$ref": "#/$defs/statusRules"}]
     },
     "invoiceIdAnnotation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["field_name", "annotation_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
+      "required": ["field_name", "annotation_status", "evidence_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
       "properties": {
         "field_name": {"const": "invoice_id"},
         "annotation_status": {"$ref": "#/$defs/annotationStatus"},
+        "evidence_status": {"$ref": "#/$defs/evidenceStatus"},
         "transcribed_value": {"type": ["string", "null"], "minLength": 1},
         "normalized_value": {"type": ["string", "null"], "minLength": 1},
         "source_block_ids": {"$ref": "#/$defs/sourceBlockIds"},
         "candidate_values": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "annotator_note": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000}
       },
-      "allOf": [{"$ref": "#/$defs/stringStatusRules"}]
+      "allOf": [{"$ref": "#/$defs/evidenceRules"}, {"$ref": "#/$defs/statusRules"}]
     },
     "merchantAddressAnnotation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["field_name", "annotation_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
+      "required": ["field_name", "annotation_status", "evidence_status", "transcribed_value", "normalized_value", "source_block_ids", "candidate_values", "annotator_note"],
       "properties": {
         "field_name": {"const": "merchant_address"},
         "annotation_status": {"$ref": "#/$defs/annotationStatus"},
+        "evidence_status": {"$ref": "#/$defs/evidenceStatus"},
         "transcribed_value": {"type": ["string", "null"], "minLength": 1},
         "normalized_value": {"type": ["string", "null"], "minLength": 1},
         "source_block_ids": {"$ref": "#/$defs/sourceBlockIds"},
         "candidate_values": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "annotator_note": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000}
       },
-      "allOf": [{"$ref": "#/$defs/stringStatusRules"}]
+      "allOf": [{"$ref": "#/$defs/evidenceRules"}, {"$ref": "#/$defs/statusRules"}]
     }
   }
 }
