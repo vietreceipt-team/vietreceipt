@@ -1,6 +1,6 @@
 # VietReceipt - Week 1 Backend Contract Pack
 
-Status: **Draft v1.3 - KIE re-review requested**
+Status: **Draft v1.3 - integration re-review requested**
 Owner: Backend / System Architecture
 Scope: Core receipt digitization flow with five fields: `merchant_name`, `receipt_date`, `total_amount`, `invoice_id`, `merchant_address`.
 
@@ -28,12 +28,14 @@ Scope: Core receipt digitization flow with five fields: `merchant_name`, `receip
 - Architecture: modular monolith with a separate background worker.
 - Frontend communicates only with FastAPI through REST/JSON; image upload uses `multipart/form-data`.
 - Long-running OCR/KIE work is asynchronous. Frontend polls receipt status; it never calls OCR/KIE directly.
+- Backend automatically schedules processing after upload; Frontend does not call a public `/process` endpoint.
+- The public receipt lifecycle contains exactly `UPLOADED`, `PROCESSING`, `NEEDS_REVIEW`, `VERIFIED` and `FAILED`; queue state is internal.
 - Backend API and worker share Python domain packages and Pydantic models.
 - Worker receives only a `receipt_id`; it loads image metadata/storage key from PostgreSQL, downloads the image, then invokes OCR and KIE.
 - PostgreSQL is the source of truth for metadata, status, OCR blocks, extracted fields and correction history.
 - MinIO/S3-compatible storage is the source of truth for receipt image bytes.
 - Redis/Celery is the proposed task transport for the first deployed version. The domain contract does not depend on Celery and may be executed synchronously in tests.
-- Receipt, user and database entity identifiers are UUID strings. OCR `block_id` is an opaque string unique within one receipt (for example `block_12`).
+- Receipt, user and database entity identifiers are UUID strings. OCR `block_id` is an opaque string unique within one OCR run (for example `block_12`). A later OCR run may reuse the same local block IDs.
 - Timestamps are RFC 3339 UTC strings, for example `2026-08-10T08:30:00Z`.
 - OCR coordinates are normalized to `[0, 1]`, relative to the exact image dimensions returned in the OCR result.
 - `total_amount` is a non-negative integer in VND; `receipt_date` is ISO `YYYY-MM-DD`; unavailable values use `null` plus an explicit status.
@@ -41,6 +43,7 @@ Scope: Core receipt digitization flow with five fields: `merchant_name`, `receip
 - A KIE field may reference multiple OCR blocks through `source_block_ids`.
 - OCR and KIE runs are immutable and linked through `ocr_run_id`, `kie_run_id` and `source_ocr_run_id`.
 - Raw, predicted, normalized, corrected and effective values have distinct owners and semantics.
+- Public correction addressing uses a canonical field name and one `APPLY`/`CLEAR` request contract. Correction and verification reject stale `expected_updated_at` tokens with HTTP `409`.
 
 ## Items requiring OCR/KIE sign-off
 

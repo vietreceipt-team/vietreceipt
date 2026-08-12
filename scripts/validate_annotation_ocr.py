@@ -26,7 +26,13 @@ def linkage_errors(annotation: dict[str, Any], ocr_result: dict[str, Any]) -> li
 
     block_ids = [block.get("block_id") for block in ocr_result.get("blocks", [])]
     if len(block_ids) != len(set(block_ids)):
-        errors.append("ocr.blocks contains duplicate block_id values")
+        errors.append("ocr.blocks contains duplicate block_id values within one OCR run")
+
+    reading_orders = [block.get("reading_order") for block in ocr_result.get("blocks", [])]
+    if len(reading_orders) != len(set(reading_orders)):
+        errors.append("ocr.blocks contains duplicate reading_order values within one OCR run")
+    if sorted(reading_orders) != list(range(len(reading_orders))):
+        errors.append("ocr.blocks reading_order must be zero-based and contiguous within one OCR run")
 
     known_block_ids = set(block_ids)
     for field_key, field in annotation.get("fields", {}).items():

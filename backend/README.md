@@ -24,13 +24,14 @@ Backend cung cấp REST API, quản lý vòng đời hóa đơn và điều ph�
 ## Trạng thái hóa đơn
 
 - `UPLOADED`
-- `QUEUED`
 - `PROCESSING`
 - `NEEDS_REVIEW`
 - `VERIFIED`
 - `FAILED`
 
 Chuyển trạng thái hợp lệ được định nghĩa tại `../docs/receipt-state-machine.md`.
+
+Backend tự động lên lịch xử lý sau khi upload thành công. `QUEUED` chỉ là trạng thái nội bộ của queue, không phải trạng thái hóa đơn công khai; Frontend không gọi `/process`.
 
 ## Contract
 
@@ -54,5 +55,6 @@ Chuyển trạng thái hợp lệ được định nghĩa tại `../docs/receipt
 - Giữ nguyên `machine_needs_review` từ KIE và tính `effective_needs_review` sau correction/verification để Frontend hiển thị trạng thái hiện tại.
 - Tính `effective_value` từ `corrected_value` khi có correction, nếu không dùng `normalized_value`; không fallback sang `predicted_value`.
 - Correction history phải lưu cả thay đổi value và value status.
+- API correction dùng canonical field name và một payload `APPLY`/`CLEAR`; correction và verify đều kiểm tra `expected_updated_at` để chống ghi đè thay đổi mới hơn.
 - Chỉ dữ liệu `VERIFIED` được export chính thức theo mặc định.
 - Mọi thay đổi contract phải cập nhật OpenAPI, JSON Schema, ví dụ và consumer test trong cùng Pull Request.

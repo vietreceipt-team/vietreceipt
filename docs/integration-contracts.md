@@ -6,7 +6,7 @@ The machine-readable definitions are in `schemas/`. This document fixes semantic
 
 | Concern | Convention |
 | --- | --- |
-| Entity IDs | Receipt, field, correction and run IDs are UUID strings |
+| Entity IDs | Receipt, correction and run IDs are UUID strings; public field addressing uses the canonical field name |
 | OCR block ID | Opaque string unique within one OCR run, e.g. `block_12` |
 | Time | RFC 3339 UTC, suffix `Z` |
 | Encoding | UTF-8 |
@@ -65,7 +65,7 @@ Backend stores:
 - `has_correction` to distinguish no correction from an explicit null correction;
 - derived `effective_status`.
 
-An explicit `{ "value_status": "NOT_PRESENT", "value": null }` is a real correction. Clearing a correction is a separate DELETE operation and falls back to the machine result.
+An `APPLY` request with `{ "value_status": "NOT_PRESENT", "value": null }` is a real correction. A `CLEAR` request removes the correction and falls back to the immutable KIE normalized result. Both operations use the same canonical field-name endpoint.
 
 ## OCR input and output
 
@@ -185,6 +185,7 @@ Apply a correction:
 
 ```json
 {
+  "operation": "APPLY",
   "value": null,
   "value_status": "NOT_PRESENT",
   "expected_updated_at": "2026-08-10T08:30:00Z"
@@ -193,13 +194,30 @@ Apply a correction:
 
 This means the user confirmed that the field does not exist. It does not clear the correction.
 
-Clear the correction and fall back to the KIE result:
+Clear the correction through the same endpoint and fall back to the KIE result:
 
-```text
-DELETE /api/v1/fields/{field_id}/correction
+```json
+{
+  "operation": "CLEAR",
+  "expected_updated_at": "2026-08-10T08:35:00Z"
+}
 ```
 
-Correction history stores both value and status transitions: `old_value`, `new_value`, `old_status`, `new_status`.
+Both payloads use:
+
+```text
+PATCH /api/v1/receipts/{receipt_id}/fields/{field_name}/correction
+```
+
+`field_name` is one of the five canonical field names. A stale `expected_updated_at` returns HTTP `409`. Correction history is append-only and stores `operation`, `old_value`, `new_value`, `old_status` and `new_status`.
+
+Receipt verification similarly requires the latest receipt concurrency token:
+
+```json
+{
+  "expected_updated_at": "2026-08-10T08:40:00Z"
+}
+```
 
 ## Machine and effective review flags
 

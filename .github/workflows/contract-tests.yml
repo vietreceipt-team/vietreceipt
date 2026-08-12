@@ -5,6 +5,9 @@ on:
     paths:
       - "schemas/**"
       - "examples/**"
+      - "openapi/**"
+      - "docs/receipt-state-machine.md"
+      - "docs/integration-contracts.md"
       - "scripts/validate_annotation_ocr.py"
       - "tests/contracts/**"
       - "requirements-contracts.txt"
@@ -14,6 +17,9 @@ on:
     paths:
       - "schemas/**"
       - "examples/**"
+      - "openapi/**"
+      - "docs/receipt-state-machine.md"
+      - "docs/integration-contracts.md"
       - "scripts/validate_annotation_ocr.py"
       - "tests/contracts/**"
       - "requirements-contracts.txt"

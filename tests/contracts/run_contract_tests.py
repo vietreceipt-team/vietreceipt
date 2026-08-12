@@ -5,12 +5,15 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any, Callable
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker
+    from openapi_spec_validator import validate as validate_openapi
+    import yaml
 except ImportError:
     print(
         "Missing contract dependency. Run: "
@@ -32,10 +35,93 @@ OCR_SCHEMA = ROOT / "schemas" / "ocr-result.schema.json"
 ANNOTATION_EXAMPLE = ROOT / "examples" / "annotation-record.example.json"
 KIE_EXAMPLE = ROOT / "examples" / "kie-result.json"
 OCR_EXAMPLE = ROOT / "examples" / "ocr-result.json"
+OPENAPI_SPEC = ROOT / "openapi" / "openapi.yaml"
+STATE_MACHINE = ROOT / "docs" / "receipt-state-machine.md"
+
+CANONICAL_RECEIPT_STATUSES = {
+    "UPLOADED",
+    "PROCESSING",
+    "NEEDS_REVIEW",
+    "VERIFIED",
+    "FAILED",
+}
+CANONICAL_FIELD_NAMES = {
+    "merchant_name",
+    "receipt_date",
+    "total_amount",
+    "invoice_id",
+    "merchant_address",
+}
 
 
 def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_yaml(path: Path) -> dict[str, Any]:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def assert_integration_consistency(openapi: dict[str, Any], kie_schema: dict[str, Any]) -> None:
+    validate_openapi(openapi)
+
+    schemas = openapi["components"]["schemas"]
+    paths = openapi["paths"]
+
+    if set(schemas["ReceiptStatus"]["enum"]) != CANONICAL_RECEIPT_STATUSES:
+        raise AssertionError("OpenAPI ReceiptStatus is not the canonical five-state set")
+
+    state_section = STATE_MACHINE.read_text(encoding="utf-8").split("## Valid transitions", 1)[0]
+    documented_states = set(re.findall(r"^\| `([A-Z_]+)` \|", state_section, flags=re.MULTILINE))
+    if documented_states != CANONICAL_RECEIPT_STATUSES:
+        raise AssertionError("state-machine states differ from OpenAPI ReceiptStatus")
+
+    kie_reasons = set(kie_schema["$defs"]["reviewReason"]["enum"])
+    if set(schemas["ReviewReason"]["enum"]) != kie_reasons:
+        raise AssertionError("OpenAPI ReviewReason differs from KIE reviewReason")
+
+    if set(schemas["FieldName"]["enum"]) != CANONICAL_FIELD_NAMES:
+        raise AssertionError("OpenAPI FieldName differs from the five canonical names")
+
+    if any(path.endswith("/process") for path in paths):
+        raise AssertionError("OpenAPI must not expose a public process endpoint")
+
+    correction_path = "/receipts/{receipt_id}/fields/{field_name}/correction"
+    correction_operation = paths.get(correction_path, {}).get("patch")
+    if correction_operation is None:
+        raise AssertionError("canonical field-name correction endpoint is missing")
+    if "delete" in paths[correction_path]:
+        raise AssertionError("correction clear must not use a second DELETE contract")
+
+    correction_request = schemas["FieldCorrectionRequest"]
+    correction_refs = {entry["$ref"] for entry in correction_request["oneOf"]}
+    expected_refs = {
+        "#/components/schemas/ApplyFieldCorrectionRequest",
+        "#/components/schemas/ClearFieldCorrectionRequest",
+    }
+    if correction_refs != expected_refs:
+        raise AssertionError("correction request must expose exactly APPLY and CLEAR shapes")
+    operations = {
+        schemas["ApplyFieldCorrectionRequest"]["properties"]["operation"]["const"],
+        schemas["ClearFieldCorrectionRequest"]["properties"]["operation"]["const"],
+    }
+    if operations != {"APPLY", "CLEAR"}:
+        raise AssertionError("correction operation values differ from APPLY/CLEAR")
+    for request_name in ("ApplyFieldCorrectionRequest", "ClearFieldCorrectionRequest"):
+        if "expected_updated_at" not in schemas[request_name]["required"]:
+            raise AssertionError(f"{request_name} lacks optimistic concurrency")
+
+    fields_response = paths["/receipts/{receipt_id}/fields"]["get"]["responses"]["200"]
+    fields_schema = fields_response["content"]["application/json"]["schema"]
+    if fields_schema.get("$ref") != "#/components/schemas/CanonicalExtractedFields":
+        raise AssertionError("fields response is not keyed by canonical field name")
+
+    verify = paths["/receipts/{receipt_id}/verify"]["post"]
+    verify_schema = verify["requestBody"]["content"]["application/json"]["schema"]
+    if verify_schema.get("$ref") != "#/components/schemas/VerifyReceiptRequest":
+        raise AssertionError("verify endpoint lacks the canonical request body")
+    if "expected_updated_at" not in schemas["VerifyReceiptRequest"]["required"]:
+        raise AssertionError("verify request lacks optimistic concurrency")
 
 
 def build_validator(schema_path: Path) -> Draft202012Validator:
@@ -150,6 +236,9 @@ def main() -> int:
     annotation = read_json(ANNOTATION_EXAMPLE)
     kie = read_json(KIE_EXAMPLE)
     ocr = read_json(OCR_EXAMPLE)
+    openapi = read_yaml(OPENAPI_SPEC)
+
+    assert_integration_consistency(openapi, read_json(KIE_SCHEMA))
 
     assert_record("OCR example", OCR_SCHEMA, ocr, True)
     assert_record("KIE example", KIE_SCHEMA, kie, True)
@@ -296,10 +385,35 @@ def main() -> int:
     if not linkage_errors(wrong_run, ocr):
         raise AssertionError("cross-record validator accepted a mismatched OCR run")
 
+    duplicate_block = changed(
+        ocr,
+        lambda x: x["blocks"][1].update(block_id=x["blocks"][0]["block_id"]),
+    )
+    if not linkage_errors(annotation, duplicate_block):
+        raise AssertionError("OCR validator accepted duplicate block_id within one OCR run")
+
+    duplicate_order = changed(
+        ocr,
+        lambda x: x["blocks"][1].update(reading_order=x["blocks"][0]["reading_order"]),
+    )
+    if not linkage_errors(annotation, duplicate_order):
+        raise AssertionError("OCR validator accepted duplicate reading_order within one OCR run")
+
+    non_zero_based_order = changed(
+        ocr,
+        lambda x: [block.update(reading_order=index + 1) for index, block in enumerate(x["blocks"])],
+    )
+    if not linkage_errors(annotation, non_zero_based_order):
+        raise AssertionError("OCR validator accepted non-zero-based reading_order")
+
     print("PASS: JSON Schemas are valid Draft 2020-12 schemas")
+    print("PASS: OpenAPI 3.1 document is valid")
+    print("PASS: OpenAPI, state machine, KIE reasons and canonical fields are consistent")
+    print("PASS: correction APPLY/CLEAR and verification concurrency contracts are consistent")
     print("PASS: 9 positive schema cases")
     print(f"PASS: {len(invalid_annotations) + len(invalid_kie)} negative schema cases rejected")
     print("PASS: cross-record receipt, OCR run and block linkage checks")
+    print("PASS: OCR block_id and zero-based reading_order are unique within one OCR run")
     return 0
 
 

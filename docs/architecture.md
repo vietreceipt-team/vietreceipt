@@ -47,12 +47,12 @@ flowchart TD
 - API style: REST under `/api/v1`.
 - Payload: JSON except image upload (`multipart/form-data`).
 - Authentication: Bearer access token.
-- Long-running behavior: upload and processing return immediately; Frontend polls `GET /api/v1/receipts/{receipt_id}`.
+- Long-running behavior: upload returns immediately, Backend automatically schedules processing, and Frontend polls `GET /api/v1/receipts/{receipt_id}`.
 - Frontend never contacts PostgreSQL, MinIO, OCR or KIE directly.
 
 ### Backend API to worker
 
-- Backend calls `POST /receipts/{id}/process` and enqueues `{ "receipt_id": "uuid" }`.
+- After a successful upload, Backend automatically enqueues `{ "receipt_id": "uuid" }`; no public `/process` endpoint exists.
 - The queue message deliberately contains no image URL or user data.
 - Worker loads the current receipt from PostgreSQL and verifies a valid state transition before processing.
 - Duplicate delivery is safe: a job for a receipt already `PROCESSING`, `NEEDS_REVIEW` or `VERIFIED` must not create duplicate OCR blocks.
@@ -112,10 +112,9 @@ sequenceDiagram
     F->>B: Upload image
     B->>D: Store image + receipt
     B-->>F: 201 UPLOADED
-    F->>B: Request processing
     B->>Q: Enqueue receipt_id
-    B-->>F: 202 QUEUED
     Q->>D: Load receipt and image
+    Q->>D: Set PROCESSING
     Q->>O: recognize(image)
     O-->>Q: OCRResult
     Q->>K: extract(OCRResult)
