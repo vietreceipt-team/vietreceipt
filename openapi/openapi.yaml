@@ -72,8 +72,10 @@ paths:
       description: >-
         Creates an append-only correction-history event with authenticated actor and
         server timestamp. APPLY establishes the supplied corrected status/value. CLEAR
-        removes the active correction without deleting history. expected_updated_at is
-        an optimistic-concurrency token; stale requests return 409.
+        removes the active correction without deleting history. expected_updated_at must
+        equal updated_at from the current field projection returned by GET or the previous
+        PATCH response. Backend compares that field token before appending the event;
+        stale requests return 409.
       requestBody:
         required: true
         content:
@@ -102,7 +104,8 @@ paths:
         Allowed only from NEEDS_REVIEW when all five effective fields exist; no field
         remains AMBIGUOUS or UNKNOWN; PRESENT values have canonical types; and every
         NOT_PRESENT or UNREADABLE state has been explicitly human-confirmed. The
-        expected_updated_at token must match current correction state. Backend records
+        expected_updated_at value must equal receipt.updated_at from the current GET
+        response. Backend compares that receipt token before verification and records
         the authenticated actor and server timestamp. Otherwise returns 409.
       requestBody:
         required: true
@@ -177,15 +180,15 @@ components:
     FieldName:
       type: string
       enum: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
-    CanonicalValue:
-      oneOf:
-        - type: string
-        - type: integer
-          minimum: 0
-        - type: 'null'
-      description: >-
-        merchant_name, receipt_date, invoice_id, and merchant_address use strings;
-        total_amount uses a non-negative integer VND; non-PRESENT values are null.
+    NullableStringValue:
+      type: [string, 'null']
+    NullableDateValue:
+      type: [string, 'null']
+      format: date
+      pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+    NullableTotalValue:
+      type: [integer, 'null']
+      minimum: 0
     ReviewReason:
       type: object
       additionalProperties: false
@@ -202,14 +205,12 @@ components:
       properties:
         rule: { type: string, minLength: 1 }
         version: { type: string, minLength: 1 }
-    MachineFieldState:
+    MachineFieldStateBase:
       type: object
-      additionalProperties: false
       required: [raw_text, predicted_value, normalized_value, value_status, confidence, machine_needs_review, review_reasons, source_block_ids]
       properties:
         raw_text: { type: [string, 'null'] }
         predicted_value: { type: [string, 'null'] }
-        normalized_value: { $ref: '#/components/schemas/CanonicalValue' }
         value_status: { $ref: '#/components/schemas/ValueStatus' }
         confidence: { type: number, minimum: 0, maximum: 1 }
         machine_needs_review: { type: boolean }
@@ -221,28 +222,131 @@ components:
           type: array
           uniqueItems: true
           items: { type: string, minLength: 1 }
-    ReceiptField:
+      allOf:
+        - if:
+            properties: { machine_needs_review: { const: true } }
+            required: [machine_needs_review]
+          then:
+            properties: { review_reasons: { minItems: 1 } }
+        - if:
+            properties: { value_status: { const: PRESENT } }
+            required: [value_status]
+          then:
+            properties:
+              predicted_value: { type: string, minLength: 1 }
+              normalized_value: { not: { type: 'null' } }
+              source_block_ids: { minItems: 1 }
+            required: [normalization]
+        - if:
+            properties: { value_status: { enum: [NOT_PRESENT, UNREADABLE, AMBIGUOUS, UNKNOWN] } }
+            required: [value_status]
+          then:
+            properties:
+              normalized_value: { type: 'null' }
+              machine_needs_review: { const: true }
+        - if:
+            properties: { value_status: { enum: [NOT_PRESENT, UNKNOWN] } }
+            required: [value_status]
+          then:
+            properties: { predicted_value: { type: 'null' } }
+        - if:
+            properties: { source_block_ids: { minItems: 1 } }
+            required: [source_block_ids]
+          then:
+            properties: { raw_text: { type: string, minLength: 1 } }
+    StringMachineFieldState:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/MachineFieldStateBase'
+        - type: object
+          properties:
+            normalized_value: { $ref: '#/components/schemas/NullableStringValue' }
+    DateMachineFieldState:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/MachineFieldStateBase'
+        - type: object
+          properties:
+            normalized_value: { $ref: '#/components/schemas/NullableDateValue' }
+    TotalMachineFieldState:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/MachineFieldStateBase'
+        - type: object
+          required: [currency]
+          properties:
+            normalized_value: { $ref: '#/components/schemas/NullableTotalValue' }
+            currency: { const: VND }
+    ReceiptFieldBase:
       type: object
-      additionalProperties: false
       required: [field_name, machine, has_correction, corrected_status, corrected_value, effective_status, effective_value, effective_needs_review, updated_at]
       properties:
-        field_name: { $ref: '#/components/schemas/FieldName' }
-        machine: { $ref: '#/components/schemas/MachineFieldState' }
         has_correction: { type: boolean }
         corrected_status: { oneOf: [{ $ref: '#/components/schemas/ValueStatus' }, { type: 'null' }] }
-        corrected_value: { $ref: '#/components/schemas/CanonicalValue' }
         effective_status: { $ref: '#/components/schemas/ValueStatus' }
-        effective_value:
-          allOf:
-            - $ref: '#/components/schemas/CanonicalValue'
-          description: >-
-            If an active correction exists, use corrected_value only when corrected_status
-            is PRESENT; otherwise null. Without a correction, use normalized_value only
-            when machine value_status is PRESENT; otherwise null. Never fall back to predicted_value.
         effective_needs_review: { type: boolean }
         updated_at: { $ref: '#/components/schemas/Timestamp' }
         corrected_by: { type: [string, 'null'], format: uuid }
         corrected_at: { oneOf: [{ $ref: '#/components/schemas/Timestamp' }, { type: 'null' }] }
+    StringReceiptFieldBase:
+      allOf:
+        - $ref: '#/components/schemas/ReceiptFieldBase'
+        - type: object
+          properties:
+            machine: { $ref: '#/components/schemas/StringMachineFieldState' }
+            corrected_value: { $ref: '#/components/schemas/NullableStringValue' }
+            effective_value:
+              allOf: [{ $ref: '#/components/schemas/NullableStringValue' }]
+              description: Never falls back to predicted_value.
+    MerchantNameField:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/StringReceiptFieldBase'
+        - type: object
+          properties: { field_name: { const: merchant_name } }
+    InvoiceIdField:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/StringReceiptFieldBase'
+        - type: object
+          properties: { field_name: { const: invoice_id } }
+    MerchantAddressField:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/StringReceiptFieldBase'
+        - type: object
+          properties: { field_name: { const: merchant_address } }
+    ReceiptDateField:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/ReceiptFieldBase'
+        - type: object
+          properties:
+            field_name: { const: receipt_date }
+            machine: { $ref: '#/components/schemas/DateMachineFieldState' }
+            corrected_value: { $ref: '#/components/schemas/NullableDateValue' }
+            effective_value:
+              allOf: [{ $ref: '#/components/schemas/NullableDateValue' }]
+              description: Never falls back to predicted_value.
+    TotalAmountField:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/ReceiptFieldBase'
+        - type: object
+          properties:
+            field_name: { const: total_amount }
+            machine: { $ref: '#/components/schemas/TotalMachineFieldState' }
+            corrected_value: { $ref: '#/components/schemas/NullableTotalValue' }
+            effective_value:
+              allOf: [{ $ref: '#/components/schemas/NullableTotalValue' }]
+              description: Never falls back to predicted_value.
+    ReceiptField:
+      oneOf:
+        - $ref: '#/components/schemas/MerchantNameField'
+        - $ref: '#/components/schemas/ReceiptDateField'
+        - $ref: '#/components/schemas/TotalAmountField'
+        - $ref: '#/components/schemas/InvoiceIdField'
+        - $ref: '#/components/schemas/MerchantAddressField'
     ReceiptAccepted:
       type: object
       additionalProperties: false
@@ -251,29 +355,78 @@ components:
         receipt_id: { type: string, format: uuid }
         status: { enum: [UPLOADED, PROCESSING] }
         created_at: { $ref: '#/components/schemas/Timestamp' }
-    Receipt:
+    ReceiptBase:
       type: object
-      additionalProperties: false
-      required: [receipt_id, status, fields, created_at, updated_at]
+      required: [receipt_id, status, created_at, updated_at]
       properties:
         receipt_id: { type: string, format: uuid }
-        status: { $ref: '#/components/schemas/ReceiptStatus' }
         latest_ocr_run_id: { type: [string, 'null'], format: uuid }
         latest_kie_run_id: { type: [string, 'null'], format: uuid }
-        fields:
-          type: object
-          additionalProperties: false
-          required: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
-          properties:
-            merchant_name: { $ref: '#/components/schemas/ReceiptField' }
-            receipt_date: { $ref: '#/components/schemas/ReceiptField' }
-            total_amount: { $ref: '#/components/schemas/ReceiptField' }
-            invoice_id: { $ref: '#/components/schemas/ReceiptField' }
-            merchant_address: { $ref: '#/components/schemas/ReceiptField' }
         created_at: { $ref: '#/components/schemas/Timestamp' }
         updated_at: { $ref: '#/components/schemas/Timestamp' }
-        verified_by: { type: [string, 'null'], format: uuid }
-        verified_at: { oneOf: [{ $ref: '#/components/schemas/Timestamp' }, { type: 'null' }] }
+    CanonicalFields:
+      type: object
+      additionalProperties: false
+      required: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
+      properties:
+        merchant_name: { $ref: '#/components/schemas/MerchantNameField' }
+        receipt_date: { $ref: '#/components/schemas/ReceiptDateField' }
+        total_amount: { $ref: '#/components/schemas/TotalAmountField' }
+        invoice_id: { $ref: '#/components/schemas/InvoiceIdField' }
+        merchant_address: { $ref: '#/components/schemas/MerchantAddressField' }
+    PreKieReceipt:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/ReceiptBase'
+        - type: object
+          required: [status]
+          properties:
+            status: { enum: [UPLOADED, PROCESSING, FAILED] }
+            processing_error:
+              type: [object, 'null']
+              additionalProperties: false
+              required: [code, message]
+              properties:
+                code: { type: string }
+                message: { type: string }
+    NeedsReviewReceipt:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/ReceiptBase'
+        - type: object
+          required: [status, latest_kie_run_id, fields]
+          properties:
+            status: { const: NEEDS_REVIEW }
+            latest_kie_run_id: { type: string, format: uuid }
+            fields: { $ref: '#/components/schemas/CanonicalFields' }
+    VerifiedReceipt:
+      unevaluatedProperties: false
+      allOf:
+        - $ref: '#/components/schemas/ReceiptBase'
+        - type: object
+          required: [status, latest_kie_run_id, fields, verified_by, verified_at]
+          properties:
+            status: { const: VERIFIED }
+            latest_kie_run_id: { type: string, format: uuid }
+            fields: { $ref: '#/components/schemas/CanonicalFields' }
+            verified_by: { type: string, format: uuid }
+            verified_at: { $ref: '#/components/schemas/Timestamp' }
+          description: >-
+            All effective fields satisfy verification invariants: no AMBIGUOUS or UNKNOWN;
+            PRESENT values have canonical types; NOT_PRESENT and UNREADABLE are human-confirmed.
+    Receipt:
+      oneOf:
+        - $ref: '#/components/schemas/PreKieReceipt'
+        - $ref: '#/components/schemas/NeedsReviewReceipt'
+        - $ref: '#/components/schemas/VerifiedReceipt'
+      discriminator:
+        propertyName: status
+        mapping:
+          UPLOADED: '#/components/schemas/PreKieReceipt'
+          PROCESSING: '#/components/schemas/PreKieReceipt'
+          FAILED: '#/components/schemas/PreKieReceipt'
+          NEEDS_REVIEW: '#/components/schemas/NeedsReviewReceipt'
+          VERIFIED: '#/components/schemas/VerifiedReceipt'
     CorrectionOperation:
       type: string
       enum: [APPLY, CLEAR]
@@ -285,14 +438,23 @@ components:
           properties:
             operation: { const: APPLY }
             corrected_status: { $ref: '#/components/schemas/ValueStatus' }
-            corrected_value: { $ref: '#/components/schemas/CanonicalValue' }
-            expected_updated_at: { $ref: '#/components/schemas/Timestamp' }
+            corrected_value:
+              oneOf:
+                - type: string
+                - type: integer
+                  minimum: 0
+                - type: 'null'
+            expected_updated_at:
+              allOf: [{ $ref: '#/components/schemas/Timestamp' }]
+              description: Must equal updated_at of the current field projection.
         - type: object
           additionalProperties: false
           required: [operation, expected_updated_at]
           properties:
             operation: { const: CLEAR }
-            expected_updated_at: { $ref: '#/components/schemas/Timestamp' }
+            expected_updated_at:
+              allOf: [{ $ref: '#/components/schemas/Timestamp' }]
+              description: Must equal updated_at of the current field projection.
       description: >-
         APPLY with PRESENT requires a canonical corrected_value. APPLY with a non-PRESENT
         status requires corrected_value null. CLEAR removes active correction state but
@@ -302,7 +464,9 @@ components:
       additionalProperties: false
       required: [expected_updated_at]
       properties:
-        expected_updated_at: { $ref: '#/components/schemas/Timestamp' }
+        expected_updated_at:
+          allOf: [{ $ref: '#/components/schemas/Timestamp' }]
+          description: Must equal receipt.updated_at from the current GET receipt response.
     VerifyResponse:
       type: object
       additionalProperties: false

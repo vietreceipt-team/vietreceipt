@@ -52,6 +52,8 @@ Mọi receipt endpoint yêu cầu authentication và ownership. Correction/verif
 
 Backend validate schema tại module boundaries, enforce canonical field types, source-run integrity, uniqueness, immutable runs và verification invariants trong transaction/domain service chung.
 
+Receipt response phản ánh đúng processing stage: trước khi KIE hoàn tất (`UPLOADED`, `PROCESSING`, `FAILED`) không bắt buộc có field projection; từ `NEEDS_REVIEW` trở đi phải có đúng năm canonical fields. Field corrections dùng `field.updated_at`; receipt verification dùng `receipt.updated_at` làm optimistic-concurrency token.
+
 ## Lifecycle
 
 ```text

@@ -23,4 +23,6 @@ Không có public endpoint `/process`.
 
 Canonical field names là `merchant_name`, `receipt_date`, `total_amount`, `invoice_id`, `merchant_address`. `fields` được biểu diễn bằng object có đúng năm key này.
 
-Correction và verify gửi `expected_updated_at`; stale state trả `409`. Correction/verification lưu authenticated actor và server timestamp. Chi tiết invariant, status, projection và error response xem OpenAPI cùng [`integration-contracts.md`](integration-contracts.md).
+Receipt response phụ thuộc lifecycle: `UPLOADED`, `PROCESSING`, `FAILED` không bắt buộc có fields/KIE result; `NEEDS_REVIEW` và `VERIFIED` bắt buộc có full canonical field projection.
+
+Correction gửi `expected_updated_at = field.updated_at` của field projection hiện tại. Verify gửi `expected_updated_at = receipt.updated_at` của response GET receipt hiện tại. Token stale trả `409`. Correction/verification lưu authenticated actor và server timestamp. Chi tiết invariant, status, projection và error response xem OpenAPI cùng [`integration-contracts.md`](integration-contracts.md).

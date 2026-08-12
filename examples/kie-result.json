@@ -46,14 +46,14 @@
       "raw_text": null,
       "predicted_value": null,
       "normalized_value": null,
-      "value_status": "NOT_PRESENT",
+      "value_status": "UNKNOWN",
       "confidence": 0.7,
       "machine_needs_review": true,
       "review_reasons": [{ "code": "NO_CANDIDATE" }],
       "source_block_ids": []
     },
     "merchant_address": {
-      "raw_text": null,
+      "raw_text": "ĐỊA CHỈ KHÔNG ĐỌC RÕ",
       "predicted_value": null,
       "normalized_value": null,
       "value_status": "UNREADABLE",

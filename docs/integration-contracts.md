@@ -76,6 +76,11 @@ Mọi receipt endpoint yêu cầu authenticated user. Backend chỉ cho user tru
 
 Correction và verify dùng `expected_updated_at` có timezone làm optimistic-concurrency token. Token stale trả `409 Conflict`; Backend không silently overwrite state mới hơn.
 
+- `PATCH /receipts/{receipt_id}/fields/{field_name}` lấy `expected_updated_at` từ `updated_at` của chính field projection hiện tại. Backend so sánh field token trước khi append correction event.
+- `POST /receipts/{receipt_id}/verify` lấy `expected_updated_at` từ `receipt.updated_at` của response `GET /receipts/{receipt_id}` hiện tại. Backend so sánh receipt token trước khi verify.
+
+Client phải dùng token từ response đọc/mutation mới nhất; không dùng field token cho verify hoặc receipt token cho correction.
+
 ## Receipt lifecycle và verification
 
 Lifecycle giữ nguyên:
@@ -87,6 +92,8 @@ FAILED -> PROCESSING khi Backend thực hiện retry policy
 ```
 
 Upload thành công khiến Backend tự trigger processing; Frontend không gọi `/process`.
+
+Public receipt response được tách theo lifecycle. `UPLOADED`, `PROCESSING` và `FAILED` là pre-KIE responses nên không có `fields` bắt buộc và không giả định KIE result tồn tại. `NEEDS_REVIEW` và `VERIFIED` bắt buộc có full projection với đúng năm canonical fields; `VERIFIED` còn có verification actor/timestamp và phải thỏa verification invariants.
 
 Verify chỉ thành công khi receipt đang `NEEDS_REVIEW`, có đủ năm effective fields, không còn `AMBIGUOUS`/`UNKNOWN`, mọi `PRESENT` value đúng canonical type, và mọi `NOT_PRESENT`/`UNREADABLE` đã được human xác nhận. Request phải dùng correction state mới nhất. Backend ghi verified actor và timestamp. Vi phạm trả `409 Conflict`.
 
