@@ -1,0 +1,327 @@
+openapi: 3.1.0
+info:
+  title: VietReceipt Backend API
+  version: 1.3.0
+  description: >-
+    Backend W1 contract. All confidence values in examples are illustrative shape
+    examples, not benchmark results or acceptance thresholds.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+paths:
+  /receipts:
+    post:
+      operationId: uploadReceipt
+      summary: Upload a receipt and automatically trigger OCR then KIE processing
+      description: >-
+        Accepts an authenticated user's image, creates an UPLOADED receipt, and
+        asynchronously moves it to PROCESSING. There is no public /process endpoint.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: image/jpeg, image/png, image/webp
+      responses:
+        '201':
+          description: Receipt created and processing triggered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptAccepted'
+        '400': { $ref: '#/components/responses/InvalidFile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '413': { $ref: '#/components/responses/FileTooLarge' }
+        '415': { $ref: '#/components/responses/UnsupportedMediaType' }
+      x-upload-constraints:
+        maximum_bytes: 10485760
+        allowed_media_types: [image/jpeg, image/png, image/webp]
+  /receipts/{receipt_id}:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    get:
+      operationId: getReceipt
+      summary: Get an owned receipt and its effective field projection
+      responses:
+        '200':
+          description: Current receipt state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Receipt'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /receipts/{receipt_id}/fields/{field_name}:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+      - $ref: '#/components/parameters/FieldName'
+    patch:
+      operationId: correctReceiptField
+      summary: Apply or clear a human field correction
+      description: >-
+        Creates an append-only correction-history event with authenticated actor and
+        server timestamp. APPLY establishes the supplied corrected status/value. CLEAR
+        removes the active correction without deleting history. expected_updated_at is
+        an optimistic-concurrency token; stale requests return 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorrectionRequest'
+      responses:
+        '200':
+          description: Updated field projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptField'
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /receipts/{receipt_id}/verify:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    post:
+      operationId: verifyReceipt
+      summary: Verify a fully resolved receipt
+      description: >-
+        Allowed only from NEEDS_REVIEW when all five effective fields exist; no field
+        remains AMBIGUOUS or UNKNOWN; PRESENT values have canonical types; and every
+        NOT_PRESENT or UNREADABLE state has been explicitly human-confirmed. The
+        expected_updated_at token must match current correction state. Backend records
+        the authenticated actor and server timestamp. Otherwise returns 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyRequest'
+      responses:
+        '200':
+          description: Receipt verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyResponse'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ReceiptId:
+      name: receipt_id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    FieldName:
+      name: field_name
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/FieldName' }
+  responses:
+    InvalidFile:
+      description: Invalid image content
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    InvalidRequest:
+      description: Invalid request or field invariant
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Unauthorized:
+      description: Authentication required
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Forbidden:
+      description: Authenticated user does not own the receipt
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    NotFound:
+      description: Receipt not found
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Conflict:
+      description: Stale concurrency token, invalid receipt state, or unresolved verification invariant
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    FileTooLarge:
+      description: File exceeds 10 MiB
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    UnsupportedMediaType:
+      description: MIME type is not image/jpeg, image/png, or image/webp
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+  schemas:
+    Timestamp:
+      type: string
+      format: date-time
+      pattern: '(?:Z|[+-][0-9]{2}:[0-9]{2})$'
+    ReceiptStatus:
+      type: string
+      enum: [UPLOADED, PROCESSING, NEEDS_REVIEW, VERIFIED, FAILED]
+    ValueStatus:
+      type: string
+      enum: [PRESENT, NOT_PRESENT, UNREADABLE, AMBIGUOUS, UNKNOWN]
+    FieldName:
+      type: string
+      enum: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
+    CanonicalValue:
+      oneOf:
+        - type: string
+        - type: integer
+          minimum: 0
+        - type: 'null'
+      description: >-
+        merchant_name, receipt_date, invoice_id, and merchant_address use strings;
+        total_amount uses a non-negative integer VND; non-PRESENT values are null.
+    ReviewReason:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code:
+          type: string
+          enum: [NO_CANDIDATE, LOW_CONFIDENCE, MULTIPLE_CANDIDATES, AMBIGUOUS_FORMAT, UNREADABLE_SOURCE, UNSUPPORTED_CURRENCY, NEGATIVE_AMOUNT, MISSING_DATE_COMPONENT, UNSUPPORTED_TWO_DIGIT_YEAR, SOURCE_ROLE_UNCLEAR, NORMALIZATION_FAILED]
+        message: { type: string }
+    Normalization:
+      type: object
+      additionalProperties: false
+      required: [rule, version]
+      properties:
+        rule: { type: string, minLength: 1 }
+        version: { type: string, minLength: 1 }
+    MachineFieldState:
+      type: object
+      additionalProperties: false
+      required: [raw_text, predicted_value, normalized_value, value_status, confidence, machine_needs_review, review_reasons, source_block_ids]
+      properties:
+        raw_text: { type: [string, 'null'] }
+        predicted_value: { type: [string, 'null'] }
+        normalized_value: { $ref: '#/components/schemas/CanonicalValue' }
+        value_status: { $ref: '#/components/schemas/ValueStatus' }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        machine_needs_review: { type: boolean }
+        review_reasons:
+          type: array
+          items: { $ref: '#/components/schemas/ReviewReason' }
+        normalization: { $ref: '#/components/schemas/Normalization' }
+        source_block_ids:
+          type: array
+          uniqueItems: true
+          items: { type: string, minLength: 1 }
+    ReceiptField:
+      type: object
+      additionalProperties: false
+      required: [field_name, machine, has_correction, corrected_status, corrected_value, effective_status, effective_value, effective_needs_review, updated_at]
+      properties:
+        field_name: { $ref: '#/components/schemas/FieldName' }
+        machine: { $ref: '#/components/schemas/MachineFieldState' }
+        has_correction: { type: boolean }
+        corrected_status: { oneOf: [{ $ref: '#/components/schemas/ValueStatus' }, { type: 'null' }] }
+        corrected_value: { $ref: '#/components/schemas/CanonicalValue' }
+        effective_status: { $ref: '#/components/schemas/ValueStatus' }
+        effective_value:
+          allOf:
+            - $ref: '#/components/schemas/CanonicalValue'
+          description: >-
+            If an active correction exists, use corrected_value only when corrected_status
+            is PRESENT; otherwise null. Without a correction, use normalized_value only
+            when machine value_status is PRESENT; otherwise null. Never fall back to predicted_value.
+        effective_needs_review: { type: boolean }
+        updated_at: { $ref: '#/components/schemas/Timestamp' }
+        corrected_by: { type: [string, 'null'], format: uuid }
+        corrected_at: { oneOf: [{ $ref: '#/components/schemas/Timestamp' }, { type: 'null' }] }
+    ReceiptAccepted:
+      type: object
+      additionalProperties: false
+      required: [receipt_id, status, created_at]
+      properties:
+        receipt_id: { type: string, format: uuid }
+        status: { enum: [UPLOADED, PROCESSING] }
+        created_at: { $ref: '#/components/schemas/Timestamp' }
+    Receipt:
+      type: object
+      additionalProperties: false
+      required: [receipt_id, status, fields, created_at, updated_at]
+      properties:
+        receipt_id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/ReceiptStatus' }
+        latest_ocr_run_id: { type: [string, 'null'], format: uuid }
+        latest_kie_run_id: { type: [string, 'null'], format: uuid }
+        fields:
+          type: object
+          additionalProperties: false
+          required: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
+          properties:
+            merchant_name: { $ref: '#/components/schemas/ReceiptField' }
+            receipt_date: { $ref: '#/components/schemas/ReceiptField' }
+            total_amount: { $ref: '#/components/schemas/ReceiptField' }
+            invoice_id: { $ref: '#/components/schemas/ReceiptField' }
+            merchant_address: { $ref: '#/components/schemas/ReceiptField' }
+        created_at: { $ref: '#/components/schemas/Timestamp' }
+        updated_at: { $ref: '#/components/schemas/Timestamp' }
+        verified_by: { type: [string, 'null'], format: uuid }
+        verified_at: { oneOf: [{ $ref: '#/components/schemas/Timestamp' }, { type: 'null' }] }
+    CorrectionOperation:
+      type: string
+      enum: [APPLY, CLEAR]
+    CorrectionRequest:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [operation, corrected_status, corrected_value, expected_updated_at]
+          properties:
+            operation: { const: APPLY }
+            corrected_status: { $ref: '#/components/schemas/ValueStatus' }
+            corrected_value: { $ref: '#/components/schemas/CanonicalValue' }
+            expected_updated_at: { $ref: '#/components/schemas/Timestamp' }
+        - type: object
+          additionalProperties: false
+          required: [operation, expected_updated_at]
+          properties:
+            operation: { const: CLEAR }
+            expected_updated_at: { $ref: '#/components/schemas/Timestamp' }
+      description: >-
+        APPLY with PRESENT requires a canonical corrected_value. APPLY with a non-PRESENT
+        status requires corrected_value null. CLEAR removes active correction state but
+        appends a CLEAR audit event.
+    VerifyRequest:
+      type: object
+      additionalProperties: false
+      required: [expected_updated_at]
+      properties:
+        expected_updated_at: { $ref: '#/components/schemas/Timestamp' }
+    VerifyResponse:
+      type: object
+      additionalProperties: false
+      required: [receipt_id, status, verified_by, verified_at, updated_at]
+      properties:
+        receipt_id: { type: string, format: uuid }
+        status: { const: VERIFIED }
+        verified_by: { type: string, format: uuid }
+        verified_at: { $ref: '#/components/schemas/Timestamp' }
+        updated_at: { $ref: '#/components/schemas/Timestamp' }
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message]
+          properties:
+            code: { type: string, pattern: '^[A-Z][A-Z0-9_]*$' }
+            message: { type: string }
