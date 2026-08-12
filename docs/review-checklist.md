@@ -45,9 +45,12 @@ Each owner must answer every item with **Yes**, or open a linked Issue describin
 - [ ] I return an explicit `value_status` and do not invent missing values.
 - [ ] Every entry in `source_block_ids` exists in the referenced OCR run.
 - [ ] Ambiguous normalization returns `normalized_value=null` and `machine_needs_review=true`.
+- [ ] Every normalized value records `normalization.rule` and `normalization.version`.
+- [ ] Every machine review decision records an approved reason code and `review_policy_version`.
+- [ ] KIE results include `created_at`; `UNKNOWN` and raw/source invariants match KIE v1.1.
 - [ ] Field confidence means confidence in the normalized business value.
 - [ ] Ground-truth records follow the shared annotation contract and KIE-owned field specification/guideline; they are not emitted as KIE runtime output.
-- [ ] Annotation identity, status invariants, evidence status, typed values and OCR linkage pass positive and negative contract tests.
+- [ ] Annotation identity, status invariants, KIE v1.1 `OCR_OMISSION`, typed values and OCR linkage pass positive and negative contract tests.
 
 ## DevOps owner
 

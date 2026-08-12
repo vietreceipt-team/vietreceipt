@@ -12,6 +12,7 @@
       "raw_text": "WINMART+",
       "predicted_value": "WINMART+",
       "normalized_value": "WINMART+",
+      "normalization": {"rule": "identity_trim", "version": "1.0"},
       "value_status": "PRESENT",
       "confidence": 0.98,
       "machine_needs_review": false,
@@ -22,6 +23,7 @@
       "raw_text": "08/08/2026",
       "predicted_value": "08/08/2026",
       "normalized_value": "2026-08-08",
+      "normalization": {"rule": "date_ddmmyyyy_to_iso", "version": "1.0"},
       "value_status": "PRESENT",
       "confidence": 0.91,
       "machine_needs_review": false,
@@ -32,6 +34,7 @@
       "raw_text": "325.000 VND",
       "predicted_value": "325.000 VND",
       "normalized_value": 325000,
+      "normalization": {"rule": "vnd_integer", "version": "1.0"},
       "currency": "VND",
       "value_status": "PRESENT",
       "confidence": 0.91,
@@ -43,16 +46,19 @@
       "raw_text": "SỐ HĐ: 001238",
       "predicted_value": "001238",
       "normalized_value": "001238",
+      "normalization": {"rule": "invoice_id_preserve_leading_zeroes", "version": "1.0"},
       "value_status": "PRESENT",
       "confidence": 0.84,
       "machine_needs_review": true,
       "review_reasons": ["LOW_CONFIDENCE"],
+      "review_policy_version": "kie-review-policy-v1.1",
       "source_block_ids": ["block_3"]
     },
     "merchant_address": {
       "raw_text": "12 NGUYỄN TRÃI",
       "predicted_value": "12 NGUYỄN TRÃI",
       "normalized_value": "12 NGUYỄN TRÃI",
+      "normalization": {"rule": "identity_trim", "version": "1.0"},
       "value_status": "PRESENT",
       "confidence": 0.94,
       "machine_needs_review": false,
@@ -60,5 +66,6 @@
       "source_block_ids": ["block_1"]
     }
   },
-  "duration_ms": 35
+  "duration_ms": 35,
+  "created_at": "2026-08-10T08:30:00Z"
 }

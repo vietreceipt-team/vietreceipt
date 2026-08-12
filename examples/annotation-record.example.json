@@ -15,7 +15,6 @@
     "merchant_name": {
       "field_name": "merchant_name",
       "annotation_status": "PRESENT",
-      "evidence_status": "OCR_LINKED",
       "transcribed_value": "WINMART+",
       "normalized_value": "WINMART+",
       "source_block_ids": ["block_0"],
@@ -25,7 +24,6 @@
     "receipt_date": {
       "field_name": "receipt_date",
       "annotation_status": "PRESENT",
-      "evidence_status": "OCR_LINKED",
       "transcribed_value": "08/08/2026",
       "normalized_value": "2026-08-08",
       "source_block_ids": ["block_2"],
@@ -35,7 +33,6 @@
     "total_amount": {
       "field_name": "total_amount",
       "annotation_status": "PRESENT",
-      "evidence_status": "OCR_LINKED",
       "transcribed_value": "325.000 VND",
       "normalized_value": 325000,
       "currency": "VND",
@@ -46,7 +43,6 @@
     "invoice_id": {
       "field_name": "invoice_id",
       "annotation_status": "PRESENT",
-      "evidence_status": "OCR_LINKED",
       "transcribed_value": "SỐ HĐ: 001238",
       "normalized_value": "001238",
       "source_block_ids": ["block_3"],
@@ -56,7 +52,6 @@
     "merchant_address": {
       "field_name": "merchant_address",
       "annotation_status": "PRESENT",
-      "evidence_status": "OCR_LINKED",
       "transcribed_value": "12 NGUYỄN TRÃI",
       "normalized_value": "12 NGUYỄN TRÃI",
       "source_block_ids": ["block_1"],

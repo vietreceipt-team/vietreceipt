@@ -1,11 +1,24 @@
 # Contract tests
 
-Run from the repository root:
+## Prerequisite
+
+- Python 3.10 or newer.
+- Pinned dependency from the repository root:
+
+```bash
+python3 -m pip install -r requirements-contracts.txt
+```
+
+The suite uses Python `jsonschema` Draft 2020-12 with format checking. It does not require Node.js, npm, `npx` or AJV.
+
+## Run
+
+From the repository root:
 
 ```bash
 python3 tests/contracts/run_contract_tests.py
 ```
 
-The runner uses AJV Draft 2020-12 through `npx` to check valid examples and generated invalid cases. It also calls the shared linkage logic to prove that annotation receipt/run/block references match `examples/ocr-result.json`.
+The runner validates all three schemas/examples, generates positive and negative annotation/KIE cases, and invokes the shared linkage logic proving that annotation receipt/run/block references match `examples/ocr-result.json`.
 
-Covered negative cases include all annotation status invariants, canonical amount/date/ID types, real-record timestamps, OCR evidence consistency, cross-record linkage and the two KIE runtime invariants for source blocks and review reasons.
+GitHub Actions runs the same command on every relevant push and Pull Request.

@@ -108,11 +108,44 @@ KIE guarantees:
 - `raw_text` preserves source OCR text.
 - `predicted_value` is the selected, unnormalized candidate string.
 - `normalized_value` is populated only when a tested normalization rule succeeds.
+- A non-null `normalized_value` includes `normalization.rule` and `normalization.version` provenance.
 - Non-`PRESENT` statuses have `normalized_value=null` and `machine_needs_review=true`.
+- `UNKNOWN` has `predicted_value=null` and `normalized_value=null`.
+- A non-empty `source_block_ids` requires non-null `raw_text`; an empty source list requires `raw_text=null`.
 - `source_block_ids` contains only IDs from the referenced OCR run.
 - `invoice_id` remains a string so leading zeroes are preserved.
 - `total_amount.normalized_value` is an integer VND when safely normalized.
 - Field confidence describes confidence in the business prediction, not only OCR confidence.
+- The result records RFC 3339 `created_at`.
+
+### KIE normalization and review provenance
+
+When `normalized_value` is non-null, the field includes:
+
+```json
+"normalization": {
+  "rule": "date_ddmmyyyy_to_iso",
+  "version": "1.0"
+}
+```
+
+When `machine_needs_review=true`, `review_reasons` is non-empty and `review_policy_version` is required. Approved KIE v1.1 reason codes are:
+
+```text
+NO_CANDIDATE
+LOW_CONFIDENCE
+MULTIPLE_CANDIDATES
+AMBIGUOUS_FORMAT
+UNREADABLE_SOURCE
+UNSUPPORTED_CURRENCY
+NEGATIVE_AMOUNT
+MISSING_DATE_COMPONENT
+UNSUPPORTED_TWO_DIGIT_YEAR
+SOURCE_ROLE_UNCLEAR
+NORMALIZATION_FAILED
+```
+
+No numeric confidence threshold is fixed by this reason-code contract.
 
 ## Ambiguous normalization
 
@@ -125,11 +158,13 @@ Until such a rule is tested, return:
   "raw_text": "325.OOO VND",
   "predicted_value": "325.OOO VND",
   "normalized_value": null,
+  "normalization": null,
   "currency": "VND",
   "value_status": "AMBIGUOUS",
   "confidence": 0.4,
   "machine_needs_review": true,
-  "review_reasons": ["AMBIGUOUS", "NORMALIZATION_FAILED"],
+  "review_reasons": ["AMBIGUOUS_FORMAT", "NORMALIZATION_FAILED"],
+  "review_policy_version": "kie-review-policy-v1.1",
   "source_block_ids": ["block_5"]
 }
 ```
@@ -198,7 +233,7 @@ This is intentionally separate from KIE runtime output:
 | `candidate_values` | No direct field | Annotation alternatives are evaluation evidence, not a selected prediction |
 | No confidence/review flag | `confidence`, `machine_needs_review` | Ground truth must not claim machine confidence |
 
-Both contracts use the same five canonical field names and typed normalized values. Annotation evidence is explicit through `evidence_status`; `OCR_OMISSION` permits a human-visible `PRESENT` field with no OCR block. When block IDs are supplied, they must exist in the exact `source_ocr_run_id`.
+Both contracts use the same five canonical field names and typed normalized values. Per KIE guideline v1.1, annotation `OCR_OMISSION` is represented by an empty `source_block_ids` list and an `annotator_note` beginning with `OCR_OMISSION`; no additional shared enum is introduced. When block IDs are supplied, they must exist in the exact `source_ocr_run_id`.
 
 ## Public API error envelope
 

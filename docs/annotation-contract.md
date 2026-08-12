@@ -56,32 +56,35 @@ Each field annotation contains:
 | --- | --- |
 | `field_name` | Canonical name matching its containing key |
 | `annotation_status` | `PRESENT`, `NOT_PRESENT`, `UNREADABLE`, `AMBIGUOUS` or `UNKNOWN` |
-| `evidence_status` | `OCR_LINKED`, `OCR_OMISSION` or `NO_OCR_EVIDENCE` |
 | `transcribed_value` | Exact human transcription from the receipt image, or `null` |
 | `normalized_value` | Human-validated canonical value, or `null` |
 | `source_block_ids` | Unique OCR block IDs from `source_ocr_run_id` |
 | `candidate_values` | Canonically typed alternatives for an ambiguous annotation |
 | `annotator_note` | Explanation required by the rules below, otherwise optional |
 
-## Evidence invariants
+## OCR omission rule from KIE guideline v1.1
 
-| Evidence status | Required rule |
-| --- | --- |
-| `OCR_LINKED` | `source_block_ids` has at least one item |
-| `OCR_OMISSION` | `source_block_ids=[]` and a non-empty `annotator_note` is required |
-| `NO_OCR_EVIDENCE` | `source_block_ids=[]` |
+No extra evidence enum is added to the shared record. A normal `PRESENT` annotation has at least one `source_block_id`. When the annotator can read the field directly from the receipt image but the referenced OCR run produced no usable block, KIE guideline v1.1 represents the exception as:
 
-`OCR_OMISSION` records the case where an annotator reads a present field directly from the image but the referenced OCR run produced no usable block for it. A `PRESENT` field must use either `OCR_LINKED` or `OCR_OMISSION`; it cannot use `NO_OCR_EVIDENCE`.
+```json
+{
+  "annotation_status": "PRESENT",
+  "source_block_ids": [],
+  "annotator_note": "OCR_OMISSION"
+}
+```
+
+The schema accepts an optional explanation after the code, for example `OCR_OMISSION: value read directly from image`, but the note must start with `OCR_OMISSION`. A note carrying this code is valid only for `PRESENT` with an empty block list.
 
 ## Annotation-status invariants
 
 | Status | Enforced rules |
 | --- | --- |
-| `PRESENT` | Non-null transcription and correctly typed normalized value; candidates empty; evidence is `OCR_LINKED` or `OCR_OMISSION` |
-| `NOT_PRESENT` | Both values `null`; source blocks and candidates empty; `NO_OCR_EVIDENCE` |
-| `UNREADABLE` | Normalized value `null`; candidates empty; non-empty note; evidence may be linked or absent |
+| `PRESENT` | Non-null transcription and correctly typed normalized value; candidates empty; at least one source block, or empty blocks with note starting `OCR_OMISSION` |
+| `NOT_PRESENT` | Both values `null`; source blocks and candidates empty |
+| `UNREADABLE` | Normalized value `null`; candidates empty; non-empty note; source blocks may be present |
 | `AMBIGUOUS` | Normalized value `null`; at least one typed candidate and a non-empty explanatory note |
-| `UNKNOWN` | Both values `null`; source blocks and candidates empty; non-empty note; `NO_OCR_EVIDENCE` |
+| `UNKNOWN` | Both values `null`; source blocks and candidates empty; non-empty note |
 
 Empty strings are never substitutes for `null`.
 
