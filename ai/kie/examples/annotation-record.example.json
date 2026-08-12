@@ -1,7 +1,10 @@
 {
   "record_type": "five-field-ground-truth-annotation",
   "annotation_schema_version": "1.0",
-  "guideline_version": "1.0",
+  "guideline_version": "1.1",
+  "annotation_id": "00000000-0000-4000-8000-000000000003",
+  "batch_id": "annotation-pilot-001",
+  "dataset_snapshot": "vietreceipt-synthetic-snapshot-001",
   "example_only": true,
   "data_provenance": "synthetic illustrative values; not a dataset record or model output",
   "receipt_id": "00000000-0000-4000-8000-000000000001",
