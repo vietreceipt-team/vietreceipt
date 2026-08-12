@@ -1,3 +1,15 @@
+<<<<<<< HEAD
+.venv/
+**/venv/
+**/env/
+__pycache__/
+results/
+data/raw/
+*.pyd
+*.pyc
+.DS_Store
+Thumbs.db
+=======
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -216,3 +228,4 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+>>>>>>> origin/main
