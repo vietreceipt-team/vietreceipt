@@ -184,6 +184,22 @@ Confidence thresholds `0.60` and `0.85` are **provisional configuration only**. 
 
 Values in `examples/` illustrate contract shape and linkage only. Confidence values, durations, engine/extractor names and versions, UUIDs, run IDs and block IDs are not benchmark results, production defaults, performance claims or evaluation evidence.
 
+## Ground-truth annotation contract
+
+Human dataset annotations use `docs/field-specification.md`, `schemas/annotation-record.schema.json` and `examples/annotation-record.example.json`.
+
+This is intentionally separate from KIE runtime output:
+
+| Ground truth | KIE runtime | Reason |
+| --- | --- | --- |
+| `annotation_status` | `value_status` | Same vocabulary, different owner and provenance |
+| `transcribed_value` | `raw_text` | Human transcription is not OCR/KIE text |
+| `normalized_value` | `normalized_value` | Same canonical type, but ground truth versus prediction |
+| `candidate_values` | No direct field | Annotation alternatives are evaluation evidence, not a selected prediction |
+| No confidence/review flag | `confidence`, `machine_needs_review` | Ground truth must not claim machine confidence |
+
+Both contracts use the same five canonical field names and typed normalized values. Annotation `source_block_ids` must refer to blocks in its exact `source_ocr_run_id`.
+
 ## Public API error envelope
 
 ```json

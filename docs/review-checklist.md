@@ -46,6 +46,8 @@ Each owner must answer every item with **Yes**, or open a linked Issue describin
 - [ ] Every entry in `source_block_ids` exists in the referenced OCR run.
 - [ ] Ambiguous normalization returns `normalized_value=null` and `machine_needs_review=true`.
 - [ ] Field confidence means confidence in the normalized business value.
+- [ ] Ground-truth annotation records use the separate annotation schema and are not emitted as KIE runtime output.
+- [ ] Annotation `field_name`, status, typed values and `source_block_ids` match the five-field specification.
 
 ## DevOps owner
 
