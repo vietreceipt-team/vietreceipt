@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f7f9;
+  --foreground: #0f172a;
+  --brand: #115e59;
+  --brand-strong: #0f4c48;
+  --brand-soft: #e7f5f2;
+  --line: #e2e8f0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  min-width: 320px;
+  background: var(--background);
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+::selection {
+  background: #99f6e4;
+  color: #134e4a;
+}
+
+* {
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: thin;
+}
+
+.paper-texture {
+  background-color: #f1eee7;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgb(15 23 42 / 0.025) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 70% 60%, rgb(15 23 42 / 0.02) 0 1px, transparent 1.5px);
+  background-size: 24px 24px, 31px 31px;
+}
+
+.receipt-shadow {
+  box-shadow: 0 28px 70px rgb(15 23 42 / 0.22), 0 2px 8px rgb(15 23 42 / 0.08);
+}
+
+.receipt-edge {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 98.8%,
+    97% 100%,
+    94% 98.8%,
+    91% 100%,
+    88% 98.8%,
+    85% 100%,
+    82% 98.8%,
+    79% 100%,
+    76% 98.8%,
+    73% 100%,
+    70% 98.8%,
+    67% 100%,
+    64% 98.8%,
+    61% 100%,
+    58% 98.8%,
+    55% 100%,
+    52% 98.8%,
+    49% 100%,
+    46% 98.8%,
+    43% 100%,
+    40% 98.8%,
+    37% 100%,
+    34% 98.8%,
+    31% 100%,
+    28% 98.8%,
+    25% 100%,
+    22% 98.8%,
+    19% 100%,
+    16% 98.8%,
+    13% 100%,
+    10% 98.8%,
+    7% 100%,
+    4% 98.8%,
+    0 100%
+  );
+}
