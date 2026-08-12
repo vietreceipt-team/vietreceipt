@@ -1,20 +1,19 @@
-
-"""Run PaddleOCR baseline on the frozen test set and generate structured JSON output."""
+"""Run PaddleOCR baseline on the frozen test set and generate canonical structured JSON output."""
 import os
 os.environ["FLAGS_enable_pir_api"] = "0"
 
 import json
 import logging
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from PIL import Image
 from paddleocr import PaddleOCR
-
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 TEST_IMAGES_DIR = PROJECT_ROOT / "data" / "test_set" / "images"
@@ -24,49 +23,62 @@ OUTPUT_DIR = PROJECT_ROOT / "results" / "ocr_outputs"
 def process_image(ocr_engine: PaddleOCR, image_path: Path) -> dict[str, Any]:
     start_time = time.time()
 
+    with Image.open(image_path) as img:
+        img_width, img_height = img.size
+
     result = ocr_engine.ocr(str(image_path))
-    processing_time_ms = int((time.time() - start_time) * 1000)
+    duration_ms = int((time.time() - start_time) * 1000)
+
+    receipt_id = image_path.stem
+    ocr_run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
     schema: dict[str, Any] = {
-        "status": "success",
-        "metadata": {
-            "file_name": image_path.name,
-            "engine": "paddleocr_v4",
-            "processing_time_ms": processing_time_ms,
+        "schema_version": "1.0.0",
+        "receipt_id": receipt_id,
+        "ocr_run_id": ocr_run_id,
+        "engine": "paddleocr_v4",
+        "image_size": {
+            "width": img_width,
+            "height": img_height
         },
-        "detections": [],
+        "duration_ms": duration_ms,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "blocks": []
     }
 
-    if not result:
+    if not result or not result[0]:
         return schema
 
-    
     res = result[0]
-
     rec_texts = res.get("rec_texts", []) if hasattr(res, "get") else res["rec_texts"]
     rec_scores = res.get("rec_scores", []) if hasattr(res, "get") else res["rec_scores"]
-    # Ưu tiên rec_polys (4 điểm góc); nếu không có thì dùng rec_boxes (x1,y1,x2,y2) rồi tự suy ra 4 góc
     rec_polys = res.get("rec_polys") if hasattr(res, "get") else res.get("rec_polys", None)
 
     if not rec_texts:
         return schema
 
-    for idx, text in enumerate(rec_texts, start=1):
-        confidence = rec_scores[idx - 1] if idx - 1 < len(rec_scores) else 1.0
+    for idx, text in enumerate(rec_texts):
+        confidence = rec_scores[idx] if idx < len(rec_scores) else 1.0
 
-        if rec_polys is not None and idx - 1 < len(rec_polys):
-            poly = rec_polys[idx - 1]  # numpy array shape (4, 2)
-            box = [[int(pt[0]), int(pt[1])] for pt in poly]
+        if rec_polys is not None and idx < len(rec_polys):
+            poly_pixel = rec_polys[idx]  # 4 điểm [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
+            polygon_norm = [
+                [
+                    round(float(pt[0]) / img_width, 4) if img_width > 0 else 0.0,
+                    round(float(pt[1]) / img_height, 4) if img_height > 0 else 0.0
+                ]
+                for pt in poly_pixel
+            ]
         else:
-            box = []
+            polygon_norm = []
 
-        schema["detections"].append(
-            {
-                "box": box,
-                "text": str(text),
-                "confidence": round(float(confidence), 4),
-            }
-        )
+        schema["blocks"].append({
+            "block_id": idx,
+            "text": str(text),
+            "polygon": polygon_norm,
+            "confidence": round(float(confidence), 4),
+            "reading_order": idx
+        })
 
     return schema
 

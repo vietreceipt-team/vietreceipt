@@ -1,0 +1,6 @@
+paddlepaddle==2.6.1
+paddleocr==2.7.3
+jiwer==3.0.3
+pandas>=2.0.0
+jsonschema>=4.0.0
+python-dotenv>=1.0.0
