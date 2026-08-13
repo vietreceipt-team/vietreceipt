@@ -1,0 +1,49 @@
+*****************************************
+           BÁO CÁO NHANH POS/CA          
+*****************************************
+
+POS:001                                Số ca:2
+NVBH:09025435
+Tên NV:5156CHT
+NGÀY KINH DOANH:08/08/2020
+NGÀY HỆ THỐNG:08/08/2020 22:40
+
+=========== Doanh số & thuế ===========
+MÔ TẢ                                   SỐ TIỀN
+-----------------------------------------
+Tổng trước thuế                        7.353.177
+Tổng thuế                                636.368
+Tổng sau thuế                          7.989.545
+Phải trả VINID                           133.000
+Payoo/Cosmo                                    0
+Tổng thanh toán                        8.122.545
+
+============== THANH TOÁN ==============
+MÔ TẢ                       SL          SỐ TIỀN
+-----------------------------------------
+TIỀN MẶT                               7.360.145
+PMH bên thứ 3                                  0
+Biên nhận thanh toán                           0
+VinID                                     70.000
+Phiếu quà tặng                                 0
+Thẻ tín dụng                             629.400
+Thẻ ghi nợ                                     0
+Thẻ trả trước                                  0
+Ví điện tử của VinID Pay                       0
+Tổng Tiền                              8.059.545
+-----------------------------------------
+THANH TOÁN THỪA                              700
+LÀM TRÒN TIỀN MẶT                              0
+
+NHẬP ĐƠN VỊ TIỀN
+Tổng Tiền                                      0
+TIỀN ĐẦU KÌ KINH DOANH                   500.000
+TIỀN HỆ THỐNG                                  0
+VƯỢT QUÁ/THIẾU                                 0
+
+COUPON                       0                 0
+VOUCHER                      0                 0
+PMH bên thứ 3                                  0
+Biên nhận thanh toán                           0
+VinID                                          0
+************* KẾT THÚC *************

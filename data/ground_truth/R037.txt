@@ -1,0 +1,63 @@
+*****************************************
+*               Báo cáo X               *
+*****************************************
+TAX ID:0104918404-007
+
+POS ID:4456POS1
+POS:001                                Số ca:1
+NVBH:09021212
+Tên NV:4456POS1
+NGÀY KINH DOANH:14/08/2020
+NGÀY HỆ THỐNG:14/08/2020 12:37
+
+=========== Doanh số & thuế ===========
+MÔ TẢ                                   SỐ TIỀN
+-----------------------------------------
+Tổng trước thuế                        4.916.495
+Tổng thuế                                385.374
+Tổng sau thuế                          5.301.869
+Phải trả VinID                            81.000
+Payoo/Cosmo                                    0
+Tổng thanh toán                        5.382.869
+
+============== THANH TOÁN ==============
+MÔ TẢ                       SL          SỐ TIỀN
+-----------------------------------------
+TIỀN MẶT                               5.268.369
+PMH bên thứ 3                                  0
+Biên nhận thanh toán                           0
+VinID                                    138.000
+Phiếu quà tặng                                 0
+Thẻ tín dụng                                   0
+Thẻ ghi nợ                                     0
+Thẻ trả trước                                  0
+Ví điện tử của VinID Pay                  33.500
+Tổng Tiền                              5.439.869
+-----------------------------------------
+THANH TOÁN THỪA                                0
+LÀM TRÒN TIỀN MẶT                              0
+
+NHẬP ĐƠN VỊ TIỀN
+500.000 VND                 12         6.000.000
+200.000 VND                  1           200.000
+100.000 VND                  0                 0
+50.000 VND                   1            50.000
+20.000 VND                   1            20.000
+10.000 VND                   0                 0
+5.000 VND                    0                 0
+2.000 VND                    0                 0
+1.000 VND                    0                 0
+500 VND                      0                 0
+200 VND                      0                 0
+100 VND                      0                 0
+Tổng Tiền                              6.270.000
+TIỀN ĐẦU KÌ KINH DOANH                   500.000
+TIỀN HỆ THỐNG                          5.268.369
+VƯỢT QUÁ/THIẾU                           501.631
+
+COUPON                       0                 0
+VOUCHER                      0                 0
+PMH bên thứ 3                                  0
+Biên nhận thanh toán                           0
+VinID                                          0
+************* KẾT THÚC *************
