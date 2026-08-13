@@ -438,7 +438,7 @@ export default function ReceiptReviewPage() {
                     {field.machine.review_reasons.length > 0 && (
                       <span className="text-[10px] font-semibold text-amber-700">
                         {field.machine.review_reasons
-                          .map((reason) => reasonLabels[reason.code])
+                          .map((reason) => reasonLabels[reason])
                           .join(" · ")}
                       </span>
                     )}

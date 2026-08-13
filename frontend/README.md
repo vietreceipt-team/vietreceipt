@@ -46,20 +46,22 @@ Types, mocks, API adapter và tests bám theo `openapi/openapi.yaml` trên `docs
 - Receipt state: `UPLOADED`, `PROCESSING`, `NEEDS_REVIEW`, `VERIFIED`, `FAILED`; không còn `QUEUED`.
 - `POST /api/v1/receipts` tự kích hoạt xử lý; không có public `/process`.
 - `fields` là object có đúng năm key: `merchant_name`, `receipt_date`, `total_amount`, `invoice_id`, `merchant_address`.
+- Backend trả `ExtractedField` dạng phẳng theo OpenAPI; `projectApiExtractedField` chuyển DTO này sang view model `machine/correction/effective` dùng riêng trong UI.
 - Correction dùng `PATCH /receipts/{receipt_id}/fields/{field_name}/correction`.
 - `APPLY` gửi `value_status`, `value`, `expected_updated_at`; `CLEAR` chỉ gửi `operation` và `expected_updated_at`.
+- Trước khi gửi correction, Frontend kiểm tra kiểu theo `field_name`: amount là integer VND không âm, date là ngày `YYYY-MM-DD` hợp lệ, các field còn lại là string không rỗng; mọi status non-`PRESENT` bắt buộc dùng `null`.
 - Verify gửi `expected_updated_at = receipt.updated_at`; stale field/receipt token trả `409`.
-- `review_reasons` dùng object `{ code, message? }` và enum KIE v1.1 trong contract.
+- `review_reasons` là mảng string enum KIE v1.1 đúng theo OpenAPI canonical; nhãn tiếng Việt là presentation mapping do Frontend sở hữu.
 - `raw_text`, prediction, normalized, correction và effective projection được giữ riêng; effective value không fallback sang prediction chưa chuẩn hóa.
 
 ## Evidence ảnh và OCR
 
-Màn hình review dùng ảnh fixture thật `public/fixtures/R001.jpg` từ nhánh OCR `feature/ocr-baseline-week1`, không dựng lại ảnh bằng HTML từ giá trị KIE. Polygon mock được lấy từ bounding box OCR trên chính fixture 465×564 và liên kết hai chiều với field qua `source_block_ids`.
+Màn hình review dùng ảnh fixture thật `public/fixtures/R001.jpg` từ nhánh OCR `feature/ocr-baseline-week1`, không dựng lại ảnh bằng HTML từ giá trị KIE. Polygon fixture được lấy từ bounding box OCR trên chính fixture 465×564 và liên kết hai chiều với field qua `source_block_ids`.
 
-Đây vẫn là fixture W1. Khi tích hợp Backend thật, URL ảnh và OCR blocks phải đến từ endpoint evidence đã được team chốt và có kiểm soát quyền; Frontend không tự suy đoán đường dẫn Storage.
+Đây vẫn là fixture W1. Khi tích hợp thật, `image_url`, `ocr_blocks`, `block_id`, `polygon`, `confidence` và `reading_order` phải đến từ Backend/OCR contract đã được team chốt và có kiểm soát quyền. Frontend chỉ render/interaction, không sở hữu OCR schema, không tự sinh polygon và không suy đoán đường dẫn Storage.
 
 ## Tests và bảo mật dependency
 
-`tests/contract-and-interactions.test.ts` kiểm tra runtime constants với contract fixture, canonical fields object, payload `APPLY/CLEAR`, optimistic concurrency `409`, verify và source highlighting hai chiều.
+`tests/contract-and-interactions.test.ts` kiểm tra runtime constants với contract fixture, flat Backend DTO → UI projection, consistency giữa object key và `field_name`, validation theo từng field, payload `APPLY/CLEAR`, optimistic concurrency `409`, verify và source highlighting hai chiều.
 
 Sau khi chuyển khỏi Vinext beta và nâng các bản vá khả dụng, `npm audit` trả về **0 vulnerabilities** tại thời điểm cập nhật PR #8.

@@ -9,13 +9,15 @@ import {
   type ReceiptField,
   type ReceiptPage,
   type ReceiptStatus,
-  type ReviewReason,
+  type ReviewReasonCode,
   type ValueStatus,
 } from "../types/receipt";
 
 const OCR_FIXTURE_IMAGE = "/fixtures/R001.jpg";
 const OCR_FIXTURE_WIDTH = 465;
 const OCR_FIXTURE_HEIGHT = 564;
+const OCR_FIXTURE_RUN_ID = "77777777-7777-4777-8777-777777777777";
+const KIE_FIXTURE_RUN_ID = "88888888-8888-4888-8888-888888888888";
 
 const receiptIds = {
   review: "11111111-1111-4111-8111-111111111111",
@@ -33,7 +35,7 @@ interface FieldFixture {
   value_status?: ValueStatus;
   confidence: number;
   machine_needs_review?: boolean;
-  review_reasons?: ReviewReason[];
+  review_reasons?: ReviewReasonCode[];
   source_block_ids?: string[];
   corrected_status?: ValueStatus | null;
   corrected_value?: FieldValue;
@@ -55,6 +57,8 @@ function createField(fixture: FieldFixture, updatedAt: string): ReceiptField {
   return {
     field_name: fixture.field_name,
     machine: {
+      ocr_run_id: OCR_FIXTURE_RUN_ID,
+      kie_run_id: KIE_FIXTURE_RUN_ID,
       raw_text: fixture.raw_text,
       predicted_value: fixture.predicted_value,
       normalized_value: fixture.normalized_value,
@@ -62,9 +66,12 @@ function createField(fixture: FieldFixture, updatedAt: string): ReceiptField {
       confidence: fixture.confidence,
       machine_needs_review: machineNeedsReview,
       review_reasons: fixture.review_reasons ?? [],
+      review_policy_version: machineNeedsReview
+        ? "kie-review-policy/1.0.0"
+        : null,
       normalization:
         fixture.normalized_value === null
-          ? undefined
+          ? null
           : {
               rule:
                 fixture.field_name === "total_amount"
@@ -85,6 +92,7 @@ function createField(fixture: FieldFixture, updatedAt: string): ReceiptField {
     effective_needs_review:
       fixture.effective_needs_review ??
       (hasCorrection ? false : machineNeedsReview),
+    verified: false,
     updated_at: updatedAt,
     corrected_by: hasCorrection
       ? "99999999-9999-4999-8999-999999999999"
@@ -126,12 +134,7 @@ function createReviewFields(): CanonicalFields {
         normalized_value: 113000,
         confidence: 0.753,
         machine_needs_review: true,
-        review_reasons: [
-          {
-            code: "LOW_CONFIDENCE",
-            message: "OCR confidence on the total line is below the review policy threshold.",
-          },
-        ],
+        review_reasons: ["LOW_CONFIDENCE"],
         source_block_ids: ["block_total_label", "block_total_value"],
       },
       updatedAt,
@@ -180,6 +183,7 @@ function createVerifiedFields(): CanonicalFields {
           effective_status: field.machine.value_status,
           effective_value: field.machine.normalized_value,
           effective_needs_review: false,
+          verified: true,
           updated_at: updatedAt,
           corrected_by: null,
           corrected_at: null,

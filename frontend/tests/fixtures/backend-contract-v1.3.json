@@ -39,6 +39,9 @@
     "SOURCE_ROLE_UNCLEAR",
     "NORMALIZATION_FAILED"
   ],
+  "field_response_shape": "flat_extracted_field",
+  "review_reason_shape": "string_enum",
+  "ocr_evidence_source": "backend_ocr_contract",
   "public_paths": {
     "upload": "/api/v1/receipts",
     "receipt": "/api/v1/receipts/{receipt_id}",
