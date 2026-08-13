@@ -46,3 +46,14 @@ def test_maps_pillow_decompression_bomb_warning_to_invalid_image(monkeypatch: py
     with pytest.raises(InvalidImageError):
         ReceiptImageValidator().validate(data)
     monkeypatch.setattr(Image, "open", original_open)
+
+
+def test_maps_pillow_decompression_bomb_error_to_invalid_image(monkeypatch: pytest.MonkeyPatch) -> None:
+    data = synthetic_image("PNG")
+
+    def bomb_error(*args, **kwargs):
+        raise Image.DecompressionBombError("synthetic bomb error")
+
+    monkeypatch.setattr(Image, "open", bomb_error)
+    with pytest.raises(InvalidImageError):
+        ReceiptImageValidator().validate(data)

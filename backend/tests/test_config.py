@@ -23,6 +23,13 @@ def test_rejects_invalid_max_upload_size(monkeypatch: pytest.MonkeyPatch, value:
         ReceiptImageStorageConfig.from_env()
 
 
+@pytest.mark.parametrize("value", ["0", "-1", "abc"])
+def test_rejects_invalid_max_image_pixels(monkeypatch: pytest.MonkeyPatch, value: str) -> None:
+    monkeypatch.setenv("MAX_IMAGE_PIXELS", value)
+    with pytest.raises(ValueError):
+        ReceiptImageStorageConfig.from_env()
+
+
 def test_rejects_invalid_storage_secure(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("STORAGE_SECURE", "sometimes")
     with pytest.raises(ValueError):
