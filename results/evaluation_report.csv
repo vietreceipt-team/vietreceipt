@@ -1,11 +1,11 @@
 record_type,sample_id,cer_percent,wer_percent,metadata_key,metadata_value
 sample,R001,17.48,67.9,,
-sample,R002,18.59,58.82,,
-sample,R006,70.54,96.0,,
-sample,R019,16.12,52.54,,
-sample,R021,77.02,94.56,,
-sample,R023,16.24,62.4,,
-sample,R028,26.75,48.97,,
+sample,R002,46.97,88.24,,
+sample,R006,20.93,68.0,,
+sample,R019,29.33,79.66,,
+sample,R021,8.42,41.5,,
+sample,R023,28.02,80.0,,
+sample,R028,47.4,77.84,,
 metadata,,,,evaluation_scope,Preliminary baseline / probe
 metadata,,,,status,INCOMPLETE
 metadata,,,,expected_count,40
@@ -20,5 +20,5 @@ metadata,,,,invalid_ocr_ids,
 metadata,,,,normalization_policy,collapse all whitespace sequences to one ASCII space
 metadata,,,,metric_policy,macro-average CER/WER over evaluated samples
 metadata,,,,sampling_rationale,preliminary Week-1 probe using the seven available non-empty legacy transcriptions; not a performance estimate for all 40 frozen samples
-metadata,,,,macro_cer_percent,34.68
-metadata,,,,macro_wer_percent,68.74
+metadata,,,,macro_cer_percent,28.36
+metadata,,,,macro_wer_percent,71.88
