@@ -28,3 +28,21 @@ def test_rejects_corrupt_supported_image() -> None:
 
 def test_rejects_valid_unsupported_image() -> None:
     with pytest.raises(UnsupportedImageFormatError): ReceiptImageValidator().validate(synthetic_image("GIF"))
+
+def test_rejects_image_over_pixel_limit() -> None:
+    data = synthetic_image("PNG")
+    with pytest.raises(InvalidImageError):
+        ReceiptImageValidator(max_pixels=3).validate(data)
+
+
+def test_maps_pillow_decompression_bomb_warning_to_invalid_image(monkeypatch: pytest.MonkeyPatch) -> None:
+    data = synthetic_image("PNG")
+    original_open = Image.open
+
+    def bomb_warning(*args, **kwargs):
+        raise Image.DecompressionBombWarning("synthetic bomb warning")
+
+    monkeypatch.setattr(Image, "open", bomb_warning)
+    with pytest.raises(InvalidImageError):
+        ReceiptImageValidator().validate(data)
+    monkeypatch.setattr(Image, "open", original_open)

@@ -2,11 +2,11 @@
 
 ## Receipt image storage (internal)
 
-`app.storage` validates and persists receipt images for a future service layer; it does not change the public API. Pillow decodes actual content and accepts only JPEG, PNG, and WebP. Empty, corrupt, unsupported, or oversized content is rejected. The default 10 MiB limit is configurable with `RECEIPT_IMAGE_MAX_SIZE_BYTES`.
+`app.storage` validates and persists receipt images for a future service layer; it does not change the public API. Pillow decodes actual content and accepts only JPEG, PNG, and WebP. Empty, corrupt, unsupported, or oversized content is rejected. The canonical upload-byte limit is configured with `MAX_UPLOAD_SIZE_BYTES` (default 10 MiB). Decoder safety is additionally bounded by the internal `MAX_IMAGE_PIXELS` limit; Pillow decompression-bomb warnings/errors are mapped to typed validation errors.
 
 `ReceiptImageStorage` exposes `put`, `get`, and `delete`. The filesystem adapter supports local development/tests. The S3 adapter supports MinIO/S3-compatible storage and accepts an application-configured boto3 client, keeping SDK details outside business code.
 
-Configuration uses `STORAGE_BACKEND`, `STORAGE_FILESYSTEM_ROOT`, `STORAGE_ENDPOINT`, `STORAGE_REGION`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_USE_SSL`, and `RECEIPT_IMAGE_MAX_SIZE_BYTES`. Credentials must be supplied only at runtime.
+Shared configuration follows the Backend Contract Owner convention: `STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_BUCKET` (default `vietreceipt`), `STORAGE_SECURE`, `MAX_UPLOAD_SIZE_BYTES`, and `ALLOWED_IMAGE_TYPES`. Backend-2 additionally owns development/internal settings `STORAGE_BACKEND`, `STORAGE_FILESYSTEM_ROOT`, `STORAGE_REGION`, and decoder-safety `MAX_IMAGE_PIXELS`. `ALLOWED_IMAGE_TYPES` must remain exactly JPEG/PNG/WebP so runtime configuration cannot create a second upload-format policy. Credentials must be supplied only at runtime.
 
 Run from `backend/`:
 
