@@ -1,0 +1,8 @@
+test_id,annotation_status,annotator_id,reviewer_id,qa_status,notes
+R001,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R002,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R006,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R019,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R021,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R023,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R028,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription

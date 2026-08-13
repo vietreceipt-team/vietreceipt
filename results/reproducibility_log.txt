@@ -1,0 +1,71 @@
+VietReceipt OCR Week-1 reproducibility evidence
+Date: 2026-08-13 (Asia/Saigon)
+Platform: Windows x86_64, CPU inference
+
+Fresh environment
+-----------------
+Python: 3.12.13
+PaddlePaddle: 3.0.0
+PaddleOCR: 3.0.3
+PaddleX: 3.0.3
+NumPy: 1.26.4
+Pillow: 10.4.0
+JiWER: 3.0.3
+jsonschema: 4.23.0
+pip check: No broken requirements found.
+
+OCR configuration
+-----------------
+Model family: PP-OCRv3
+Recognition model selected by PaddleOCR for vi: latin_PP-OCRv3_mobile_rec
+Detection model: PP-OCRv3_mobile_det
+Language: vi
+Document orientation classifier: disabled
+Document unwarping: disabled
+Text-line orientation: enabled (PP-LCNet_x1_0_textline_ori)
+MKL-DNN: disabled
+
+Why PP-OCRv3 is used: PaddleOCR 3.0.3 rejects the combination PP-OCRv4 + vi.
+PP-OCRv4 in this package line supports ch/en only; PP-OCRv3 is the declared
+Vietnamese-compatible model family. Package version and model family are not
+interchangeable labels.
+
+Commands and outcomes
+---------------------
+python -m pip install -r requirements.txt
+PASS
+
+python -m pip check
+PASS
+
+python -m unittest discover -s tests -p "test_*.py" -v
+PASS: 4 tests
+
+python -m compileall -q scripts tests
+PASS
+
+python scripts/run_baseline.py --image data/test_set/images/R001.jpg \
+  --output-dir results/smoke_output --mapping-out results/smoke_mapping.csv
+PASS: canonical OCRResult v1.3 written and validated before save
+The validated artifact and mapping were then copied to results/ocr_outputs/R001.json
+and results/benchmark_run_mapping.csv without changing their contents.
+Observed blocks: 31
+Observed duration_ms: 10796
+Observed average_confidence: 0.92935
+Engine object: {"name": "paddleocr", "version": "3.0.3"}
+
+python scripts/evaluate.py
+PASS with declared status INCOMPLETE
+Evaluation scope: preliminary baseline / probe
+Coverage: 7/40
+Evaluated IDs: R001,R002,R006,R019,R021,R023,R028
+Macro-average CER: 34.68%
+Macro-average WER: 68.74%
+
+Artifact provenance
+-------------------
+R001 was rerun in the fresh environment above. The other six evaluation outputs
+predate environment provenance; their serialization was migrated and validated
+against OCRResult v1.3, but their engine package version remains explicitly
+"legacy-unrecorded". See benchmark_run_mapping.csv and
+legacy_artifact_mapping.csv. They are not presented as fresh-run evidence.

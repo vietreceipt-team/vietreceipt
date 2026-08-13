@@ -1,120 +1,211 @@
-import os
-import json
+"""Evaluate the explicitly annotated OCR probe subset with transparent coverage."""
+
+from __future__ import annotations
+
+import argparse
 import csv
-import jiwer
+import json
 from pathlib import Path
+from typing import Any
 
-def get_text_from_ocr_json(json_path):
-    try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            if 'blocks' in data:
-                texts = [item['text'] for item in data.get('blocks', [])]
-            else:
-                texts = [item['text'] for item in data.get('detections', [])]
-            return " ".join(texts)
-    except Exception as e:
-        print(f"Error reading OCR file {json_path}: {e}")
-        return ""
+import jiwer
+from jsonschema import Draft202012Validator, FormatChecker
 
-def get_text_from_gt(txt_path):
-    try:
-        with open(txt_path, 'r', encoding='utf-8') as f:
-            return " ".join(f.read().split())
-    except Exception as e:
-        print(f"Error reading GT file {txt_path}: {e}")
-        return ""
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+MANIFEST_PATH = PROJECT_ROOT / "data" / "test_set" / "test_manifest.csv"
+GT_DIR = PROJECT_ROOT / "data" / "ground_truth"
+OCR_DIR = PROJECT_ROOT / "results" / "ocr_outputs"
+REPORT_PATH = PROJECT_ROOT / "results" / "evaluation_report.csv"
+SCHEMA_PATH = PROJECT_ROOT / "schemas" / "ocr-result.schema.json"
 
-def main():
-    project_root = Path(__file__).resolve().parents[1]
-    gt_dir = project_root / "data" / "ground_truth"
-    ocr_dir = project_root / "results" / "ocr_outputs"
-    test_images_dir = project_root / "data" / "test_set" / "images"
-    report_path = project_root / "results" / "evaluation_report.csv"
+NORMALIZATION_POLICY = "collapse all whitespace sequences to one ASCII space"
+METRIC_POLICY = "macro-average CER/WER over evaluated samples"
+SAMPLING_RATIONALE = (
+    "preliminary Week-1 probe using the seven available non-empty legacy "
+    "transcriptions; not a performance estimate for all 40 frozen samples"
+)
+ANNOTATED_STATUSES = {"annotated", "reviewed"}
 
-    expected_samples = []
-    if test_images_dir.exists():
-        valid_extensions = {".jpg", ".jpeg", ".png"}
-        expected_samples = sorted([
-            p.stem for p in test_images_dir.glob("*.*") if p.suffix.lower() in valid_extensions
-        ])
-    
-    expected_count = len(expected_samples) if expected_samples else 40
 
-    results = []
-    missing_samples = []
-    total_cer = 0.0
-    total_wer = 0.0
-    evaluated_count = 0
+def normalize_text(text: str) -> str:
+    return " ".join(text.split())
 
-    print(f"\n=================== EVALUATION REPORT ===================")
-    print(f"{'Image ID':<15} | {'CER (%)':<10} | {'WER (%)':<10} | {'Status':<10}")
-    print("-" * 55)
 
-    # Lặp qua toàn bộ mẫu trong frozen test set
-    for sample_id in expected_samples:
+def load_expected_samples(manifest_path: Path) -> list[dict[str, str]]:
+    with manifest_path.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    if not rows:
+        raise ValueError(f"Manifest is empty: {manifest_path}")
+    if len({row["test_id"] for row in rows}) != len(rows):
+        raise ValueError("Manifest contains duplicate test_id values")
+    return rows
+
+
+def load_validator(schema_path: Path) -> Draft202012Validator:
+    with schema_path.open(encoding="utf-8") as handle:
+        schema = json.load(handle)
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema, format_checker=FormatChecker())
+
+
+def read_ocr_text(
+    json_path: Path, validator: Draft202012Validator
+) -> tuple[str, list[str]]:
+    with json_path.open(encoding="utf-8") as handle:
+        document: dict[str, Any] = json.load(handle)
+    errors = sorted(validator.iter_errors(document), key=lambda error: list(error.path))
+    if errors:
+        messages = [
+            f"{'.'.join(map(str, error.path)) or '<root>'}: {error.message}"
+            for error in errors
+        ]
+        return "", messages
+    return normalize_text(" ".join(block["text"] for block in document["blocks"])), []
+
+
+def evaluate(
+    *,
+    manifest_path: Path = MANIFEST_PATH,
+    gt_dir: Path = GT_DIR,
+    ocr_dir: Path = OCR_DIR,
+    report_path: Path = REPORT_PATH,
+    schema_path: Path = SCHEMA_PATH,
+) -> dict[str, Any]:
+    manifest_rows = load_expected_samples(manifest_path)
+    validator = load_validator(schema_path)
+
+    metric_rows: list[dict[str, Any]] = []
+    missing_gt_ids: list[str] = []
+    empty_gt_ids: list[str] = []
+    missing_ocr_ids: list[str] = []
+    invalid_ocr_ids: list[str] = []
+
+    for manifest_row in manifest_rows:
+        sample_id = manifest_row["test_id"]
+        gt_status = manifest_row["ground_truth_status"].strip().lower()
         gt_path = gt_dir / f"{sample_id}.txt"
         ocr_path = ocr_dir / f"{sample_id}.json"
 
-        if not gt_path.exists() or not ocr_path.exists():
-            missing_samples.append(sample_id)
-            print(f"{sample_id:<15} | {'N/A':<10} | {'N/A':<10} | MISSING DATA")
+        if gt_status not in ANNOTATED_STATUSES or not gt_path.exists():
+            missing_gt_ids.append(sample_id)
             continue
 
-        gt_text = get_text_from_gt(gt_path)
-        ocr_text = get_text_from_ocr_json(ocr_path)
-
+        gt_text = normalize_text(gt_path.read_text(encoding="utf-8"))
         if not gt_text:
-            missing_samples.append(sample_id)
-            print(f"{sample_id:<15} | {'N/A':<10} | {'N/A':<10} | EMPTY GT")
+            empty_gt_ids.append(sample_id)
+            continue
+        if not ocr_path.exists():
+            missing_ocr_ids.append(sample_id)
             continue
 
-        cer = jiwer.cer(gt_text, ocr_text) * 100
-        wer = jiwer.wer(gt_text, ocr_text) * 100
+        ocr_text, validation_errors = read_ocr_text(ocr_path, validator)
+        if validation_errors:
+            invalid_ocr_ids.append(sample_id)
+            continue
 
-        results.append({
-            "image_id": sample_id,
-            "cer": round(cer, 2),
-            "wer": round(wer, 2)
-        })
+        metric_rows.append(
+            {
+                "sample_id": sample_id,
+                "cer_percent": round(jiwer.cer(gt_text, ocr_text) * 100, 2),
+                "wer_percent": round(jiwer.wer(gt_text, ocr_text) * 100, 2),
+            }
+        )
 
-        total_cer += cer
-        total_wer += wer
-        evaluated_count += 1
-        
-        print(f"{sample_id:<15} | {cer:<10.2f} | {wer:<10.2f} | EVALUATED")
+    expected_count = len(manifest_rows)
+    evaluated_ids = [row["sample_id"] for row in metric_rows]
+    evaluated_count = len(metric_rows)
+    incomplete_ids = sorted(
+        set(missing_gt_ids + empty_gt_ids + missing_ocr_ids + invalid_ocr_ids)
+    )
+    status = "COMPLETE" if evaluated_count == expected_count else "INCOMPLETE"
+    macro_cer = (
+        round(sum(row["cer_percent"] for row in metric_rows) / evaluated_count, 2)
+        if evaluated_count
+        else None
+    )
+    macro_wer = (
+        round(sum(row["wer_percent"] for row in metric_rows) / evaluated_count, 2)
+        if evaluated_count
+        else None
+    )
 
-    run_status = "COMPLETE" if evaluated_count == expected_count else "INCOMPLETE"
-    macro_cer = (total_cer / evaluated_count) if evaluated_count > 0 else 0.0
-    macro_wer = (total_wer / evaluated_count) if evaluated_count > 0 else 0.0
-
-    print("-" * 55)
-    print(f"Scope Summary: Preliminary baseline / Probe on {evaluated_count}/{expected_count} samples")
-    print(f"Status       : {run_status} (Evaluated: {evaluated_count}, Missing: {len(missing_samples)})")
-    if evaluated_count > 0:
-        print(f"MACRO AVG    | CER: {macro_cer:.2f}% | WER: {macro_wer:.2f}%")
-    print("=========================================================\n")
+    metadata = {
+        "evaluation_scope": "Preliminary baseline / probe",
+        "status": status,
+        "expected_count": expected_count,
+        "evaluated_count": evaluated_count,
+        "missing_count": len(incomplete_ids),
+        "evaluated_sample_ids": ",".join(evaluated_ids),
+        "missing_sample_ids": ",".join(incomplete_ids),
+        "missing_gt_ids": ",".join(missing_gt_ids),
+        "empty_gt_ids": ",".join(empty_gt_ids),
+        "missing_ocr_ids": ",".join(missing_ocr_ids),
+        "invalid_ocr_ids": ",".join(invalid_ocr_ids),
+        "normalization_policy": NORMALIZATION_POLICY,
+        "metric_policy": METRIC_POLICY,
+        "sampling_rationale": SAMPLING_RATIONALE,
+        "macro_cer_percent": macro_cer,
+        "macro_wer_percent": macro_wer,
+    }
 
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(report_path, 'w', newline='', encoding='utf-8') as csvfile:
-        fieldnames = ['image_id', 'cer', 'wer']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        
+    with report_path.open("w", encoding="utf-8", newline="") as handle:
+        fieldnames = [
+            "record_type",
+            "sample_id",
+            "cer_percent",
+            "wer_percent",
+            "metadata_key",
+            "metadata_value",
+        ]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
-        
-        for row in results:
-            writer.writerow(row)
-            
-        # Ghi Summary & Metadata làm rõ phạm vi đánh giá
-        writer.writerow({'image_id': '--- METADATA ---', 'cer': '', 'wer': ''})
-        writer.writerow({'image_id': 'EVALUATION_SCOPE', 'cer': 'Preliminary baseline / Probe', 'wer': ''})
-        writer.writerow({'image_id': 'STATUS', 'cer': run_status, 'wer': ''})
-        writer.writerow({'image_id': 'EXPECTED_COUNT', 'cer': expected_count, 'wer': ''})
-        writer.writerow({'image_id': 'EVALUATED_COUNT', 'cer': evaluated_count, 'wer': ''})
-        writer.writerow({'image_id': 'MISSING_COUNT', 'cer': len(missing_samples), 'wer': ''})
-        writer.writerow({'image_id': 'MACRO_AVERAGE', 'cer': round(macro_cer, 2), 'wer': round(macro_wer, 2)})
+        for row in metric_rows:
+            writer.writerow({"record_type": "sample", **row})
+        for key, value in metadata.items():
+            writer.writerow(
+                {
+                    "record_type": "metadata",
+                    "metadata_key": key,
+                    "metadata_value": "" if value is None else value,
+                }
+            )
 
-    print(f"Detailed report saved at: {report_path}")
+    return {"metrics": metric_rows, "metadata": metadata}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--require-complete",
+        action="store_true",
+        help="Return exit code 2 when any frozen sample is not evaluated.",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    result = evaluate()
+    metadata = result["metadata"]
+    print(
+        f"{metadata['evaluation_scope']}: {metadata['evaluated_count']}/"
+        f"{metadata['expected_count']} samples ({metadata['status']})"
+    )
+    print(f"Evaluated IDs: {metadata['evaluated_sample_ids'] or '<none>'}")
+    print(f"Missing IDs: {metadata['missing_sample_ids'] or '<none>'}")
+    print(f"Normalization: {metadata['normalization_policy']}")
+    print(f"Metric: {metadata['metric_policy']}")
+    if metadata["evaluated_count"]:
+        print(
+            "Macro average: "
+            f"CER={metadata['macro_cer_percent']:.2f}% "
+            f"WER={metadata['macro_wer_percent']:.2f}%"
+        )
+    print(f"Report: {REPORT_PATH}")
+    if args.require_complete and metadata["status"] != "COMPLETE":
+        raise SystemExit(2)
+
 
 if __name__ == "__main__":
     main()

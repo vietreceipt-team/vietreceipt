@@ -1,37 +1,111 @@
-# OCR VietReceipt
+# VietReceipt OCR Week-1 baseline
 
-Thư mục này chứa phần nhận dạng ký tự quang học và xử lý ảnh của hệ thống VietReceipt.
+This module runs a reproducible Vietnamese receipt OCR probe and adapts
+engine-specific output to the shared `OCRResult v1.3` contract consumed by KIE,
+Backend, and Frontend evidence highlighting.
 
-## Phạm vi chính
+## Pinned environment and model configuration
 
-- Tiền xử lý ảnh hóa đơn
-- Hiệu chỉnh xoay và độ nghiêng
-- Cải thiện độ tương phản khi cần
-- Chạy OCR
-- Trả về văn bản nhận dạng
-- Trả về bounding box
-- Trả về độ tin cậy của OCR
-- Đánh giá chất lượng OCR
+| Component | Pinned value |
+| --- | --- |
+| Python | CPython 3.12.13 (`.python-version`) |
+| PaddlePaddle CPU package | `paddlepaddle==3.0.0` |
+| PaddleOCR Python package | `paddleocr==3.0.3` |
+| PaddleX pipeline package | `paddlex==3.0.3` |
+| OCR model family | `PP-OCRv3` |
+| Language configuration | `vi` |
+| Document orientation classifier | disabled |
+| Document unwarping | disabled |
+| Text-line orientation | enabled |
+| MKL-DNN | disabled for a portable CPU probe |
 
-## Đầu vào
+The PaddleOCR package version and the PP-OCR model family are different
+concepts. `engine.version` in canonical output is the Python package version
+(`3.0.3`); the model and language configuration are experiment provenance.
+PaddleOCR 3.0.3 does not offer a `vi` model under PP-OCRv4, so this probe pins
+the officially supported `PP-OCRv3` + `vi` combination rather than mislabeling
+the model as v4.
 
-- Ảnh hóa đơn
+## Setup
 
-## Đầu ra chuẩn
+Create a fresh environment with Python 3.12.13:
 
-Mỗi vùng OCR cần có tối thiểu:
+```bash
+python -m venv .venv
+```
 
-- Nội dung văn bản
-- Độ tin cậy
-- Tọa độ bounding box
+Activate it, then install exact direct dependencies:
 
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-## Thành viên phụ trách chính
+PaddleOCR downloads the selected official PP-OCRv3 models on first use. Receipt
+images are not in Git because the MC-OCR agreement prohibits redistribution;
+follow `data/test_set/README.md` to reconstruct an authorized local test set.
 
-Bình Minh— OCR và xử lý ảnh
+## Run baseline
 
-Nguyên tắc
-Không để OCR chỉ tồn tại dưới dạng script chạy thủ công.
-Phải chuẩn hóa đầu ra để backend và KIE có thể sử dụng.
-Các thử nghiệm phải lưu lại cấu hình và kết quả.
-Mọi thay đổi phải gắn với GitHub Issue tương ứng.
+Standalone benchmark mode keeps `R001`, etc. only as `test_id` metadata. It
+creates canonical UUIDs separately and records the mapping outside OCRResult:
+
+```bash
+python scripts/run_baseline.py
+```
+
+Run one authorized sample:
+
+```bash
+python scripts/run_baseline.py --image data/test_set/images/R001.jpg
+```
+
+Integration mode uses UUIDs supplied by Backend:
+
+```bash
+python scripts/run_baseline.py \
+  --image /private/path/receipt.jpg \
+  --receipt-id 31915ef1-6fb4-4e7d-b6f5-53be51c50e3d \
+  --ocr-run-id b3ac8bb4-6383-4b97-9911-5a6900054608
+```
+
+The adapter applies EXIF orientation before inference, emits clockwise polygon
+points ordered top-left, top-right, bottom-right, bottom-left, and validates each
+document against `schemas/ocr-result.schema.json` before writing it. Missing or
+malformed polygons fail the run; invalid artifacts are never saved as canonical.
+
+## Evaluate the preliminary probe
+
+```bash
+python scripts/evaluate.py
+```
+
+The report explicitly records expected/evaluated counts, evaluated and missing
+sample IDs, invalid OCR artifacts, sampling rationale, whitespace normalization,
+and macro-average CER/WER. Use `--require-complete` when a workflow must fail on
+anything below 40/40 coverage.
+
+Current scope is only the seven non-empty legacy transcriptions: `R001`, `R002`,
+`R006`, `R019`, `R021`, `R023`, and `R028`. It is a preliminary probe, not the
+performance of the full frozen set.
+
+## Contract and module impact
+
+Canonical output is `OCRResult v1.3`:
+
+- UUID `receipt_id` and `ocr_run_id`;
+- package name/version under `engine`;
+- oriented image dimensions;
+- non-empty blocks with normalized four-point polygons, confidence, opaque
+  string IDs, and unique zero-based reading order;
+- average confidence and duration.
+
+This output directly affects KIE source evidence, Backend run persistence, and
+Frontend polygon highlighting. Any shape or semantic change must be coordinated
+through the shared schema rather than introduced in the PaddleOCR adapter alone.
+
+## Verification evidence
+
+`results/reproducibility_log.txt` records the fresh-environment commands and
+observed package/model configuration used for the committed probe artifact. The
+schema adapter and evaluator also have offline unit tests under `tests/`.

@@ -1,0 +1,2 @@
+test_id,receipt_id,ocr_run_id,output_file
+R001,68c0ccd5-069f-5ab4-9df8-783c6a96fa56,05a4c10d-7e97-4cfe-b925-5eb4b42853b7,results/ocr_outputs/R001.json

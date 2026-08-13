@@ -1,15 +1,24 @@
-image_id,cer,wer
-R001,10.44,37.04
-R002,18.44,58.82
-R006,70.35,96.0
-R019,16.12,52.54
-R021,77.02,94.56
-R023,16.24,62.4
-R028,26.75,48.97
---- METADATA ---,,
-EVALUATION_SCOPE,Preliminary baseline / Probe,
-STATUS,INCOMPLETE,
-EXPECTED_COUNT,40,
-EVALUATED_COUNT,7,
-MISSING_COUNT,33,
-MACRO_AVERAGE,33.62,64.33
+record_type,sample_id,cer_percent,wer_percent,metadata_key,metadata_value
+sample,R001,17.48,67.9,,
+sample,R002,18.59,58.82,,
+sample,R006,70.54,96.0,,
+sample,R019,16.12,52.54,,
+sample,R021,77.02,94.56,,
+sample,R023,16.24,62.4,,
+sample,R028,26.75,48.97,,
+metadata,,,,evaluation_scope,Preliminary baseline / probe
+metadata,,,,status,INCOMPLETE
+metadata,,,,expected_count,40
+metadata,,,,evaluated_count,7
+metadata,,,,missing_count,33
+metadata,,,,evaluated_sample_ids,"R001,R002,R006,R019,R021,R023,R028"
+metadata,,,,missing_sample_ids,"R003,R004,R005,R007,R008,R009,R010,R011,R012,R013,R014,R015,R016,R017,R018,R020,R022,R024,R025,R026,R027,R029,R030,R031,R032,R033,R034,R035,R036,R037,R038,R039,R040"
+metadata,,,,missing_gt_ids,"R003,R004,R005,R007,R008,R009,R010,R011,R012,R013,R014,R015,R016,R017,R018,R020,R022,R024,R025,R026,R027,R029,R030,R031,R032,R033,R034,R035,R036,R037,R038,R039,R040"
+metadata,,,,empty_gt_ids,
+metadata,,,,missing_ocr_ids,
+metadata,,,,invalid_ocr_ids,
+metadata,,,,normalization_policy,collapse all whitespace sequences to one ASCII space
+metadata,,,,metric_policy,macro-average CER/WER over evaluated samples
+metadata,,,,sampling_rationale,preliminary Week-1 probe using the seven available non-empty legacy transcriptions; not a performance estimate for all 40 frozen samples
+metadata,,,,macro_cer_percent,34.68
+metadata,,,,macro_wer_percent,68.74

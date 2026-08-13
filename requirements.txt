@@ -1,6 +1,18 @@
-paddlepaddle==2.6.1
-paddleocr==2.7.3
+# Reproducible Week-1 CPU baseline (tested with CPython 3.12.13).
+# PaddleOCR is the Python package; PP-OCRv3 is selected separately in
+# scripts/run_baseline.py because PaddleOCR 3.0.3 supports Vietnamese (`vi`)
+# with PP-OCRv3, not PP-OCRv4.
+paddlepaddle==3.0.0
+paddleocr==3.0.3
+paddlex[ie,multimodal,ocr]==3.0.3
+# PaddleX 3.0.3 declared broad LangChain ranges that now resolve to an
+# incompatible 1.x API. Pin the last compatible 0.3 line explicitly.
+langchain==0.3.30
+langchain-community==0.3.31
+langchain-core==0.3.86
+langchain-openai==0.3.35
+langchain-text-splitters==0.3.11
+numpy==1.26.4
+Pillow==10.4.0
 jiwer==3.0.3
-pandas>=2.0.0
-jsonschema>=4.0.0
-python-dotenv>=1.0.0
+jsonschema[format]==4.23.0
