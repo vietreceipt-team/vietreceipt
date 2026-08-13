@@ -119,23 +119,31 @@ export type CanonicalFields = {
   [TFieldName in FieldType]: ReceiptField<TFieldName>;
 };
 
+export const PROCESSING_STAGES = [
+  "PREPROCESSING",
+  "OCR",
+  "KIE",
+  "PERSISTING",
+] as const;
+
+export type ProcessingStage = (typeof PROCESSING_STAGES)[number] | null;
+
+export const PROCESSING_ERROR_STAGES = [
+  "SCHEDULING",
+  ...PROCESSING_STAGES,
+] as const;
+
+export type ProcessingErrorStage = (typeof PROCESSING_ERROR_STAGES)[number];
+
 export interface ProcessingError {
+  stage: ProcessingErrorStage;
   code: string;
   message: string;
-}
-
-export type ProcessingStage =
-  | "PREPROCESSING"
-  | "OCR"
-  | "KIE"
-  | "PERSISTING"
-  | null;
-
-export interface ApiProcessingError extends ProcessingError {
-  stage: Exclude<ProcessingStage, null>;
   retryable: boolean;
   occurred_at: string;
 }
+
+export type ApiProcessingError = ProcessingError;
 
 export interface ApiExtractedField<
   TFieldName extends FieldType = FieldType,
@@ -229,10 +237,9 @@ export interface ReceiptPage {
   total_pages: number;
 }
 
-export interface ReceiptAccepted {
+export interface RetryAccepted {
   receipt_id: string;
-  status: "UPLOADED" | "PROCESSING";
-  created_at: string;
+  retry_accepted: true;
 }
 
 export interface ApplyCorrectionRequest {

@@ -327,8 +327,11 @@ export const mockReceipts: ReceiptDetail[] = [
     "2026-08-12T01:12:00Z",
     {
       processing_error: {
+        stage: "OCR",
         code: "UNREADABLE_IMAGE",
         message: "Ảnh mờ, không thể đọc nội dung.",
+        retryable: true,
+        occurred_at: "2026-08-12T01:13:00Z",
       },
     },
   ),

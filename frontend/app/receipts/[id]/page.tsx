@@ -148,7 +148,7 @@ export default function ReceiptReviewPage() {
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-500">
             {receipt.status === "UPLOADED" &&
-              "Backend đã nhận ảnh và tự kích hoạt OCR/KIE; contract không public endpoint /process."}
+              "Ảnh và metadata đã được Backend commit. Job có thể đang được schedule nội bộ; receipt chỉ chuyển PROCESSING khi worker thực sự nhận và bắt đầu xử lý."}
             {receipt.status === "PROCESSING" &&
               "Backend đang xử lý OCR/KIE. Field projection chỉ xuất hiện sau khi KIE hoàn tất."}
             {receipt.status === "FAILED" &&

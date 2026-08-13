@@ -10,6 +10,7 @@ import type {
   FieldValue,
   ReceiptDetail,
   ReceiptField,
+  RetryAccepted,
   ValueStatus,
   VerifyRequest,
 } from "../types/receipt";
@@ -27,6 +28,8 @@ export const apiPaths = {
     `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}`,
   fieldCorrection: (receiptId: string, fieldName: FieldType) =>
     `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}/fields/${encodePathSegment(fieldName)}/correction`,
+  retryReceipt: (receiptId: string) =>
+    `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}/retry`,
   verifyReceipt: (receiptId: string) =>
     `${API_BASE_PATH}/receipts/${encodePathSegment(receiptId)}/verify`,
 } as const;
@@ -46,6 +49,13 @@ export class OptimisticConcurrencyError extends ApiRequestError {
   constructor(message: string, code = "STALE_WRITE") {
     super(message, 409, code);
     this.name = "OptimisticConcurrencyError";
+  }
+}
+
+export class ApiValidationError extends ApiRequestError {
+  constructor(message: string, code = "VALIDATION_ERROR") {
+    super(message, 422, code);
+    this.name = "ApiValidationError";
   }
 }
 
@@ -255,9 +265,7 @@ export function projectApiReceiptDetail(receipt: ApiReceiptDetail): ReceiptDetai
     latest_ocr_run_id: receipt.latest_ocr_run_id,
     latest_kie_run_id: receipt.latest_kie_run_id,
     fields,
-    processing_error: receipt.last_error
-      ? { code: receipt.last_error.code, message: receipt.last_error.message }
-      : null,
+    processing_error: receipt.last_error ? { ...receipt.last_error } : null,
     created_at: receipt.created_at,
     updated_at: receipt.updated_at,
     verified_at: receipt.verified_at,
@@ -284,7 +292,33 @@ async function parseResponse<T>(response: Response): Promise<T> {
   if (response.status === 409) {
     throw new OptimisticConcurrencyError(message, code);
   }
+  if (response.status === 422) {
+    throw new ApiValidationError(message, code);
+  }
   throw new ApiRequestError(message, response.status, code);
+}
+
+export async function submitReceiptRetry(
+  fetcher: FetchLike,
+  receiptId: string,
+): Promise<RetryAccepted> {
+  const response = await fetcher(apiPaths.retryReceipt(receiptId), {
+    method: "POST",
+  });
+  const accepted = await parseResponse<RetryAccepted>(response);
+  const responseKeys = Object.keys(accepted).sort();
+  if (
+    response.status !== 202 ||
+    accepted.receipt_id !== receiptId ||
+    accepted.retry_accepted !== true ||
+    JSON.stringify(responseKeys) !==
+      JSON.stringify(["receipt_id", "retry_accepted"])
+  ) {
+    throw new Error(
+      "Backend retry response must be the canonical 202 RetryAccepted shape.",
+    );
+  }
+  return accepted;
 }
 
 export async function submitFieldCorrection(
