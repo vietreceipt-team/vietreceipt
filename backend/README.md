@@ -31,7 +31,7 @@ Backend cung cấp REST API, quản lý vòng đời hóa đơn và điều ph�
 
 Chuyển trạng thái hợp lệ được định nghĩa tại `../docs/receipt-state-machine.md`.
 
-Backend tự động lên lịch xử lý sau khi upload thành công. `QUEUED` chỉ là trạng thái nội bộ của queue, không phải trạng thái hóa đơn công khai; Frontend không gọi `/process`.
+Backend tự động lên lịch xử lý sau khi upload thành công. `UPLOADED` nghĩa là ảnh và metadata đã commit; enqueue thành công vẫn giữ `UPLOADED`. Chỉ khi worker claim/start attempt thì receipt mới chuyển `PROCESSING`. Nếu scheduling/enqueue thất bại sau commit, receipt chuyển `FAILED` với `stage=SCHEDULING`, `retryable=true`. `QUEUED` chỉ là trạng thái nội bộ của queue, không phải trạng thái hóa đơn công khai; Frontend không gọi `/process`.
 
 ## Contract
 

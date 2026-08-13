@@ -32,6 +32,20 @@ merchant_address
 
 Aliases such as `merchant`, `date`, `total` and `address` must not cross a module boundary.
 
+### Canonical public field types
+
+Backend public projections use the same canonical semantic types as the KIE contract:
+
+| Canonical key | Embedded `field_name` | `normalized_value` / `corrected_value` / `effective_value` when present |
+| --- | --- | --- |
+| `merchant_name` | exactly `merchant_name` | non-empty string |
+| `receipt_date` | exactly `receipt_date` | ISO `YYYY-MM-DD` string |
+| `total_amount` | exactly `total_amount` | non-negative integer VND |
+| `invoice_id` | exactly `invoice_id` | non-empty string; leading zeroes preserved |
+| `merchant_address` | exactly `merchant_address` | non-empty string |
+
+The outer key and embedded `field_name` are one invariant. For example, `merchant_name.field_name="total_amount"` is invalid. The public `/fields` response is therefore not a generic `string | integer | null` bag: each canonical key resolves to its field-specific OpenAPI schema.
+
 ## Value layers and ownership
 
 | Layer | Owner | Meaning |
@@ -64,6 +78,14 @@ Backend stores:
 - nullable `corrected_status`;
 - `has_correction` to distinguish no correction from an explicit null correction;
 - derived `effective_status`.
+
+The public projection preserves these semantic invariants:
+
+- `value_status != PRESENT` implies `normalized_value=null`;
+- `has_correction=false` implies no corrected value/status and `effective_value` is derived only from `normalized_value`;
+- `has_correction=true` derives the effective value/status only from the correction;
+- `effective_value` never falls back to `predicted_value`;
+- `machine_needs_review=true` implies non-empty `review_reasons` and non-null `review_policy_version`.
 
 An `APPLY` request with `{ "value_status": "NOT_PRESENT", "value": null }` is a real correction. A `CLEAR` request removes the correction and falls back to the immutable KIE normalized result. Both operations use the same canonical field-name endpoint.
 
@@ -171,6 +193,23 @@ Until such a rule is tested, return:
 
 The main valid example uses unambiguous `325.000 VND`.
 
+## Processing scheduling semantics
+
+The public lifecycle freezes queue timing as follows:
+
+```text
+persist image + receipt metadata
+    -> UPLOADED
+schedule/enqueue succeeds
+    -> still UPLOADED
+worker claims and starts attempt
+    -> PROCESSING
+```
+
+`QUEUED` remains internal. `PROCESSING` is never set merely because enqueue succeeded.
+
+If initial scheduling/enqueue fails after persistence, Backend transitions the receipt to `FAILED` with a safe error containing `stage="SCHEDULING"` and `retryable=true`. The retry endpoint may then be used. HTTP `202` from retry means accepted for scheduling only; the receipt changes from `FAILED` to `PROCESSING` when a worker claims the retry attempt. If retry scheduling itself fails, the receipt remains `FAILED` with an updated scheduling error.
+
 ## Immutable processing runs
 
 - Every processing attempt creates a new `ocr_run_id` and, if OCR succeeds, a new `kie_run_id`.
@@ -209,7 +248,19 @@ Both payloads use:
 PATCH /api/v1/receipts/{receipt_id}/fields/{field_name}/correction
 ```
 
-`field_name` is one of the five canonical field names. A stale `expected_updated_at` returns HTTP `409`. Correction history is append-only and stores `operation`, `old_value`, `new_value`, `old_status` and `new_status`.
+`field_name` is one of the five canonical field names. For `APPLY`, the path selects the value type:
+
+| `{field_name}` | Allowed non-null `value` when `value_status=PRESENT` |
+| --- | --- |
+| `merchant_name` | non-empty string |
+| `receipt_date` | ISO `YYYY-MM-DD` string |
+| `total_amount` | non-negative integer |
+| `invoice_id` | non-empty string |
+| `merchant_address` | non-empty string |
+
+For every non-`PRESENT` status, `value` must be `null`. A path/type mismatch returns HTTP `422`; for example `PATCH .../fields/total_amount/correction` rejects `"value": "325000"` and accepts `"value": 325000`. `invoice_id` is always a string so leading zeroes are not lost.
+
+A stale `expected_updated_at` returns HTTP `409`. Correction history is append-only and stores `operation`, `old_value`, `new_value`, `old_status` and `new_status`.
 
 Receipt verification similarly requires the latest receipt concurrency token:
 

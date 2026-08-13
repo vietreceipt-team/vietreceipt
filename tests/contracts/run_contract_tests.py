@@ -52,6 +52,20 @@ CANONICAL_FIELD_NAMES = {
     "invoice_id",
     "merchant_address",
 }
+FIELD_SCHEMA_BY_NAME = {
+    "merchant_name": "MerchantNameField",
+    "receipt_date": "ReceiptDateField",
+    "total_amount": "TotalAmountField",
+    "invoice_id": "InvoiceIdField",
+    "merchant_address": "MerchantAddressField",
+}
+FIELD_VALUE_SCHEMA_BY_NAME = {
+    "merchant_name": "MerchantNameValue",
+    "receipt_date": "ReceiptDateValue",
+    "total_amount": "TotalAmountValue",
+    "invoice_id": "InvoiceIdValue",
+    "merchant_address": "MerchantAddressValue",
+}
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -60,6 +74,76 @@ def read_json(path: Path) -> dict[str, Any]:
 
 def read_yaml(path: Path) -> dict[str, Any]:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def openapi_component_errors(
+    openapi: dict[str, Any],
+    schema_name: str,
+    instance: Any,
+) -> list[str]:
+    root_schema = copy.deepcopy(openapi)
+    root_schema["$ref"] = f"#/components/schemas/{schema_name}"
+    validator = Draft202012Validator(root_schema, format_checker=FormatChecker())
+    errors = sorted(
+        validator.iter_errors(instance),
+        key=lambda error: [str(part) for part in error.absolute_path],
+    )
+    return [
+        f"{'/'.join(str(part) for part in error.absolute_path) or '<root>'}: "
+        f"{error.message}"
+        for error in errors
+    ]
+
+
+def assert_openapi_component(
+    label: str,
+    openapi: dict[str, Any],
+    schema_name: str,
+    instance: Any,
+    expected_valid: bool,
+) -> None:
+    errors = openapi_component_errors(openapi, schema_name, instance)
+    accepted = not errors
+    if accepted != expected_valid:
+        expectation = "valid" if expected_valid else "invalid"
+        details = "\n".join(errors) or "instance was accepted"
+        raise AssertionError(f"{label} should be {expectation}:\n{details}")
+
+
+def public_field(field_name: str, value: str | int) -> dict[str, Any]:
+    return {
+        "field_name": field_name,
+        "ocr_run_id": "00000000-0000-4000-8000-000000000001",
+        "kie_run_id": "00000000-0000-4000-8000-000000000002",
+        "raw_text": str(value),
+        "predicted_value": str(value),
+        "normalized_value": value,
+        "normalization": {"rule": "contract_test", "version": "1.0"},
+        "value_status": "PRESENT",
+        "corrected_value": None,
+        "corrected_status": None,
+        "has_correction": False,
+        "effective_value": value,
+        "effective_status": "PRESENT",
+        "confidence": 0.9,
+        "machine_needs_review": False,
+        "effective_needs_review": False,
+        "review_reasons": [],
+        "review_policy_version": None,
+        "source_block_ids": ["block_0"],
+        "verified": False,
+        "updated_at": "2026-08-10T08:30:00Z",
+    }
+
+
+def canonical_public_fields() -> dict[str, Any]:
+    return {
+        "merchant_name": public_field("merchant_name", "WINMART"),
+        "receipt_date": public_field("receipt_date", "2026-08-12"),
+        "total_amount": public_field("total_amount", 325000),
+        "invoice_id": public_field("invoice_id", "000123"),
+        "merchant_address": public_field("merchant_address", "1 Test Street"),
+    }
 
 
 def assert_integration_consistency(openapi: dict[str, Any], kie_schema: dict[str, Any]) -> None:
@@ -82,6 +166,15 @@ def assert_integration_consistency(openapi: dict[str, Any], kie_schema: dict[str
 
     if set(schemas["FieldName"]["enum"]) != CANONICAL_FIELD_NAMES:
         raise AssertionError("OpenAPI FieldName differs from the five canonical names")
+
+    canonical_properties = schemas["CanonicalExtractedFields"]["properties"]
+    for field_name, schema_name in FIELD_SCHEMA_BY_NAME.items():
+        expected_ref = f"#/components/schemas/{schema_name}"
+        if canonical_properties[field_name].get("$ref") != expected_ref:
+            raise AssertionError(f"{field_name} is not pinned to {schema_name}")
+        typed_overlay = schemas[schema_name]["allOf"][1]["properties"]
+        if typed_overlay["field_name"].get("const") != field_name:
+            raise AssertionError(f"{schema_name} does not lock embedded field_name")
 
     if any(path.endswith("/process") for path in paths):
         raise AssertionError("OpenAPI must not expose a public process endpoint")
@@ -110,6 +203,44 @@ def assert_integration_consistency(openapi: dict[str, Any], kie_schema: dict[str
     for request_name in ("ApplyFieldCorrectionRequest", "ClearFieldCorrectionRequest"):
         if "expected_updated_at" not in schemas[request_name]["required"]:
             raise AssertionError(f"{request_name} lacks optimistic concurrency")
+
+    correction_value_mapping = schemas["ApplyFieldCorrectionRequest"].get(
+        "x-field-value-schema-by-field-name",
+        {},
+    )
+    expected_value_mapping = {
+        field_name: f"#/components/schemas/{schema_name}"
+        for field_name, schema_name in FIELD_VALUE_SCHEMA_BY_NAME.items()
+    }
+    if correction_value_mapping != expected_value_mapping:
+        raise AssertionError("correction path/value schema mapping is incomplete or inconsistent")
+
+    correction_response = correction_operation["responses"]["200"]["content"]["application/json"]["schema"]
+    if correction_response.get("$ref") != "#/components/schemas/CanonicalExtractedField":
+        raise AssertionError("correction response is not a canonical typed field")
+
+    retry = paths["/receipts/{receipt_id}/retry"]["post"]
+    retry_schema = retry["responses"]["202"]["content"]["application/json"]["schema"]
+    if retry_schema.get("$ref") != "#/components/schemas/RetryAccepted":
+        raise AssertionError("retry 202 still implies PROCESSING instead of scheduling acceptance")
+    if "status" in schemas["RetryAccepted"].get("properties", {}):
+        raise AssertionError("RetryAccepted must not claim a PROCESSING status before worker claim")
+
+    error_stages = set(schemas["ProcessingError"]["properties"]["stage"]["enum"])
+    if "SCHEDULING" not in error_stages:
+        raise AssertionError("ProcessingError does not represent scheduling failure")
+    if "SCHEDULING" in set(schemas["ProcessingStage"]["enum"]):
+        raise AssertionError("SCHEDULING must not become a PROCESSING progress stage")
+
+    state_text = STATE_MACHINE.read_text(encoding="utf-8")
+    required_state_fragments = (
+        "UPLOADED --> PROCESSING: Worker claims processing attempt",
+        "UPLOADED --> FAILED: scheduling failed",
+        "FAILED --> PROCESSING: Worker claims retry attempt",
+    )
+    for fragment in required_state_fragments:
+        if fragment not in state_text:
+            raise AssertionError(f"state-machine timing/failure semantics missing: {fragment}")
 
     fields_response = paths["/receipts/{receipt_id}/fields"]["get"]["responses"]["200"]
     fields_schema = fields_response["content"]["application/json"]["schema"]
@@ -239,6 +370,102 @@ def main() -> int:
     openapi = read_yaml(OPENAPI_SPEC)
 
     assert_integration_consistency(openapi, read_json(KIE_SCHEMA))
+
+    public_fields = canonical_public_fields()
+    assert_openapi_component(
+        "canonical public fields",
+        openapi,
+        "CanonicalExtractedFields",
+        public_fields,
+        True,
+    )
+
+    invalid_public_fields: list[tuple[str, dict[str, Any]]] = [
+        (
+            "public total_amount as string",
+            changed(
+                public_fields,
+                lambda x: x["total_amount"].update(
+                    normalized_value="325000",
+                    effective_value="325000",
+                ),
+            ),
+        ),
+        (
+            "public receipt_date non-ISO",
+            changed(
+                public_fields,
+                lambda x: x["receipt_date"].update(
+                    normalized_value="08/12/2026",
+                    effective_value="08/12/2026",
+                ),
+            ),
+        ),
+        (
+            "public invoice_id as integer",
+            changed(
+                public_fields,
+                lambda x: x["invoice_id"].update(
+                    normalized_value=123456,
+                    effective_value=123456,
+                ),
+            ),
+        ),
+        (
+            "public merchant_name as integer",
+            changed(
+                public_fields,
+                lambda x: x["merchant_name"].update(
+                    normalized_value=123,
+                    effective_value=123,
+                ),
+            ),
+        ),
+        (
+            "public merchant_address as integer",
+            changed(
+                public_fields,
+                lambda x: x["merchant_address"].update(
+                    normalized_value=123,
+                    effective_value=123,
+                ),
+            ),
+        ),
+        (
+            "public outer key / embedded field_name mismatch",
+            changed(
+                public_fields,
+                lambda x: x["merchant_name"].update(field_name="total_amount"),
+            ),
+        ),
+    ]
+    for label, record in invalid_public_fields:
+        assert_openapi_component(
+            label,
+            openapi,
+            "CanonicalExtractedFields",
+            record,
+            False,
+        )
+
+    correction_cases = [
+        ("total_amount string correction", "total_amount", "325000", False),
+        ("total_amount integer correction", "total_amount", 325000, True),
+        ("receipt_date non-ISO correction", "receipt_date", "08/12/2026", False),
+        ("receipt_date ISO correction", "receipt_date", "2026-08-12", True),
+        ("invoice_id integer correction", "invoice_id", 123456, False),
+        ("invoice_id string correction", "invoice_id", "000123", True),
+        ("merchant_name integer correction", "merchant_name", 123, False),
+        ("merchant_address integer correction", "merchant_address", 123, False),
+    ]
+    for label, field_name, value, expected_valid in correction_cases:
+        assert_openapi_component(
+            label,
+            openapi,
+            FIELD_VALUE_SCHEMA_BY_NAME[field_name],
+            value,
+            expected_valid,
+        )
 
     assert_record("OCR example", OCR_SCHEMA, ocr, True)
     assert_record("KIE example", KIE_SCHEMA, kie, True)
@@ -409,6 +636,9 @@ def main() -> int:
     print("PASS: JSON Schemas are valid Draft 2020-12 schemas")
     print("PASS: OpenAPI 3.1 document is valid")
     print("PASS: OpenAPI, state machine, KIE reasons and canonical fields are consistent")
+    print("PASS: field-specific public API types and embedded field_name invariants")
+    print("PASS: correction path/value types reject mismatches")
+    print("PASS: scheduling, retry and queue-failure semantics are consistent")
     print("PASS: correction APPLY/CLEAR and verification concurrency contracts are consistent")
     print("PASS: 9 positive schema cases")
     print(f"PASS: {len(invalid_annotations) + len(invalid_kie)} negative schema cases rejected")

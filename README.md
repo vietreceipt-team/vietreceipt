@@ -28,7 +28,8 @@ Scope: Core receipt digitization flow with five fields: `merchant_name`, `receip
 - Architecture: modular monolith with a separate background worker.
 - Frontend communicates only with FastAPI through REST/JSON; image upload uses `multipart/form-data`.
 - Long-running OCR/KIE work is asynchronous. Frontend polls receipt status; it never calls OCR/KIE directly.
-- Backend automatically schedules processing after upload; Frontend does not call a public `/process` endpoint.
+- Backend automatically schedules processing after upload; Frontend does not call a public `/process` endpoint. `UPLOADED` means persistence is committed, while `PROCESSING` begins only when a worker claims/starts an attempt.
+- Successful enqueue does not change public state. Scheduling/enqueue failure after commit transitions the receipt to `FAILED` with `stage=SCHEDULING` and `retryable=true`.
 - The public receipt lifecycle contains exactly `UPLOADED`, `PROCESSING`, `NEEDS_REVIEW`, `VERIFIED` and `FAILED`; queue state is internal.
 - Backend API and worker share Python domain packages and Pydantic models.
 - Worker receives only a `receipt_id`; it loads image metadata/storage key from PostgreSQL, downloads the image, then invokes OCR and KIE.

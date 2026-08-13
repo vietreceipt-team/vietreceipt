@@ -47,14 +47,16 @@ flowchart TD
 - API style: REST under `/api/v1`.
 - Payload: JSON except image upload (`multipart/form-data`).
 - Authentication: Bearer access token.
-- Long-running behavior: upload returns immediately, Backend automatically schedules processing, and Frontend polls `GET /api/v1/receipts/{receipt_id}`.
+- Long-running behavior: upload returns `201` after image/receipt persistence with public state `UPLOADED`; Backend automatically schedules processing, and Frontend polls `GET /api/v1/receipts/{receipt_id}`. Enqueue success does not itself mean `PROCESSING`.
 - Frontend never contacts PostgreSQL, MinIO, OCR or KIE directly.
 
 ### Backend API to worker
 
-- After a successful upload, Backend automatically enqueues `{ "receipt_id": "uuid" }`; no public `/process` endpoint exists.
+- After a successful upload commit, Backend automatically enqueues `{ "receipt_id": "uuid" }`; no public `/process` endpoint exists.
+- Successful enqueue leaves the receipt in `UPLOADED`; the public transition to `PROCESSING` occurs only when a worker claims and starts the attempt.
+- If scheduling/enqueue fails after the receipt was committed, Backend records `FAILED` with `stage=SCHEDULING` and `retryable=true`.
 - The queue message deliberately contains no image URL or user data.
-- Worker loads the current receipt from PostgreSQL and verifies a valid state transition before processing.
+- Worker loads the current receipt from PostgreSQL, claims the attempt and performs the `UPLOADED|FAILED -> PROCESSING` transition before processing.
 - Duplicate delivery is safe: a job for a receipt already `PROCESSING`, `NEEDS_REVIEW` or `VERIFIED` must not create duplicate OCR blocks.
 
 ### Worker to OCR
@@ -113,7 +115,8 @@ sequenceDiagram
     B->>D: Store image + receipt
     B-->>F: 201 UPLOADED
     B->>Q: Enqueue receipt_id
-    Q->>D: Load receipt and image
+    Note over B,Q: Enqueue success keeps public state UPLOADED
+    Q->>D: Claim attempt + load receipt/image
     Q->>D: Set PROCESSING
     Q->>O: recognize(image)
     O-->>Q: OCRResult
@@ -157,7 +160,7 @@ vietreceipt/
 | Invalid state transition | Backend | `409 RECEIPT_STATE_CONFLICT` |
 | OCR timeout/error | Worker/OCR | Receipt becomes `FAILED`, stage=`OCR` |
 | KIE error | Worker/KIE | Receipt becomes `FAILED`, stage=`KIE` |
-| Temporary queue error | Backend/DevOps | `503 PROCESSING_UNAVAILABLE`; receipt remains `UPLOADED` |
+| Scheduling/enqueue error after receipt commit | Backend/DevOps | Receipt becomes `FAILED`, `stage=SCHEDULING`, `retryable=true`; retry is allowed |
 | Unknown/missing field | KIE | Normalized value=`null`, explicit value status, `machine_needs_review=true`; receipt still reaches `NEEDS_REVIEW` |
 
 ## 7. Security baseline

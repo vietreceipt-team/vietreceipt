@@ -72,7 +72,7 @@ paths:
       summary: Upload a receipt image
       tags: [Receipts]
       operationId: uploadReceipt
-      description: Stores one image, creates a receipt in UPLOADED state and automatically schedules processing. Frontend does not call a separate process endpoint.
+      description: Stores one image and receipt metadata, returns the committed receipt in UPLOADED state, then automatically schedules processing. Successful enqueue keeps the receipt UPLOADED until a worker claims/starts the attempt. Scheduling failure after commit transitions the receipt to FAILED with stage=SCHEDULING and retryable=true. Frontend does not call a separate process endpoint.
       requestBody:
         required: true
         content:
@@ -193,14 +193,14 @@ paths:
       summary: Retry failed processing
       tags: [Receipts]
       operationId: retryReceipt
-      description: Valid only for FAILED receipts with a retryable error.
+      description: Valid only for FAILED receipts with a retryable error. HTTP 202 means the retry was accepted for scheduling; it does not mean a worker has started the new processing attempt.
       responses:
         '202':
-          description: Retry accepted and receipt is PROCESSING
+          description: Retry accepted for scheduling; the receipt becomes PROCESSING only when a worker claims and starts the new attempt
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProcessingAccepted'
+                $ref: '#/components/schemas/RetryAccepted'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
@@ -268,7 +268,7 @@ paths:
       summary: Apply or clear a field correction
       tags: [Verification]
       operationId: updateFieldCorrection
-      description: Valid only while the receipt is NEEDS_REVIEW. APPLY sets a human correction; CLEAR removes it and restores the immutable KIE normalized value/status.
+      description: Valid only while the receipt is NEEDS_REVIEW. APPLY sets a human correction; CLEAR removes it and restores the immutable KIE normalized value/status. For APPLY, Backend validates value against the canonical type selected by the {field_name} path parameter; a type/format mismatch returns HTTP 422.
       requestBody:
         required: true
         content:
@@ -277,11 +277,11 @@ paths:
               $ref: '#/components/schemas/FieldCorrectionRequest'
       responses:
         '200':
-          description: Updated field and append-only correction history entry
+          description: Updated canonical field and append-only correction history entry
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ExtractedField'
+                $ref: '#/components/schemas/CanonicalExtractedField'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
@@ -572,13 +572,13 @@ components:
         updated_at: {type: string, format: date-time, description: Receipt-level optimistic concurrency token used by verification.}
         processed_at: {type: [string, 'null'], format: date-time}
         verified_at: {type: [string, 'null'], format: date-time}
-    ProcessingAccepted:
+    RetryAccepted:
       type: object
       additionalProperties: false
-      required: [receipt_id, status]
+      required: [receipt_id, retry_accepted]
       properties:
         receipt_id: {type: string, format: uuid}
-        status: {const: PROCESSING}
+        retry_accepted: {const: true}
     Point:
       type: object
       additionalProperties: false
@@ -633,6 +633,22 @@ components:
         - {type: string}
         - {type: integer, minimum: 0}
         - {type: 'null'}
+    MerchantNameValue:
+      type: [string, 'null']
+      minLength: 1
+    ReceiptDateValue:
+      type: [string, 'null']
+      format: date
+    TotalAmountValue:
+      type: [integer, 'null']
+      minimum: 0
+    InvoiceIdValue:
+      type: [string, 'null']
+      minLength: 1
+      description: Always a string so leading zeroes are preserved.
+    MerchantAddressValue:
+      type: [string, 'null']
+      minLength: 1
     PredictedValue:
       type: [string, 'null']
     ExtractedField:
@@ -703,6 +719,72 @@ components:
           items: {type: string, minLength: 1, maxLength: 64}
         verified: {type: boolean}
         updated_at: {type: string, format: date-time}
+      allOf:
+        - if:
+            properties:
+              value_status: {const: PRESENT}
+            required: [value_status]
+          then:
+            properties:
+              normalized_value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              normalized_value: {type: 'null'}
+        - if:
+            properties:
+              has_correction: {const: false}
+            required: [has_correction]
+          then:
+            properties:
+              corrected_value: {type: 'null'}
+              corrected_status: {type: 'null'}
+        - if:
+            properties:
+              has_correction: {const: true}
+            required: [has_correction]
+          then:
+            properties:
+              corrected_status: {$ref: '#/components/schemas/ValueStatus'}
+        - if:
+            properties:
+              corrected_status: {const: PRESENT}
+            required: [corrected_status]
+          then:
+            properties:
+              corrected_value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              corrected_value: {type: 'null'}
+        - if:
+            properties:
+              effective_status: {const: PRESENT}
+            required: [effective_status]
+          then:
+            properties:
+              effective_value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              effective_value: {type: 'null'}
+        - if:
+            properties:
+              machine_needs_review: {const: true}
+            required: [machine_needs_review]
+          then:
+            properties:
+              review_reasons: {type: array, minItems: 1}
+              review_policy_version: {type: string, minLength: 1}
+          else:
+            properties:
+              review_reasons: {type: array, maxItems: 0}
     NormalizationProvenance:
       type: object
       additionalProperties: false
@@ -710,16 +792,76 @@ components:
       properties:
         rule: {type: string, minLength: 1, maxLength: 128}
         version: {type: string, minLength: 1, maxLength: 64}
+    MerchantNameField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: merchant_name}
+            normalized_value: {$ref: '#/components/schemas/MerchantNameValue'}
+            corrected_value: {$ref: '#/components/schemas/MerchantNameValue'}
+            effective_value: {$ref: '#/components/schemas/MerchantNameValue'}
+    ReceiptDateField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: receipt_date}
+            normalized_value: {$ref: '#/components/schemas/ReceiptDateValue'}
+            corrected_value: {$ref: '#/components/schemas/ReceiptDateValue'}
+            effective_value: {$ref: '#/components/schemas/ReceiptDateValue'}
+    TotalAmountField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: total_amount}
+            normalized_value: {$ref: '#/components/schemas/TotalAmountValue'}
+            corrected_value: {$ref: '#/components/schemas/TotalAmountValue'}
+            effective_value: {$ref: '#/components/schemas/TotalAmountValue'}
+    InvoiceIdField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: invoice_id}
+            normalized_value: {$ref: '#/components/schemas/InvoiceIdValue'}
+            corrected_value: {$ref: '#/components/schemas/InvoiceIdValue'}
+            effective_value: {$ref: '#/components/schemas/InvoiceIdValue'}
+    MerchantAddressField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: merchant_address}
+            normalized_value: {$ref: '#/components/schemas/MerchantAddressValue'}
+            corrected_value: {$ref: '#/components/schemas/MerchantAddressValue'}
+            effective_value: {$ref: '#/components/schemas/MerchantAddressValue'}
+    CanonicalExtractedField:
+      oneOf:
+        - {$ref: '#/components/schemas/MerchantNameField'}
+        - {$ref: '#/components/schemas/ReceiptDateField'}
+        - {$ref: '#/components/schemas/TotalAmountField'}
+        - {$ref: '#/components/schemas/InvoiceIdField'}
+        - {$ref: '#/components/schemas/MerchantAddressField'}
+      discriminator:
+        propertyName: field_name
+        mapping:
+          merchant_name: '#/components/schemas/MerchantNameField'
+          receipt_date: '#/components/schemas/ReceiptDateField'
+          total_amount: '#/components/schemas/TotalAmountField'
+          invoice_id: '#/components/schemas/InvoiceIdField'
+          merchant_address: '#/components/schemas/MerchantAddressField'
     CanonicalExtractedFields:
       type: object
       additionalProperties: false
       required: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
       properties:
-        merchant_name: {$ref: '#/components/schemas/ExtractedField'}
-        receipt_date: {$ref: '#/components/schemas/ExtractedField'}
-        total_amount: {$ref: '#/components/schemas/ExtractedField'}
-        invoice_id: {$ref: '#/components/schemas/ExtractedField'}
-        merchant_address: {$ref: '#/components/schemas/ExtractedField'}
+        merchant_name: {$ref: '#/components/schemas/MerchantNameField'}
+        receipt_date: {$ref: '#/components/schemas/ReceiptDateField'}
+        total_amount: {$ref: '#/components/schemas/TotalAmountField'}
+        invoice_id: {$ref: '#/components/schemas/InvoiceIdField'}
+        merchant_address: {$ref: '#/components/schemas/MerchantAddressField'}
     FieldCorrectionRequest:
       oneOf:
         - {$ref: '#/components/schemas/ApplyFieldCorrectionRequest'}
@@ -733,11 +875,17 @@ components:
       type: object
       additionalProperties: false
       required: [operation, value, value_status, expected_updated_at]
+      x-field-value-schema-by-field-name:
+        merchant_name: '#/components/schemas/MerchantNameValue'
+        receipt_date: '#/components/schemas/ReceiptDateValue'
+        total_amount: '#/components/schemas/TotalAmountValue'
+        invoice_id: '#/components/schemas/InvoiceIdValue'
+        merchant_address: '#/components/schemas/MerchantAddressValue'
       properties:
         operation: {const: APPLY}
         value:
           $ref: '#/components/schemas/FieldValue'
-          description: Non-null and correctly typed for PRESENT; null for every other status.
+          description: Backend MUST additionally validate this value against x-field-value-schema-by-field-name using the {field_name} path parameter. PRESENT requires the mapped non-null canonical type; every other status requires null. Type/format mismatch returns HTTP 422.
         value_status: {$ref: '#/components/schemas/ValueStatus'}
         expected_updated_at:
           type: string
@@ -799,7 +947,7 @@ components:
       properties:
         stage:
           type: string
-          enum: [PREPROCESSING, OCR, KIE, PERSISTING]
+          enum: [SCHEDULING, PREPROCESSING, OCR, KIE, PERSISTING]
         code: {type: string}
         message: {type: string}
         retryable: {type: boolean}
