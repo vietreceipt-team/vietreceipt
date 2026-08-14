@@ -19,14 +19,31 @@ class InvalidReceiptState(DomainError):
     def __init__(
         self,
         current_status: ReceiptStatus,
-        target_status: ReceiptStatus,
+        target_status: ReceiptStatus | None = None,
+        *,
+        operation: str | None = None,
     ) -> None:
+        if target_status is None and operation is None:
+            raise ValueError(
+                "target_status or operation must be provided."
+            )
+
         self.current_status = current_status
         self.target_status = target_status
-        super().__init__(
-            f"Receipt cannot transition from "
-            f"{current_status.value} to {target_status.value}."
-        )
+        self.operation = operation
+
+        if target_status is not None:
+            message = (
+                f"Receipt cannot transition from "
+                f"{current_status.value} to {target_status.value}."
+            )
+        else:
+            message = (
+                f"Operation {operation} is not allowed while receipt "
+                f"is {current_status.value}."
+            )
+
+        super().__init__(message)
 
 
 class StaleUpdate(DomainError):
