@@ -1,0 +1,62 @@
+{
+  "record_type": "five-field-ground-truth-annotation",
+  "annotation_schema_version": "1.0",
+  "guideline_version": "1.1",
+  "annotation_id": "00000000-0000-4000-8000-000000000003",
+  "batch_id": "annotation-pilot-001",
+  "dataset_snapshot": "vietreceipt-snapshot-2026-08-12",
+  "example_only": true,
+  "data_provenance": "synthetic illustrative values linked to examples/ocr-result.json; not a dataset record or model output",
+  "receipt_id": "31915ef1-6fb4-4e7d-b6f5-53be51c50e3d",
+  "source_ocr_run_id": "b3ac8bb4-6383-4b97-9911-5a6900054608",
+  "annotator_id": "example-annotator",
+  "annotated_at": null,
+  "fields": {
+    "merchant_name": {
+      "field_name": "merchant_name",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "WINMART+",
+      "normalized_value": "WINMART+",
+      "source_block_ids": ["block_0"],
+      "candidate_values": [],
+      "annotator_note": null
+    },
+    "receipt_date": {
+      "field_name": "receipt_date",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "08/08/2026",
+      "normalized_value": "2026-08-08",
+      "source_block_ids": ["block_2"],
+      "candidate_values": [],
+      "annotator_note": null
+    },
+    "total_amount": {
+      "field_name": "total_amount",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "325.000 VND",
+      "normalized_value": 325000,
+      "currency": "VND",
+      "source_block_ids": ["block_5"],
+      "candidate_values": [],
+      "annotator_note": null
+    },
+    "invoice_id": {
+      "field_name": "invoice_id",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "SỐ HĐ: 001238",
+      "normalized_value": "001238",
+      "source_block_ids": ["block_3"],
+      "candidate_values": [],
+      "annotator_note": "Leading zeroes are intentionally preserved."
+    },
+    "merchant_address": {
+      "field_name": "merchant_address",
+      "annotation_status": "PRESENT",
+      "transcribed_value": "12 NGUYỄN TRÃI",
+      "normalized_value": "12 NGUYỄN TRÃI",
+      "source_block_ids": ["block_1"],
+      "candidate_values": [],
+      "annotator_note": null
+    }
+  }
+}

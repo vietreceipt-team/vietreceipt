@@ -1,0 +1,279 @@
+metadata:
+  name: vietreceipt-five-field-keyword-regex-seed
+  version: '1.2'
+  status: seed-only
+  owner: Dao Minh Phuong
+  language: vi
+  regex_compatibility: Python re compatible
+  disclaimer:
+    - These keywords and patterns have not been benchmarked.
+    - A match only creates a candidate; it never proves the field label.
+    - Precision, recall, F1 and confidence thresholds remain unmeasured.
+    - Rules must be versioned and tested before production use.
+
+global_rules:
+  unicode_normalization: NFC
+  trim_outer_whitespace: true
+  collapse_repeated_whitespace: true
+  preserve_ocr_raw_text: true
+  no_external_lookup: true
+  no_value_imputation: true
+  no_currency_conversion: true
+  require_context_and_layout: true
+
+canonical_fields:
+  merchant_name:
+    label_vi: Tên cửa hàng
+    positive_context_keywords:
+      - cửa hàng
+      - siêu thị
+      - minimart
+      - mart
+      - nhà thuốc
+      - hiệu thuốc
+      - quán
+      - nhà hàng
+      - cà phê
+      - coffee
+      - chi nhánh
+      - công ty
+      - cty
+      - doanh nghiệp
+    negative_context_keywords:
+      - khách hàng
+      - người mua
+      - thu ngân
+      - nhân viên
+      - ngân hàng
+      - ví điện tử
+      - đơn vị vận chuyển
+      - mã số thuế
+      - điện thoại
+      - hotline
+      - website
+      - email
+    layout_hints:
+      - Prefer prominent text near the receipt header.
+      - Prefer customer-facing brand over legal entity; use legal entity only when no brand exists.
+      - Do not infer a name from a logo without readable text.
+    regex_candidates:
+      - id: merchant_legal_or_store_prefix
+        pattern: '\b(?:CÔNG\s+TY|CTY|DOANH\s+NGHIỆP|CỬA\s+HÀNG|SIÊU\s+THỊ|NHÀ\s+THUỐC|CHI\s+NHÁNH)\b.{2,80}'
+        flags:
+          - IGNORECASE
+          - UNICODE
+        usage: Candidate line only; remove the prefix only if an approved normalization rule requires it.
+    normalization:
+      output_type: string
+      preserve_vietnamese_diacritics: true
+      expand_abbreviations: false
+      spell_correct: false
+
+  receipt_date:
+    label_vi: Ngày giao dịch
+    positive_context_keywords:
+      - ngày bán
+      - ngày giao dịch
+      - ngày thanh toán
+      - thời gian
+      - datetime
+      - date
+      - transaction date
+    negative_context_keywords:
+      - hạn sử dụng
+      - ngày hết hạn
+      - hạn đổi trả
+      - ngày sinh
+      - valid thru
+      - expiry
+    layout_hints:
+      - Prefer a date linked to the transaction header or invoice metadata.
+      - Keep multiple plausible dates as AMBIGUOUS instead of choosing by position alone.
+    regex_candidates:
+      - id: numeric_date_four_digit_year
+        pattern: '\b(?:0?[1-9]|[12]\d|3[01])[\/.-](?:0?[1-9]|[12]\d|3[01])[\/.-](?:19|20)\d{2}\b'
+        flags:
+          - UNICODE
+        usage: Candidate only; apply the approved locale/order rule, then validate the calendar date and date role.
+      - id: numeric_date_two_digit_year_requires_review
+        pattern: '\b(?:0?[1-9]|[12]\d|3[01])[\/.-](?:0?[1-9]|[12]\d|3[01])[\/.-]\d{2}\b'
+        flags:
+          - UNICODE
+        usage: Always AMBIGUOUS with normalized_value null in v1; use review reason UNSUPPORTED_TWO_DIGIT_YEAR.
+      - id: iso_date_candidate
+        pattern: '\b(?:19|20)\d{2}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])\b'
+        flags:
+          - UNICODE
+        usage: Candidate only; validate the calendar date.
+    normalization:
+      output_type: ISO date string YYYY-MM-DD
+      infer_missing_year: false
+      infer_two_digit_year: false
+      reject_invalid_calendar_date: true
+
+  total_amount:
+    label_vi: Tổng tiền thanh toán
+    positive_context_keywords:
+      - tổng tiền phải thanh toán
+      - tổng tiền thanh toán
+      - tổng thanh toán
+      - tiền khách trả
+      - phải trả
+      - thành tiền
+      - tổng cộng
+      - grand total
+      - amount due
+      - total due
+      - total
+    negative_context_keywords:
+      - tạm tính
+      - subtotal
+      - giảm giá
+      - discount
+      - tiền khách đưa
+      - cash received
+      - tiền trả lại
+      - change
+      - thuế
+      - vat
+      - đơn giá
+      - số lượng
+    layout_hints:
+      - Prefer an amount linked to a final-payment keyword near the footer.
+      - Do not select the numerically largest amount without semantic context.
+      - Separate item-line totals from receipt-level total.
+    regex_candidates:
+      - id: amount_with_vnd_marker
+        pattern: '(?:\d{1,3}(?:[.,\s]\d{3})+|\d+)\s*(?:VND|VNĐ|₫|Đ)'
+        flags:
+          - IGNORECASE
+          - UNICODE
+        usage: Candidate only; punctuation may be thousands separators or OCR noise.
+      - id: grouped_integer_amount_without_currency
+        pattern: '\b\d{1,3}(?:[.,\s]\d{3})+\b'
+        flags:
+          - UNICODE
+        usage: Use only near an approved positive-context keyword.
+    normalization:
+      output_type: non-negative JSON integer
+      currency: VND
+      remove_thousands_separator_only_when_safe: true
+      allow_negative: false
+      convert_foreign_currency: false
+      ambiguous_separator_result: null
+
+  invoice_id:
+    label_vi: Mã hóa đơn
+    positive_context_keywords:
+      - số hóa đơn
+      - số hđ
+      - mã hóa đơn
+      - mã giao dịch
+      - số giao dịch
+      - số tham chiếu
+      - invoice no
+      - invoice number
+      - receipt no
+      - receipt number
+      - transaction id
+      - reference no
+      - ref no
+    negative_context_keywords:
+      - mã số thuế
+      - tax code
+      - mst
+      - mã sản phẩm
+      - barcode
+      - số điện thoại
+      - terminal id
+      - pos id
+      - batch no
+      - authorization code
+      - mã khách hàng
+    layout_hints:
+      - Prefer invoice or receipt number over transaction/reference number.
+      - Preserve leading zeroes and meaningful separators.
+      - Multiple same-priority IDs require AMBIGUOUS status.
+    regex_candidates:
+      - id: labeled_invoice_or_reference_id
+        pattern: '(?:SỐ\s*(?:HÓA\s*ĐƠN|HĐ|GIAO\s*DỊCH|THAM\s*CHIẾU)|MÃ\s*(?:HÓA\s*ĐƠN|GIAO\s*DỊCH)|INVOICE\s*(?:NO|NUMBER)?|RECEIPT\s*(?:NO|NUMBER)?|TRANSACTION\s*ID|REF(?:ERENCE)?\s*NO)\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})'
+        flags:
+          - IGNORECASE
+          - UNICODE
+        usage: Capture group 1 is a candidate; label priority and exclusions still apply.
+    normalization:
+      output_type: string
+      preserve_leading_zeroes: true
+      preserve_meaningful_separators: true
+      cast_to_integer: false
+      uppercase_latin_if_rule_versioned: optional
+
+  merchant_address:
+    label_vi: Địa chỉ cửa hàng
+    positive_context_keywords:
+      - địa chỉ
+      - địa điểm
+      - chi nhánh
+      - address
+      - đường
+      - phố
+      - phường
+      - xã
+      - quận
+      - huyện
+      - tỉnh
+      - thành phố
+      - tp.
+    negative_context_keywords:
+      - địa chỉ khách hàng
+      - địa chỉ giao hàng
+      - shipping address
+      - billing address
+      - ngân hàng
+      - website
+      - email
+      - điện thoại
+      - hotline
+    layout_hints:
+      - Prefer address blocks near the selected merchant name.
+      - Prefer the transaction branch over headquarters when both are clearly labeled.
+      - Merge consecutive address lines by OCR reading order.
+    regex_candidates:
+      - id: labeled_address_line
+        pattern: '(?:ĐỊA\s*CHỈ|ADDRESS)\s*[:#-]?\s*(.{5,160})'
+        flags:
+          - IGNORECASE
+          - UNICODE
+        usage: Capture group 1 is a candidate and may need continuation lines.
+      - id: vietnamese_administrative_address_context
+        pattern: '.{0,80}\b(?:ĐƯỜNG|PHỐ|PHƯỜNG|XÃ|QUẬN|HUYỆN|TỈNH|THÀNH\s+PHỐ|TP\.)\b.{0,120}'
+        flags:
+          - IGNORECASE
+          - UNICODE
+        usage: Candidate span only; exclude customer or delivery addresses by context.
+    normalization:
+      output_type: string
+      join_lines_with: ', '
+      expand_administrative_abbreviations: false
+      geocode: false
+      add_missing_location: false
+
+candidate_resolution:
+  shared_order:
+    - Validate field-specific positive and negative context.
+    - Check spatial relation and OCR reading order.
+    - Apply field priority rules.
+    - Normalize only when deterministic and safe.
+    - Return AMBIGUOUS or UNKNOWN instead of guessing.
+  review_reason_seeds:
+    - NO_CANDIDATE
+    - LOW_CONFIDENCE
+    - MULTIPLE_CANDIDATES
+    - AMBIGUOUS_FORMAT
+    - UNREADABLE_SOURCE
+    - UNSUPPORTED_CURRENCY
+    - NEGATIVE_AMOUNT
+    - MISSING_DATE_COMPONENT
+    - UNSUPPORTED_TWO_DIGIT_YEAR
+    - SOURCE_ROLE_UNCLEAR
+    - NORMALIZATION_FAILED

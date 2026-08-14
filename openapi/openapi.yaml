@@ -1,0 +1,981 @@
+openapi: 3.1.0
+info:
+  title: VietReceipt API
+  version: 1.3.0-draft
+  description: API Contract v1 for the VietReceipt core workflow.
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+    description: User registration and access tokens.
+  - name: Receipts
+    description: Receipt upload, processing, retrieval and deletion.
+  - name: Verification
+    description: Human review, correction and verification.
+  - name: Reporting
+    description: Dashboard summaries and verified-data export.
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a user
+      tags: [Auth]
+      security: []
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/login:
+    post:
+      summary: Log in
+      tags: [Auth]
+      security: []
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Access token created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /receipts:
+    post:
+      summary: Upload a receipt image
+      tags: [Receipts]
+      operationId: uploadReceipt
+      description: Stores one image and receipt metadata, returns the committed receipt in UPLOADED state, then automatically schedules processing. Successful enqueue keeps the receipt UPLOADED until a worker claims/starts the attempt. Scheduling failure after commit transitions the receipt to FAILED with stage=SCHEDULING and retryable=true. Frontend does not call a separate process endpoint.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: JPEG, PNG or WebP; maximum 10 MiB.
+      responses:
+        '201':
+          description: Receipt uploaded; Backend will transition it to PROCESSING when the automatic job starts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: Upload exceeds 10 MiB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '415':
+          description: Unsupported or invalid image content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List receipts
+      tags: [Receipts]
+      operationId: listReceipts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ReceiptStatus'
+        - name: merchant_name
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Paginated receipt list owned by the current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptPage'
+
+  /receipts/{receipt_id}:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    get:
+      summary: Get receipt details
+      tags: [Receipts]
+      operationId: getReceipt
+      responses:
+        '200':
+          description: Receipt details including OCR blocks and extracted fields when available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a receipt
+      tags: [Receipts]
+      operationId: deleteReceipt
+      responses:
+        '204':
+          description: Receipt data deleted; object cleanup completed or scheduled
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /receipts/{receipt_id}/image:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    get:
+      summary: Get a receipt image
+      tags: [Receipts]
+      operationId: getReceiptImage
+      description: Returns an authorized redirect/stream for the private image.
+      responses:
+        '200':
+          description: Image bytes
+          content:
+            image/jpeg: {}
+            image/png: {}
+            image/webp: {}
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /receipts/{receipt_id}/retry:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    post:
+      summary: Retry failed processing
+      tags: [Receipts]
+      operationId: retryReceipt
+      description: Valid only for FAILED receipts with a retryable error. HTTP 202 means the retry was accepted for scheduling; it does not mean a worker has started the new processing attempt.
+      responses:
+        '202':
+          description: Retry accepted for scheduling; the receipt becomes PROCESSING only when a worker claims and starts the new attempt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetryAccepted'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /receipts/{receipt_id}/ocr:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    get:
+      summary: Get normalized OCR output
+      tags: [Receipts]
+      operationId: getReceiptOcr
+      parameters:
+        - name: ocr_run_id
+          in: query
+          required: false
+          description: Specific immutable OCR run; omit for the latest successful run.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Normalized OCR result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OCRResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /receipts/{receipt_id}/fields:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    get:
+      summary: Get extracted fields
+      tags: [Verification]
+      operationId: getReceiptFields
+      parameters:
+        - name: kie_run_id
+          in: query
+          required: false
+          description: Specific immutable KIE run; omit for the latest successful run.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Exactly five extracted fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanonicalExtractedFields'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /receipts/{receipt_id}/fields/{field_name}/correction:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+      - $ref: '#/components/parameters/FieldName'
+    patch:
+      summary: Apply or clear a field correction
+      tags: [Verification]
+      operationId: updateFieldCorrection
+      description: Valid only while the receipt is NEEDS_REVIEW. APPLY sets a human correction; CLEAR removes it and restores the immutable KIE normalized value/status. For APPLY, Backend validates value against the canonical type selected by the {field_name} path parameter; a type/format mismatch returns HTTP 422.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldCorrectionRequest'
+      responses:
+        '200':
+          description: Updated canonical field and append-only correction history entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CanonicalExtractedField'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /receipts/{receipt_id}/verify:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    post:
+      summary: Verify a receipt
+      tags: [Verification]
+      operationId: verifyReceipt
+      description: Valid only for NEEDS_REVIEW after all five effective statuses are resolved and effective values match their status/type.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyReceiptRequest'
+      responses:
+        '200':
+          description: Receipt is VERIFIED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceiptDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /receipts/{receipt_id}/history:
+    parameters:
+      - $ref: '#/components/parameters/ReceiptId'
+    get:
+      summary: Get correction history
+      tags: [Verification]
+      operationId: getReceiptHistory
+      responses:
+        '200':
+          description: Correction history ordered oldest to newest
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CorrectionHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /dashboard/summary:
+    get:
+      summary: Get dashboard summary
+      tags: [Reporting]
+      operationId: getDashboardSummary
+      responses:
+        '200':
+          description: Current user's summary. Spending uses verified receipts only.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+
+  /receipts/export:
+    get:
+      summary: Export receipt data
+      tags: [Reporting]
+      operationId: exportReceipts
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [csv, xlsx, json]
+            default: csv
+        - name: include_unverified
+          in: query
+          required: false
+          description: Reserved for authorized diagnostic use; false by default.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Export file
+          content:
+            text/csv: {}
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+            application/json: {}
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ReceiptId:
+      name: receipt_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FieldName:
+      name: field_name
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/FieldName'
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found or not owned by the current user
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Resource or state conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Request or field validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ReceiptStatus:
+      type: string
+      enum: [UPLOADED, PROCESSING, NEEDS_REVIEW, VERIFIED, FAILED]
+    ProcessingStage:
+      type: [string, 'null']
+      enum: [PREPROCESSING, OCR, KIE, PERSISTING, null]
+    FieldName:
+      type: string
+      enum: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
+    ValueStatus:
+      type: string
+      enum: [PRESENT, NOT_PRESENT, UNREADABLE, AMBIGUOUS, UNKNOWN]
+    NullableValueStatus:
+      oneOf:
+        - {$ref: '#/components/schemas/ValueStatus'}
+        - {type: 'null'}
+    ReviewReason:
+      type: string
+      enum:
+        - NO_CANDIDATE
+        - LOW_CONFIDENCE
+        - MULTIPLE_CANDIDATES
+        - AMBIGUOUS_FORMAT
+        - UNREADABLE_SOURCE
+        - UNSUPPORTED_CURRENCY
+        - NEGATIVE_AMOUNT
+        - MISSING_DATE_COMPONENT
+        - UNSUPPORTED_TWO_DIGIT_YEAR
+        - SOURCE_ROLE_UNCLEAR
+        - NORMALIZATION_FAILED
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: {type: string, format: email}
+        password: {type: string, minLength: 8, maxLength: 128}
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: {type: string, format: email}
+        password: {type: string}
+    User:
+      type: object
+      additionalProperties: false
+      required: [user_id, email, created_at]
+      properties:
+        user_id: {type: string, format: uuid}
+        email: {type: string, format: email}
+        created_at: {type: string, format: date-time}
+    TokenResponse:
+      type: object
+      additionalProperties: false
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token: {type: string}
+        token_type: {const: bearer}
+        expires_in: {type: integer, minimum: 1, description: Seconds}
+    ReceiptSummary:
+      type: object
+      additionalProperties: false
+      required: [receipt_id, original_filename, status, created_at]
+      properties:
+        receipt_id: {type: string, format: uuid}
+        original_filename: {type: string}
+        status: {$ref: '#/components/schemas/ReceiptStatus'}
+        merchant_name: {type: [string, 'null']}
+        receipt_date: {type: [string, 'null'], format: date}
+        total_amount: {type: [integer, 'null'], minimum: 0}
+        created_at: {type: string, format: date-time}
+        verified_at: {type: [string, 'null'], format: date-time}
+    ReceiptPage:
+      type: object
+      additionalProperties: false
+      required: [items, page, page_size, total_items, total_pages]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/ReceiptSummary'}
+        page: {type: integer, minimum: 1}
+        page_size: {type: integer, minimum: 1}
+        total_items: {type: integer, minimum: 0}
+        total_pages: {type: integer, minimum: 0}
+    ReceiptDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - receipt_id
+        - original_filename
+        - status
+        - processing_stage
+        - image_width_px
+        - image_height_px
+        - fields
+        - ocr_blocks
+        - created_at
+        - updated_at
+      properties:
+        receipt_id: {type: string, format: uuid}
+        original_filename: {type: string}
+        status: {$ref: '#/components/schemas/ReceiptStatus'}
+        processing_stage: {$ref: '#/components/schemas/ProcessingStage'}
+        image_url: {type: string, format: uri, description: Authorized API URL or short-lived URL}
+        image_width_px: {type: integer, minimum: 1}
+        image_height_px: {type: integer, minimum: 1}
+        latest_ocr_run_id: {type: [string, 'null'], format: uuid}
+        latest_kie_run_id: {type: [string, 'null'], format: uuid}
+        fields:
+          description: Empty before KIE persistence; otherwise contains exactly the five canonical field keys.
+          oneOf:
+            - {$ref: '#/components/schemas/CanonicalExtractedFields'}
+            - {type: object, additionalProperties: false, maxProperties: 0}
+        ocr_blocks:
+          type: array
+          items: {$ref: '#/components/schemas/OCRBlock'}
+        last_error:
+          oneOf:
+            - {$ref: '#/components/schemas/ProcessingError'}
+            - {type: 'null'}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time, description: Receipt-level optimistic concurrency token used by verification.}
+        processed_at: {type: [string, 'null'], format: date-time}
+        verified_at: {type: [string, 'null'], format: date-time}
+    RetryAccepted:
+      type: object
+      additionalProperties: false
+      required: [receipt_id, retry_accepted]
+      properties:
+        receipt_id: {type: string, format: uuid}
+        retry_accepted: {const: true}
+    Point:
+      type: object
+      additionalProperties: false
+      required: [x, y]
+      properties:
+        x: {type: number, minimum: 0, maximum: 1}
+        y: {type: number, minimum: 0, maximum: 1}
+    OCRBlock:
+      type: object
+      additionalProperties: false
+      required: [block_id, text, confidence, polygon, reading_order]
+      properties:
+        block_id: {type: string, minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]*$'}
+        text: {type: string, minLength: 1}
+        confidence: {type: number, minimum: 0, maximum: 1}
+        polygon:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items: {$ref: '#/components/schemas/Point'}
+        reading_order: {type: integer, minimum: 0}
+    ComponentVersion:
+      type: object
+      additionalProperties: false
+      required: [name, version]
+      properties:
+        name: {type: string, minLength: 1}
+        version: {type: string, minLength: 1}
+    OCRResult:
+      type: object
+      additionalProperties: false
+      required: [schema_version, receipt_id, ocr_run_id, engine, image, blocks, average_confidence, duration_ms]
+      properties:
+        schema_version: {const: '1.3'}
+        receipt_id: {type: string, format: uuid}
+        ocr_run_id: {type: string, format: uuid}
+        engine: {$ref: '#/components/schemas/ComponentVersion'}
+        image:
+          type: object
+          additionalProperties: false
+          required: [width_px, height_px]
+          properties:
+            width_px: {type: integer, minimum: 1}
+            height_px: {type: integer, minimum: 1}
+        blocks:
+          type: array
+          items: {$ref: '#/components/schemas/OCRBlock'}
+        average_confidence: {type: number, minimum: 0, maximum: 1}
+        duration_ms: {type: integer, minimum: 0}
+    FieldValue:
+      oneOf:
+        - {type: string}
+        - {type: integer, minimum: 0}
+        - {type: 'null'}
+    MerchantNameValue:
+      type: [string, 'null']
+      minLength: 1
+    ReceiptDateValue:
+      type: [string, 'null']
+      format: date
+    TotalAmountValue:
+      type: [integer, 'null']
+      minimum: 0
+    InvoiceIdValue:
+      type: [string, 'null']
+      minLength: 1
+      description: Always a string so leading zeroes are preserved.
+    MerchantAddressValue:
+      type: [string, 'null']
+      minLength: 1
+    PredictedValue:
+      type: [string, 'null']
+    ExtractedField:
+      type: object
+      additionalProperties: false
+      required:
+        - field_name
+        - ocr_run_id
+        - kie_run_id
+        - raw_text
+        - predicted_value
+        - normalized_value
+        - normalization
+        - value_status
+        - corrected_value
+        - corrected_status
+        - has_correction
+        - effective_value
+        - effective_status
+        - confidence
+        - machine_needs_review
+        - effective_needs_review
+        - review_reasons
+        - review_policy_version
+        - source_block_ids
+        - verified
+        - updated_at
+      properties:
+        field_name: {$ref: '#/components/schemas/FieldName'}
+        ocr_run_id: {type: string, format: uuid}
+        kie_run_id: {type: string, format: uuid}
+        raw_text: {type: [string, 'null']}
+        predicted_value: {$ref: '#/components/schemas/PredictedValue'}
+        normalized_value: {$ref: '#/components/schemas/FieldValue'}
+        normalization:
+          oneOf:
+            - {$ref: '#/components/schemas/NormalizationProvenance'}
+            - {type: 'null'}
+        value_status: {$ref: '#/components/schemas/ValueStatus'}
+        corrected_value: {$ref: '#/components/schemas/FieldValue'}
+        corrected_status: {$ref: '#/components/schemas/NullableValueStatus'}
+        has_correction:
+          type: boolean
+          description: Distinguishes no correction from an explicit null correction such as NOT_PRESENT.
+        effective_value:
+          $ref: '#/components/schemas/FieldValue'
+          description: corrected_value when has_correction=true, otherwise normalized_value. Never falls back to predicted_value.
+        effective_status:
+          $ref: '#/components/schemas/ValueStatus'
+          description: corrected_status when has_correction=true, otherwise value_status.
+        confidence: {type: number, minimum: 0, maximum: 1}
+        machine_needs_review:
+          type: boolean
+          description: Immutable review signal produced by the KIE run.
+        effective_needs_review:
+          type: boolean
+          description: Current Backend-derived review state after correction and verification; Frontend uses this flag for warnings.
+        review_reasons:
+          type: array
+          uniqueItems: true
+          items: {$ref: '#/components/schemas/ReviewReason'}
+        review_policy_version:
+          type: [string, 'null']
+          description: KIE review-policy version; non-null whenever machine_needs_review=true.
+        source_block_ids:
+          type: array
+          uniqueItems: true
+          items: {type: string, minLength: 1, maxLength: 64}
+        verified: {type: boolean}
+        updated_at: {type: string, format: date-time}
+      allOf:
+        - if:
+            properties:
+              value_status: {const: PRESENT}
+            required: [value_status]
+          then:
+            properties:
+              normalized_value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              normalized_value: {type: 'null'}
+        - if:
+            properties:
+              has_correction: {const: false}
+            required: [has_correction]
+          then:
+            properties:
+              corrected_value: {type: 'null'}
+              corrected_status: {type: 'null'}
+        - if:
+            properties:
+              has_correction: {const: true}
+            required: [has_correction]
+          then:
+            properties:
+              corrected_status: {$ref: '#/components/schemas/ValueStatus'}
+        - if:
+            properties:
+              corrected_status: {const: PRESENT}
+            required: [corrected_status]
+          then:
+            properties:
+              corrected_value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              corrected_value: {type: 'null'}
+        - if:
+            properties:
+              effective_status: {const: PRESENT}
+            required: [effective_status]
+          then:
+            properties:
+              effective_value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              effective_value: {type: 'null'}
+        - if:
+            properties:
+              machine_needs_review: {const: true}
+            required: [machine_needs_review]
+          then:
+            properties:
+              review_reasons: {type: array, minItems: 1}
+              review_policy_version: {type: string, minLength: 1}
+          else:
+            properties:
+              review_reasons: {type: array, maxItems: 0}
+    NormalizationProvenance:
+      type: object
+      additionalProperties: false
+      required: [rule, version]
+      properties:
+        rule: {type: string, minLength: 1, maxLength: 128}
+        version: {type: string, minLength: 1, maxLength: 64}
+    MerchantNameField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: merchant_name}
+            normalized_value: {$ref: '#/components/schemas/MerchantNameValue'}
+            corrected_value: {$ref: '#/components/schemas/MerchantNameValue'}
+            effective_value: {$ref: '#/components/schemas/MerchantNameValue'}
+    ReceiptDateField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: receipt_date}
+            normalized_value: {$ref: '#/components/schemas/ReceiptDateValue'}
+            corrected_value: {$ref: '#/components/schemas/ReceiptDateValue'}
+            effective_value: {$ref: '#/components/schemas/ReceiptDateValue'}
+    TotalAmountField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: total_amount}
+            normalized_value: {$ref: '#/components/schemas/TotalAmountValue'}
+            corrected_value: {$ref: '#/components/schemas/TotalAmountValue'}
+            effective_value: {$ref: '#/components/schemas/TotalAmountValue'}
+    InvoiceIdField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: invoice_id}
+            normalized_value: {$ref: '#/components/schemas/InvoiceIdValue'}
+            corrected_value: {$ref: '#/components/schemas/InvoiceIdValue'}
+            effective_value: {$ref: '#/components/schemas/InvoiceIdValue'}
+    MerchantAddressField:
+      allOf:
+        - {$ref: '#/components/schemas/ExtractedField'}
+        - type: object
+          properties:
+            field_name: {const: merchant_address}
+            normalized_value: {$ref: '#/components/schemas/MerchantAddressValue'}
+            corrected_value: {$ref: '#/components/schemas/MerchantAddressValue'}
+            effective_value: {$ref: '#/components/schemas/MerchantAddressValue'}
+    CanonicalExtractedField:
+      oneOf:
+        - {$ref: '#/components/schemas/MerchantNameField'}
+        - {$ref: '#/components/schemas/ReceiptDateField'}
+        - {$ref: '#/components/schemas/TotalAmountField'}
+        - {$ref: '#/components/schemas/InvoiceIdField'}
+        - {$ref: '#/components/schemas/MerchantAddressField'}
+      discriminator:
+        propertyName: field_name
+        mapping:
+          merchant_name: '#/components/schemas/MerchantNameField'
+          receipt_date: '#/components/schemas/ReceiptDateField'
+          total_amount: '#/components/schemas/TotalAmountField'
+          invoice_id: '#/components/schemas/InvoiceIdField'
+          merchant_address: '#/components/schemas/MerchantAddressField'
+    CanonicalExtractedFields:
+      type: object
+      additionalProperties: false
+      required: [merchant_name, receipt_date, total_amount, invoice_id, merchant_address]
+      properties:
+        merchant_name: {$ref: '#/components/schemas/MerchantNameField'}
+        receipt_date: {$ref: '#/components/schemas/ReceiptDateField'}
+        total_amount: {$ref: '#/components/schemas/TotalAmountField'}
+        invoice_id: {$ref: '#/components/schemas/InvoiceIdField'}
+        merchant_address: {$ref: '#/components/schemas/MerchantAddressField'}
+    FieldCorrectionRequest:
+      oneOf:
+        - {$ref: '#/components/schemas/ApplyFieldCorrectionRequest'}
+        - {$ref: '#/components/schemas/ClearFieldCorrectionRequest'}
+      discriminator:
+        propertyName: operation
+        mapping:
+          APPLY: '#/components/schemas/ApplyFieldCorrectionRequest'
+          CLEAR: '#/components/schemas/ClearFieldCorrectionRequest'
+    ApplyFieldCorrectionRequest:
+      type: object
+      additionalProperties: false
+      required: [operation, value, value_status, expected_updated_at]
+      x-field-value-schema-by-field-name:
+        merchant_name: '#/components/schemas/MerchantNameValue'
+        receipt_date: '#/components/schemas/ReceiptDateValue'
+        total_amount: '#/components/schemas/TotalAmountValue'
+        invoice_id: '#/components/schemas/InvoiceIdValue'
+        merchant_address: '#/components/schemas/MerchantAddressValue'
+      properties:
+        operation: {const: APPLY}
+        value:
+          $ref: '#/components/schemas/FieldValue'
+          description: Backend MUST additionally validate this value against x-field-value-schema-by-field-name using the {field_name} path parameter. PRESENT requires the mapped non-null canonical type; every other status requires null. Type/format mismatch returns HTTP 422.
+        value_status: {$ref: '#/components/schemas/ValueStatus'}
+        expected_updated_at:
+          type: string
+          format: date-time
+          description: Optimistic concurrency token from the latest field response.
+      allOf:
+        - if:
+            properties:
+              value_status: {const: PRESENT}
+            required: [value_status]
+          then:
+            properties:
+              value:
+                oneOf:
+                  - {type: string, minLength: 1}
+                  - {type: integer, minimum: 0}
+          else:
+            properties:
+              value: {type: 'null'}
+    ClearFieldCorrectionRequest:
+      type: object
+      additionalProperties: false
+      required: [operation, expected_updated_at]
+      properties:
+        operation: {const: CLEAR}
+        expected_updated_at:
+          type: string
+          format: date-time
+          description: Optimistic concurrency token from the latest field response.
+    VerifyReceiptRequest:
+      type: object
+      additionalProperties: false
+      required: [expected_updated_at]
+      properties:
+        expected_updated_at:
+          type: string
+          format: date-time
+          description: Optimistic concurrency token from the latest receipt response.
+    CorrectionHistory:
+      type: object
+      additionalProperties: false
+      required: [correction_id, receipt_id, field_name, operation, kie_run_id, old_value, new_value, old_status, new_status, changed_by, changed_at]
+      properties:
+        correction_id: {type: string, format: uuid}
+        receipt_id: {type: string, format: uuid}
+        field_name: {$ref: '#/components/schemas/FieldName'}
+        operation: {type: string, enum: [APPLY, CLEAR]}
+        kie_run_id: {type: string, format: uuid}
+        old_value: {$ref: '#/components/schemas/FieldValue'}
+        new_value: {$ref: '#/components/schemas/FieldValue'}
+        old_status: {$ref: '#/components/schemas/NullableValueStatus'}
+        new_status: {$ref: '#/components/schemas/NullableValueStatus'}
+        changed_by: {type: string, format: uuid}
+        changed_at: {type: string, format: date-time}
+    ProcessingError:
+      type: object
+      additionalProperties: false
+      required: [stage, code, message, retryable, occurred_at]
+      properties:
+        stage:
+          type: string
+          enum: [SCHEDULING, PREPROCESSING, OCR, KIE, PERSISTING]
+        code: {type: string}
+        message: {type: string}
+        retryable: {type: boolean}
+        occurred_at: {type: string, format: date-time}
+    DashboardSummary:
+      type: object
+      additionalProperties: false
+      required: [total_receipts, processing, needs_review, verified, failed, total_spending_vnd, average_ocr_confidence, correction_rate]
+      properties:
+        total_receipts: {type: integer, minimum: 0}
+        processing: {type: integer, minimum: 0}
+        needs_review: {type: integer, minimum: 0}
+        verified: {type: integer, minimum: 0}
+        failed: {type: integer, minimum: 0}
+        total_spending_vnd: {type: integer, minimum: 0}
+        average_ocr_confidence: {type: number, minimum: 0, maximum: 1}
+        correction_rate: {type: number, minimum: 0, maximum: 1}
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, request_id]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            details: {type: object, additionalProperties: true}
+            request_id: {type: string, format: uuid}
