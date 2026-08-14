@@ -26,3 +26,66 @@ Thư mục này chứa các cấu hình liên quan đến triển khai, môi tr�
 - Cấu hình triển khai phải có khả năng tái tạo trên máy khác.
 - Không đưa dữ liệu hóa đơn thật vào image Docker hoặc file cấu hình.
 - Mọi thay đổi phải gắn với GitHub Issue tương ứng.
+
+## Chạy hạ tầng local
+
+Từ thư mục gốc của repository:
+
+```bash
+cp .env.example .env
+docker compose up -d
+docker compose ps -a
+```
+
+Compose khởi động PostgreSQL, Redis và MinIO trên network
+`vietreceipt_internal`. Container `minio-init` chờ MinIO healthy, tạo bucket
+private `vietreceipt` nếu chưa có, rồi thoát với code 0. Việc chạy lại init là
+an toàn.
+
+Các endpoint từ máy host:
+
+| Dịch vụ | Endpoint mặc định |
+| --- | --- |
+| PostgreSQL | `localhost:5432` |
+| Redis | `localhost:6379` |
+| MinIO S3 API | `http://localhost:9000` |
+| MinIO Console | `http://localhost:9001` |
+
+Backend và Worker chạy trong cùng Compose network phải dùng service name, không
+dùng `localhost`:
+
+```dotenv
+DATABASE_URL=postgresql+psycopg://vietreceipt:...@postgres:5432/vietreceipt
+REDIS_URL=redis://redis:6379/0
+STORAGE_ENDPOINT=http://minio:9000
+```
+
+`POSTGRES_*` chỉ dành cho container PostgreSQL. `DATABASE_URL` là nguồn cấu
+hình database duy nhất của Backend/Worker. Tất cả storage adapter dùng nhóm
+`STORAGE_*`; không thêm nhóm biến `S3_*` thứ hai.
+
+W1 chốt `STORAGE_BACKEND=filesystem`. MinIO vẫn được provision, healthcheck và
+tạo bucket private để chuẩn bị hạ tầng S3-compatible, nhưng chưa phải storage
+adapter runtime. Khi team quyết định chuyển runtime sang MinIO, giá trị hợp lệ
+là `STORAGE_BACKEND=s3`, không phải `minio`.
+
+## Lệnh vận hành
+
+```bash
+docker compose ps -a
+docker compose logs -f
+docker compose down
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-contracts.txt
+.venv/bin/python -m pip install -e "./backend[test]"
+PYTHON_BIN=.venv/bin/python ./infra/scripts/smoke-test.sh
+```
+
+`docker compose down` xóa container/network nhưng giữ ba named volume:
+`vietreceipt_postgres_data`, `vietreceipt_redis_data` và
+`vietreceipt_minio_data`.
+
+> **Cảnh báo:** `docker compose down -v` xóa toàn bộ dữ liệu local trong cả ba
+> volume và không thể hoàn tác.
+
+Chi tiết kịch bản kiểm tra nằm tại `../docs/test-plan-v1.md`.

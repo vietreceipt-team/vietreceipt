@@ -1,0 +1,99 @@
+name: vietreceipt
+
+services:
+  postgres:
+    image: postgres:16.4-alpine3.20
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vietreceipt}
+      POSTGRES_USER: ${POSTGRES_USER:-vietreceipt}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_dev_only_change_me}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - vietreceipt_internal
+
+  redis:
+    image: redis:7.2.5-alpine3.20
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    networks:
+      - vietreceipt_internal
+
+  minio:
+    image: minio/minio:RELEASE.2024-07-16T23-46-41Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      # MinIO requires vendor-specific names internally. Their values still
+      # come from VietReceipt's canonical STORAGE_* configuration.
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY:-vietreceipt_local}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:-local_dev_only_change_me}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - --fail
+        - --silent
+        - http://localhost:9000/minio/health/live
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - vietreceipt_internal
+
+  minio-init:
+    image: minio/mc:RELEASE.2024-07-15T17-46-06Z
+    restart: "no"
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-http://minio:9000}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-vietreceipt_local}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-local_dev_only_change_me}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-vietreceipt}
+    entrypoint: ["/bin/sh", "/bootstrap.sh"]
+    volumes:
+      - ./infra/minio/bootstrap.sh:/bootstrap.sh:ro
+    networks:
+      - vietreceipt_internal
+
+volumes:
+  postgres_data:
+    name: vietreceipt_postgres_data
+  redis_data:
+    name: vietreceipt_redis_data
+  minio_data:
+    name: vietreceipt_minio_data
+
+networks:
+  vietreceipt_internal:
+    name: vietreceipt_internal
+    driver: bridge
