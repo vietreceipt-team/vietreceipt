@@ -69,3 +69,6 @@ class SchedulingFailure(DomainError):
 
 class PersistenceFailure(DomainError):
     code = "PERSISTENCE_FAILED"
+
+class VerificationFailure(DomainError, ValueError):
+    code = "VERIFICATION_FAILED"
