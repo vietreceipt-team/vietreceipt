@@ -1,0 +1,53 @@
+Tel: 23104819404-007
+POS:001
+POS 2314930P001
+NVBH:09024146
+Tên NV:4930P003
+NGÀY KINH DOANH:14/08/2020
+NGÀY HỆ THỐNG:14/08/2020 22:08
+============== doanh số & thuế ==============
+MÔ TẢ SỐ TIỀN
+Tổng trước thuế 25.516.992
+Tổng thuế 2.011.651
+Tổng sau thuế 27.528.643
+Phải trả VinID 486.000
+Payoo/Cosmo 0
+Tổng thanh toán 28.014.643
+============== THANH TOÁN ==============
+MÔ TẢ SL SỐ TIỀN
+TIỀN MẶT 26.367.454
+PMH bên thứ 3 0
+Biên nhận thanh toán 0
+VinID 336.000
+Phiếu quà tặng 0
+Thẻ tín dụng 913.852
+Thẻ ghi nợ 0
+Thẻ trả trước 0
+Ví điện tử của VinID Pay 247.337
+Tổng Tiền 27.864.643
+------------------------------------------
+THANH TOÁN THỪA 695
+LÀM TRÒN TIỀN MẶT 0
+NHẬP ĐƠN VỊ TIỀN
+500.000 VND 58 29.000.000
+200.000 VND 7 1.400.000
+100.000 VND 19 1.900.000
+50.000 VND 17 850.000
+20.000 VND 1 20.000
+10.000 VND 2 20.000
+5.000 VND 2 10.000
+2.000 VND 1 2.000
+1.000 VND 0 0
+500 VND 0 0
+200 VND 0 0
+100 VND 0 0
+Tổng Tiền 33.202.000
+TIỀN BẮT ĐẦU KINH DOANH 1.000.000
+TIỀN HỆ THỐNG 26.367.454
+VƯỢT QUÁ/THIẾU 5.834.546
+COUPON 0
+VOUCHER 0
+PMH bên thứ 3 0
+Biên nhận thanh toán 0
+VinID 0
+============== KẾT THÚC ==============
