@@ -116,36 +116,7 @@ class VerificationService:
                 key=lambda field: FIELD_ORDER[field.field_name]
             )
 
-            if (
-                receipt.status is ReceiptStatus.NEEDS_REVIEW
-                and receipt.review_started_at is None
-            ):
-                occurred_at = self._clock.now()
-
-                updated_receipt = receipt.model_copy(
-                    update={
-                        "review_started_at": occurred_at,
-                    }
-                )
-
-                review_event = AuditEvent(
-                    event_id=self._id_generator.new_id(),
-                    receipt_id=receipt_id,
-                    event_type=AuditEventType.REVIEW_STARTED,
-                    actor_id=actor_id,
-                    occurred_at=occurred_at,
-                )
-
-                await unit_of_work.receipts.save(
-                    updated_receipt,
-                    expected_updated_at=receipt.updated_at,
-                )
-                await unit_of_work.audit_events.append(
-                    review_event
-                )
-                await unit_of_work.commit()
-
-        return fields
+            return fields
 
     async def verify_receipt(
         self,

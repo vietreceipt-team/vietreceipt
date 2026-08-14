@@ -139,23 +139,16 @@ def make_service(
     )
 
 
-def test_get_fields_starts_review_once() -> None:
+def test_get_fields_is_read_only() -> None:
     receipt = make_receipt()
     fields = list(reversed(make_all_fields()))
     unit_of_work = FakeUnitOfWork([receipt], fields)
     service = make_service(
         unit_of_work,
         FixedClock(REVIEWED_AT),
-        REVIEW_EVENT_ID,
     )
 
-    first_result = asyncio.run(
-        service.get_fields(
-            receipt_id=RECEIPT_ID,
-            actor_id=ACTOR_ID,
-        )
-    )
-    second_result = asyncio.run(
+    result = asyncio.run(
         service.get_fields(
             receipt_id=RECEIPT_ID,
             actor_id=ACTOR_ID,
@@ -164,21 +157,14 @@ def test_get_fields_starts_review_once() -> None:
 
     assert [
         field.field_name
-        for field in first_result
+        for field in result
     ] == list(FieldName)
-    assert second_result == first_result
 
     stored_receipt = unit_of_work.receipts.items[RECEIPT_ID]
-    assert stored_receipt.review_started_at == REVIEWED_AT
+    assert stored_receipt.review_started_at is None
     assert stored_receipt.updated_at == CREATED_AT
-
-    assert len(unit_of_work.audit_events.events) == 1
-    event = unit_of_work.audit_events.events[0]
-    assert event.event_type is AuditEventType.REVIEW_STARTED
-    assert event.actor_id == ACTOR_ID
-    assert event.occurred_at == REVIEWED_AT
-    assert unit_of_work.commit_count == 1
-
+    assert unit_of_work.audit_events.events == []
+    assert unit_of_work.commit_count == 0
 
 def test_get_fields_rejects_missing_receipt() -> None:
     unit_of_work = FakeUnitOfWork()
