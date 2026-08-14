@@ -1,0 +1,136 @@
+{
+  "report_version": "1.0",
+  "status": "WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS",
+  "example_only": false,
+  "canonical_fields": [
+    "merchant_name",
+    "receipt_date",
+    "total_amount",
+    "invoice_id",
+    "merchant_address"
+  ],
+  "primary_research_fields": [
+    "merchant_name",
+    "receipt_date",
+    "total_amount"
+  ],
+  "error_taxonomy": [
+    "ocr_omission",
+    "ocr_substitution",
+    "ocr_segmentation_grouping",
+    "ocr_reading_order",
+    "ocr_geometry_evidence",
+    "not_an_ocr_error"
+  ],
+  "evaluated_receipt_count": 0,
+  "evaluated_field_count": 0,
+  "oracle_ocr_available_count": 0,
+  "field_summaries": [
+    {
+      "field_name": "merchant_name",
+      "primary_research_field": true,
+      "evaluated_count": 0,
+      "present_count": 0,
+      "field_impacting_error_count": 0,
+      "ocr_omission_count": 0,
+      "ocr_omission_rate": null,
+      "error_counts": {
+        "ocr_omission": 0,
+        "ocr_substitution": 0,
+        "ocr_segmentation_grouping": 0,
+        "ocr_reading_order": 0,
+        "ocr_geometry_evidence": 0,
+        "not_an_ocr_error": 0
+      }
+    },
+    {
+      "field_name": "receipt_date",
+      "primary_research_field": true,
+      "evaluated_count": 0,
+      "present_count": 0,
+      "field_impacting_error_count": 0,
+      "ocr_omission_count": 0,
+      "ocr_omission_rate": null,
+      "error_counts": {
+        "ocr_omission": 0,
+        "ocr_substitution": 0,
+        "ocr_segmentation_grouping": 0,
+        "ocr_reading_order": 0,
+        "ocr_geometry_evidence": 0,
+        "not_an_ocr_error": 0
+      }
+    },
+    {
+      "field_name": "total_amount",
+      "primary_research_field": true,
+      "evaluated_count": 0,
+      "present_count": 0,
+      "field_impacting_error_count": 0,
+      "ocr_omission_count": 0,
+      "ocr_omission_rate": null,
+      "error_counts": {
+        "ocr_omission": 0,
+        "ocr_substitution": 0,
+        "ocr_segmentation_grouping": 0,
+        "ocr_reading_order": 0,
+        "ocr_geometry_evidence": 0,
+        "not_an_ocr_error": 0
+      }
+    },
+    {
+      "field_name": "invoice_id",
+      "primary_research_field": false,
+      "evaluated_count": 0,
+      "present_count": 0,
+      "field_impacting_error_count": 0,
+      "ocr_omission_count": 0,
+      "ocr_omission_rate": null,
+      "error_counts": {
+        "ocr_omission": 0,
+        "ocr_substitution": 0,
+        "ocr_segmentation_grouping": 0,
+        "ocr_reading_order": 0,
+        "ocr_geometry_evidence": 0,
+        "not_an_ocr_error": 0
+      }
+    },
+    {
+      "field_name": "merchant_address",
+      "primary_research_field": false,
+      "evaluated_count": 0,
+      "present_count": 0,
+      "field_impacting_error_count": 0,
+      "ocr_omission_count": 0,
+      "ocr_omission_rate": null,
+      "error_counts": {
+        "ocr_omission": 0,
+        "ocr_substitution": 0,
+        "ocr_segmentation_grouping": 0,
+        "ocr_reading_order": 0,
+        "ocr_geometry_evidence": 0,
+        "not_an_ocr_error": 0
+      }
+    }
+  ],
+  "sample_summaries": [],
+  "quality_stratum_summaries": [],
+  "field_error_rows": [],
+  "provenance": {
+    "git_commit_sha": "494bdd73fd89d23b731c994f34f284c6ea157965",
+    "git_worktree_dirty": true,
+    "generated_at": "2026-08-14T08:20:33.049287+00:00",
+    "python_version": "3.12.13",
+    "ocr_engine": "paddleocr",
+    "paddleocr_package_version": "3.0.3",
+    "paddlepaddle_package_version": "3.0.0",
+    "paddlex_package_version": "3.0.3",
+    "model_family": "PP-OCRv3",
+    "language": "vi",
+    "dataset_version": "vietreceipt-week1-frozen-40-v1",
+    "manifest_sha256": "d1ff35c4adc38b89de02a5187caaf7936c32948618c74e7c2f84cc728a6369a9",
+    "annotation_qa_state": "pending independent transcription review and KIE/Data five-field gold annotation",
+    "run_command": "python scripts/evaluate_field_aware.py",
+    "generated_report": "results/field_aware_error_report.json"
+  },
+  "dependency_note": "KIE/Data must provide verified five-field annotations and oracle OCR evidence; OCR does not fabricate semantic gold labels."
+}

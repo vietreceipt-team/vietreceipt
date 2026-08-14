@@ -70,3 +70,40 @@ This verification validates the committed artifacts; it does not rerun model
 inference. The set contains 1,970 OCR blocks in total (12 minimum and 163
 maximum per artifact). Ground-truth metrics remain provisional until an
 independent reviewer completes annotation QA.
+
+Week-2 integration and field-aware verification
+------------------------------------------------
+Branch base SHA: 494bdd73fd89d23b731c994f34f284c6ea157965
+Issue: https://github.com/vietreceipt-team/vietreceipt/issues/18
+
+Commands:
+
+python scripts/evaluate_field_aware.py
+PASS: report generated with status WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS.
+The report covers all five canonical fields and records the exact missing
+KIE/Data dependency instead of fabricating field labels.
+
+python -m unittest discover -s tests -v
+PASS: 18 tests. Week-1 artifact regression remains green. Week-2 tests cover
+the callable pipeline, Backend-style UUIDs, reprocess identity, immutable
+artifacts, schema and semantic invariants, benchmark ID separation, six-way
+field error taxonomy, Oracle/Real manifest support, quality slices and
+reproducibility provenance.
+
+python tests/contracts/run_contract_tests.py
+PASS: canonical JSON Schemas/OpenAPI, positive and negative cases,
+cross-record linkage, block-ID uniqueness and zero-based reading order.
+
+python scripts/run_baseline.py --image data/test_set/images/R001.jpg \
+  --receipt-id 31915ef1-6fb4-4e7d-b6f5-53be51c50e3d \
+  --ocr-run-id b3ac8bb4-6383-4b97-9911-5a6900054608 \
+  --output-dir <temporary-directory> --mapping-out <temporary-mapping>
+PASS: real pinned PaddleOCR inference produced a validated artifact at the
+immutable <receipt_id>/<ocr_run_id>.json path. Temporary outputs were not
+added to the repository.
+
+python -m pip check
+PASS: No broken requirements found in the pinned OCR environment.
+
+No Week-2 model or preprocessing change was selected. A controlled experiment
+requires verified field annotations so its field impact can be measured.
