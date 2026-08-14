@@ -1,0 +1,83 @@
+{
+  "source": {
+    "repository": "vietreceipt-team/vietreceipt",
+    "pull_request": 3,
+    "branch": "docs/2-week1-backend-contract",
+    "commit": "f1eaed210144140184388cdb84d71c1d79493e13",
+    "openapi_path": "openapi/openapi.yaml",
+    "schema_version": "1.3"
+  },
+  "receipt_statuses": [
+    "UPLOADED",
+    "PROCESSING",
+    "NEEDS_REVIEW",
+    "VERIFIED",
+    "FAILED"
+  ],
+  "field_names": [
+    "merchant_name",
+    "receipt_date",
+    "total_amount",
+    "invoice_id",
+    "merchant_address"
+  ],
+  "value_statuses": [
+    "PRESENT",
+    "NOT_PRESENT",
+    "UNREADABLE",
+    "AMBIGUOUS",
+    "UNKNOWN"
+  ],
+  "review_reason_codes": [
+    "NO_CANDIDATE",
+    "LOW_CONFIDENCE",
+    "MULTIPLE_CANDIDATES",
+    "AMBIGUOUS_FORMAT",
+    "UNREADABLE_SOURCE",
+    "UNSUPPORTED_CURRENCY",
+    "NEGATIVE_AMOUNT",
+    "MISSING_DATE_COMPONENT",
+    "UNSUPPORTED_TWO_DIGIT_YEAR",
+    "SOURCE_ROLE_UNCLEAR",
+    "NORMALIZATION_FAILED"
+  ],
+  "field_response_shape": "flat_extracted_field",
+  "review_reason_shape": "string_enum",
+  "ocr_evidence_source": "backend_ocr_contract",
+  "processing_stages": [
+    "PREPROCESSING",
+    "OCR",
+    "KIE",
+    "PERSISTING"
+  ],
+  "processing_error_stages": [
+    "SCHEDULING",
+    "PREPROCESSING",
+    "OCR",
+    "KIE",
+    "PERSISTING"
+  ],
+  "upload_state_semantics": "persistence_committed_before_scheduling",
+  "processing_start_trigger": "worker_claim_start",
+  "field_value_types": {
+    "merchant_name": "non_empty_string",
+    "receipt_date": "iso_date_string",
+    "total_amount": "non_negative_integer",
+    "invoice_id": "non_empty_string",
+    "merchant_address": "non_empty_string"
+  },
+  "invalid_field_correction_status": 422,
+  "retry_response": {
+    "status": 202,
+    "shape": "RetryAccepted",
+    "implies_processing": false
+  },
+  "public_paths": {
+    "upload": "/api/v1/receipts",
+    "receipt": "/api/v1/receipts/{receipt_id}",
+    "retry": "/api/v1/receipts/{receipt_id}/retry",
+    "field_correction": "/api/v1/receipts/{receipt_id}/fields/{field_name}/correction",
+    "verify": "/api/v1/receipts/{receipt_id}/verify"
+  },
+  "has_public_process_endpoint": false
+}
