@@ -13,11 +13,6 @@ from backend.app.domain.enums import FieldName, ReceiptStatus
 from backend.app.domain.models import (
     AuditEvent,
     CorrectionHistory,
-    Receipt,
-)
-from backend.app.domain.models import (
-    AuditEvent,
-    CorrectionHistory,
     ExtractedField,
     Receipt,
 )

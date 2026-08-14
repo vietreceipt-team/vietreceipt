@@ -1,7 +1,3 @@
-from backend.app.repositories.protocols import (
-    UnitOfWork,
-    UnitOfWorkFactory,
-)
 from uuid import UUID
 
 from backend.app.domain.enums import (
@@ -21,7 +17,7 @@ from backend.app.ports.persistence import (
     ReceiptUpload,
 )
 from backend.app.ports.scheduler import ProcessingScheduler
-from backend.app.repositories.protocols import UnitOfWork
+from backend.app.repositories.protocols import UnitOfWorkFactory
 
 
 

@@ -6,7 +6,7 @@ from pydantic import (
     StrictInt,
     StrictStr,
 )
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, TypeAlias
 from uuid import UUID
 
 from pydantic import (
@@ -20,7 +20,9 @@ from pydantic import (
 from backend.app.domain.enums import ValueStatus
 
 
-FieldValueInput = StrictStr | StrictInt | None
+FieldValueInput: TypeAlias = (
+    StrictStr | StrictInt | None
+)
 
 
 class APIModel(BaseModel):
@@ -39,7 +41,7 @@ class ClearFieldCorrectionRequest(APIModel):
     expected_updated_at: AwareDatetime
 
 
-FieldCorrectionRequest = Annotated[
+FieldCorrectionRequest: TypeAlias = Annotated[
     ApplyFieldCorrectionRequest
     | ClearFieldCorrectionRequest,
     Field(discriminator="operation"),
