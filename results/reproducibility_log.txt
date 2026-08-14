@@ -1,5 +1,5 @@
 VietReceipt OCR Week-1 reproducibility evidence
-Date: 2026-08-13 (Asia/Saigon)
+Date: 2026-08-14 (Asia/Saigon)
 Platform: Windows x86_64, CPU inference
 
 Fresh environment
@@ -36,36 +36,37 @@ python -m pip install -r requirements.txt
 PASS
 
 python -m pip check
-PASS
+PASS: No broken requirements found.
 
 python -m unittest discover -s tests -p "test_*.py" -v
-PASS: 4 tests
+PASS: 5 tests
+The committed-artifact regression test validated all 40 rows in
+results/benchmark_run_mapping.csv against their corresponding OCR output.
 
 python -m compileall -q scripts tests
 PASS
 
-python scripts/run_baseline.py --image data/test_set/images/R001.jpg \
-  --output-dir results/smoke_output --mapping-out results/smoke_mapping.csv
-PASS: canonical OCRResult v1.3 written and validated before save
-The validated artifact and mapping were then copied to results/ocr_outputs/R001.json
-and results/benchmark_run_mapping.csv without changing their contents.
-Observed blocks: 31
-Observed duration_ms: 10796
-Observed average_confidence: 0.92935
-Engine object: {"name": "paddleocr", "version": "3.0.3"}
-
-python scripts/evaluate.py
-PASS with declared status INCOMPLETE
-Evaluation scope: preliminary baseline / probe
-Coverage: 7/40
-Evaluated IDs: R001,R002,R006,R019,R021,R023,R028
-Macro-average CER: 34.68%
-Macro-average WER: 68.74%
+python scripts/evaluate.py --require-complete
+PASS with declared coverage status COMPLETE
+Evaluation scope: provisional full frozen 40-sample baseline / probe
+Coverage: 40/40 non-empty first-pass transcriptions
+Annotation QA: pending independent review for all annotated samples
+Missing IDs: none
+Metric: macro-average CER/WER over evaluated samples
+Normalization: collapse all whitespace sequences to one ASCII space
+Macro-average CER: 30.79%
+Macro-average WER: 74.18%
 
 Artifact provenance
 -------------------
-R001 was rerun in the fresh environment above. The other six evaluation outputs
-predate environment provenance; their serialization was migrated and validated
-against OCRResult v1.3, but their engine package version remains explicitly
-"legacy-unrecorded". See benchmark_run_mapping.csv and
-legacy_artifact_mapping.csv. They are not presented as fresh-run evidence.
+The current committed set contains 40 OCR artifacts for R001-R040. All declare
+OCRResult schema_version 1.3 and engine {"name": "paddleocr", "version":
+"3.0.3"}. The regression test verifies for every mapping row that the output
+exists, validates against the canonical schema, matches receipt_id and
+ocr_run_id, has unique block_id values, uses reading_order 0..N-1, and contains
+exactly four normalized points per polygon.
+
+This verification validates the committed artifacts; it does not rerun model
+inference. The set contains 1,970 OCR blocks in total (12 minimum and 163
+maximum per artifact). Ground-truth metrics remain provisional until an
+independent reviewer completes annotation QA.

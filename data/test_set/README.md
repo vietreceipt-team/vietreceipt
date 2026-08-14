@@ -57,9 +57,10 @@ new versioned manifest and document the reason, source snapshot, and hashes.
 
 ## Ground truth and evaluation scope
 
-Only seven samples currently have non-empty first-pass transcriptions. The
-evaluation is therefore a **preliminary Week-1 probe on 7/40 samples**, not a
-performance estimate for the full frozen set. Annotation and QA policy lives in
-`../ground_truth/README.md`; coverage, missing IDs, normalization, sampling
-rationale, and macro-average metric semantics are emitted by
-`scripts/evaluate.py` into `results/evaluation_report.csv`.
+All 40 samples currently have non-empty first-pass transcriptions, so the
+evaluation covers the **full frozen 40-sample probe**. Because independent QA
+remains pending for every transcription, the metrics are provisional and must
+not be described as final reviewed benchmark results. Annotation and QA policy
+lives in `../ground_truth/README.md`; coverage, missing IDs, QA scope,
+normalization, sampling rationale, and macro-average metric semantics are
+emitted by `scripts/evaluate.py` into `results/evaluation_report.csv`.

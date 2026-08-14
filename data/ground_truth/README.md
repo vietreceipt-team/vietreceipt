@@ -1,8 +1,8 @@
 # Ground-truth transcription policy
 
-This Week-1 probe currently contains seven non-empty transcriptions: `R001`,
-`R002`, `R006`, `R019`, `R021`, `R023`, and `R028`. Empty placeholder files are
-not valid annotations and must not be created.
+This probe currently contains 40 non-empty first-pass transcriptions, covering
+`R001` through `R040`. Empty placeholder files are not valid annotations and
+must not be created.
 
 ## Status and QA
 
@@ -11,11 +11,15 @@ not valid annotations and must not be created.
 - `reviewed`: a second person checked the transcription against the authorized
   source image and accepted it.
 
-The seven existing files predate explicit annotator tracking. They are recorded
-honestly as `annotated` with `annotator_id=unknown_legacy_contributor` and
-`qa_status=pending_review`; they must not be promoted to `reviewed` until a named
-reviewer checks them. Per-sample provenance is in `annotation_metadata.csv`, and
-`data/test_set/test_manifest.csv` is the source of truth for evaluation status.
+The original seven transcriptions (`R001`, `R002`, `R006`, `R019`, `R021`,
+`R023`, and `R028`) predate explicit tracking and retain
+`annotator_id=unknown_legacy_contributor`. The 33 transcriptions added in commit
+`73c55f0` use `annotator_id=unknown_contributor` because repository history does
+not identify the person who performed the transcription. All 40 remain
+`qa_status=pending_review` and must not be promoted to `reviewed` until a named,
+independent reviewer checks them. Per-sample provenance is in
+`annotation_metadata.csv`, and `data/test_set/test_manifest.csv` is the source
+of truth for evaluation status.
 
 ## Transcription rules
 

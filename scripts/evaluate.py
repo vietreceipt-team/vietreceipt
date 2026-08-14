@@ -1,4 +1,4 @@
-"""Evaluate the explicitly annotated OCR probe subset with transparent coverage."""
+"""Evaluate the OCR probe with transparent coverage and annotation QA scope."""
 
 from __future__ import annotations
 
@@ -20,10 +20,6 @@ SCHEMA_PATH = PROJECT_ROOT / "schemas" / "ocr-result.schema.json"
 
 NORMALIZATION_POLICY = "collapse all whitespace sequences to one ASCII space"
 METRIC_POLICY = "macro-average CER/WER over evaluated samples"
-SAMPLING_RATIONALE = (
-    "preliminary Week-1 probe using the seven available non-empty legacy "
-    "transcriptions; not a performance estimate for all 40 frozen samples"
-)
 ANNOTATED_STATUSES = {"annotated", "reviewed"}
 
 
@@ -79,6 +75,8 @@ def evaluate(
     empty_gt_ids: list[str] = []
     missing_ocr_ids: list[str] = []
     invalid_ocr_ids: list[str] = []
+    annotated_gt_ids: list[str] = []
+    reviewed_gt_ids: list[str] = []
 
     for manifest_row in manifest_rows:
         sample_id = manifest_row["test_id"]
@@ -94,6 +92,9 @@ def evaluate(
         if not gt_text:
             empty_gt_ids.append(sample_id)
             continue
+        annotated_gt_ids.append(sample_id)
+        if gt_status == "reviewed":
+            reviewed_gt_ids.append(sample_id)
         if not ocr_path.exists():
             missing_ocr_ids.append(sample_id)
             continue
@@ -118,6 +119,29 @@ def evaluate(
         set(missing_gt_ids + empty_gt_ids + missing_ocr_ids + invalid_ocr_ids)
     )
     status = "COMPLETE" if evaluated_count == expected_count else "INCOMPLETE"
+    coverage_label = "full" if status == "COMPLETE" else "partial"
+    annotation_count = len(annotated_gt_ids)
+    reviewed_count = len(reviewed_gt_ids)
+    pending_review_count = annotation_count - reviewed_count
+    annotation_scope = (
+        f"{annotation_count}/{expected_count} non-empty first-pass transcriptions"
+    )
+    if annotation_count == 0:
+        annotation_qa_status = "no annotated samples available for review"
+    elif pending_review_count == 0:
+        annotation_qa_status = "independent review complete for all annotated samples"
+    elif reviewed_count == 0:
+        annotation_qa_status = "pending independent review for all annotated samples"
+    else:
+        annotation_qa_status = (
+            f"{reviewed_count}/{annotation_count} reviewed; "
+            f"{pending_review_count} pending independent review"
+        )
+    sampling_rationale = (
+        f"{evaluated_count}/{expected_count} manifest samples evaluated using "
+        "non-empty transcriptions and schema-valid OCR outputs; metrics based on "
+        "pending-QA first-pass annotations are provisional"
+    )
     macro_cer = (
         round(sum(row["cer_percent"] for row in metric_rows) / evaluated_count, 2)
         if evaluated_count
@@ -130,8 +154,13 @@ def evaluate(
     )
 
     metadata = {
-        "evaluation_scope": "Preliminary baseline / probe",
+        "evaluation_scope": (
+            f"Provisional {coverage_label} frozen {expected_count}-sample "
+            "baseline / probe"
+        ),
         "status": status,
+        "annotation_scope": annotation_scope,
+        "annotation_qa_status": annotation_qa_status,
         "expected_count": expected_count,
         "evaluated_count": evaluated_count,
         "missing_count": len(incomplete_ids),
@@ -143,7 +172,7 @@ def evaluate(
         "invalid_ocr_ids": ",".join(invalid_ocr_ids),
         "normalization_policy": NORMALIZATION_POLICY,
         "metric_policy": METRIC_POLICY,
-        "sampling_rationale": SAMPLING_RATIONALE,
+        "sampling_rationale": sampling_rationale,
         "macro_cer_percent": macro_cer,
         "macro_wer_percent": macro_wer,
     }
@@ -194,6 +223,8 @@ def main() -> None:
     )
     print(f"Evaluated IDs: {metadata['evaluated_sample_ids'] or '<none>'}")
     print(f"Missing IDs: {metadata['missing_sample_ids'] or '<none>'}")
+    print(f"Annotation scope: {metadata['annotation_scope']}")
+    print(f"Annotation QA: {metadata['annotation_qa_status']}")
     print(f"Normalization: {metadata['normalization_policy']}")
     print(f"Metric: {metadata['metric_policy']}")
     if metadata["evaluated_count"]:

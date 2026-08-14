@@ -1,8 +1,41 @@
 test_id,annotation_status,annotator_id,reviewer_id,qa_status,notes
 R001,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
 R002,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R003,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R004,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R005,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
 R006,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R007,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R008,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R009,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R010,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R011,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R012,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R013,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R014,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R015,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R016,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R017,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R018,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
 R019,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R020,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
 R021,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R022,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
 R023,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R024,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R025,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R026,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R027,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
 R028,annotated,unknown_legacy_contributor,,pending_review,Legacy W1 transcription
+R029,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R030,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R031,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R032,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R033,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R034,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R035,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R036,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R037,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R038,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R039,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified
+R040,annotated,unknown_contributor,,pending_review,First-pass transcription added in 73c55f0; annotator identity unverified

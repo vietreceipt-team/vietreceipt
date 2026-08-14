@@ -63,6 +63,14 @@ class EvaluateTests(unittest.TestCase):
             self.assertEqual(metadata["status"], "INCOMPLETE")
             self.assertEqual(metadata["evaluated_sample_ids"], "R001")
             self.assertEqual(metadata["missing_sample_ids"], "R002")
+            self.assertEqual(
+                metadata["annotation_scope"],
+                "1/2 non-empty first-pass transcriptions",
+            )
+            self.assertEqual(
+                metadata["annotation_qa_status"],
+                "pending independent review for all annotated samples",
+            )
             self.assertIn("whitespace", metadata["normalization_policy"])
             self.assertTrue(report.exists())
 

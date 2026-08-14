@@ -74,20 +74,21 @@ points ordered top-left, top-right, bottom-right, bottom-left, and validates eac
 document against `schemas/ocr-result.schema.json` before writing it. Missing or
 malformed polygons fail the run; invalid artifacts are never saved as canonical.
 
-## Evaluate the preliminary probe
+## Evaluate the provisional full probe
 
 ```bash
-python scripts/evaluate.py
+python scripts/evaluate.py --require-complete
 ```
 
-The report explicitly records expected/evaluated counts, evaluated and missing
-sample IDs, invalid OCR artifacts, sampling rationale, whitespace normalization,
-and macro-average CER/WER. Use `--require-complete` when a workflow must fail on
-anything below 40/40 coverage.
+The report records expected/evaluated counts, evaluated and missing sample IDs,
+invalid OCR artifacts, sampling rationale, whitespace normalization, annotation
+QA scope, and macro-average CER/WER. All 40 frozen samples currently have a
+non-empty first-pass transcription and a canonical OCR output, so complete
+coverage is expected.
 
-Current scope is only the seven non-empty legacy transcriptions: `R001`, `R002`,
-`R006`, `R019`, `R021`, `R023`, and `R028`. It is a preliminary probe, not the
-performance of the full frozen set.
+Independent annotation QA is still pending for all 40 samples. The current
+metrics are therefore a **provisional 40/40 first-pass baseline**, not final
+reviewed benchmark results.
 
 ## Contract and module impact
 
@@ -106,6 +107,7 @@ through the shared schema rather than introduced in the PaddleOCR adapter alone.
 
 ## Verification evidence
 
-`results/reproducibility_log.txt` records the fresh-environment commands and
-observed package/model configuration used for the committed probe artifact. The
-schema adapter and evaluator also have offline unit tests under `tests/`.
+`results/reproducibility_log.txt` records the exact verification commands and
+results for the 40 committed artifacts. The regression suite validates every
+artifact against `OCRResult v1.3`, checks mapping UUIDs, unique block IDs,
+sequential reading order, and normalized four-point polygons.
