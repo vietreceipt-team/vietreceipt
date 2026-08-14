@@ -7,6 +7,7 @@ from backend.app.domain.enums import (
     ReceiptStatus,
 )
 from backend.app.domain.errors import (
+    FieldNotFound,
     InvalidReceiptState,
     ReceiptNotFound,
     StaleUpdate,
@@ -50,6 +51,7 @@ class VerificationService:
         self,
         *,
         receipt_id: UUID,
+        kie_run_id: UUID | None = None,
         actor_id: UUID | None = None,
     ) -> list[ExtractedField]:
         async with self._unit_of_work_factory() as unit_of_work:
@@ -71,17 +73,45 @@ class VerificationService:
                     operation="get_fields",
                 )
 
-            if receipt.latest_kie_run_id is None:
-                raise VerificationFailure(
-                    "Receipt has no canonical KIE result."
+            selected_kie_run_id = (
+                kie_run_id
+                if kie_run_id is not None
+                else receipt.latest_kie_run_id
+            )
+
+            if selected_kie_run_id is None:
+                raise InvalidReceiptState(
+                    receipt.status,
+                    operation="get_fields_without_kie_result",
                 )
 
             fields = list(
                 await unit_of_work.fields.list_for_receipt(
                     receipt_id,
-                    kie_run_id=receipt.latest_kie_run_id,
+                    kie_run_id=selected_kie_run_id,
                 )
             )
+
+            if kie_run_id is not None and not fields:
+                raise FieldNotFound(
+                    f"KIE run {kie_run_id} was not found "
+                    f"for receipt {receipt_id}."
+                )
+
+            field_names = {
+                field.field_name
+                for field in fields
+            }
+
+            if (
+                len(fields) != len(CANONICAL_FIELD_NAMES)
+                or field_names != CANONICAL_FIELD_NAMES
+            ):
+                raise InvalidReceiptState(
+                    receipt.status,
+                    operation="get_incomplete_fields",
+                )
+
             fields.sort(
                 key=lambda field: FIELD_ORDER[field.field_name]
             )

@@ -11,6 +11,7 @@ from backend.app.domain.enums import (
     ValueStatus,
 )
 from backend.app.domain.errors import (
+    FieldNotFound,
     InvalidReceiptState,
     ReceiptNotFound,
     StaleUpdate,
@@ -423,6 +424,85 @@ def test_verify_rejects_invalid_receipt_state() -> None:
             service.verify_receipt(
                 receipt_id=RECEIPT_ID,
                 expected_updated_at=CREATED_AT,
+                actor_id=ACTOR_ID,
+            )
+        )
+
+    assert unit_of_work.commit_count == 0
+
+def test_get_fields_accepts_explicit_kie_run_id() -> None:
+    receipt = make_receipt(
+        review_started_at=REVIEWED_AT
+    )
+    fields = make_all_fields()
+    unit_of_work = FakeUnitOfWork([receipt], fields)
+    service = make_service(
+        unit_of_work,
+        FixedClock(REVIEWED_AT),
+    )
+
+    result = asyncio.run(
+        service.get_fields(
+            receipt_id=RECEIPT_ID,
+            kie_run_id=KIE_RUN_ID,
+            actor_id=ACTOR_ID,
+        )
+    )
+
+    assert len(result) == 5
+    assert {
+        field.kie_run_id
+        for field in result
+    } == {KIE_RUN_ID}
+    assert unit_of_work.commit_count == 0
+
+
+def test_get_fields_rejects_unknown_kie_run_id() -> None:
+    receipt = make_receipt(
+        review_started_at=REVIEWED_AT
+    )
+    unit_of_work = FakeUnitOfWork(
+        [receipt],
+        make_all_fields(),
+    )
+    service = make_service(
+        unit_of_work,
+        FixedClock(REVIEWED_AT),
+    )
+    unknown_kie_run_id = UUID(
+        "00000000-0000-4000-8000-000000000199"
+    )
+
+    with pytest.raises(FieldNotFound):
+        asyncio.run(
+            service.get_fields(
+                receipt_id=RECEIPT_ID,
+                kie_run_id=unknown_kie_run_id,
+                actor_id=ACTOR_ID,
+            )
+        )
+
+    assert unit_of_work.commit_count == 0
+
+
+def test_get_fields_rejects_incomplete_latest_projection() -> None:
+    receipt = make_receipt(
+        review_started_at=REVIEWED_AT
+    )
+    incomplete_fields = make_all_fields()[:-1]
+    unit_of_work = FakeUnitOfWork(
+        [receipt],
+        incomplete_fields,
+    )
+    service = make_service(
+        unit_of_work,
+        FixedClock(REVIEWED_AT),
+    )
+
+    with pytest.raises(InvalidReceiptState):
+        asyncio.run(
+            service.get_fields(
+                receipt_id=RECEIPT_ID,
                 actor_id=ACTOR_ID,
             )
         )
