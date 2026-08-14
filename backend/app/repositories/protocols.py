@@ -1,14 +1,27 @@
 from datetime import datetime
 from types import TracebackType
-from typing import Protocol, Self, Sequence, runtime_checkable
+from typing import (
+    Callable,
+    Protocol,
+    Self,
+    Sequence,
+    runtime_checkable,
+)
 from uuid import UUID
 
-from backend.app.domain.enums import ReceiptStatus
+from backend.app.domain.enums import FieldName, ReceiptStatus
 from backend.app.domain.models import (
     AuditEvent,
     CorrectionHistory,
     Receipt,
 )
+from backend.app.domain.models import (
+    AuditEvent,
+    CorrectionHistory,
+    ExtractedField,
+    Receipt,
+)
+
 
 
 @runtime_checkable
@@ -36,6 +49,30 @@ class ReceiptRepository(Protocol):
     ) -> Receipt:
         ...
 
+@runtime_checkable
+class FieldRepository(Protocol):
+    async def get(
+        self,
+        receipt_id: UUID,
+        field_name: FieldName,
+    ) -> ExtractedField | None:
+        ...
+
+    async def list_for_receipt(
+        self,
+        receipt_id: UUID,
+        *,
+        kie_run_id: UUID | None = None,
+    ) -> Sequence[ExtractedField]:
+        ...
+
+    async def save(
+        self,
+        field: ExtractedField,
+        *,
+        expected_updated_at: datetime,
+    ) -> ExtractedField:
+        ...
 
 @runtime_checkable
 class CorrectionHistoryRepository(Protocol):
@@ -64,6 +101,7 @@ class AuditEventRepository(Protocol):
 @runtime_checkable
 class UnitOfWork(Protocol):
     receipts: ReceiptRepository
+    fields: FieldRepository
     correction_history: CorrectionHistoryRepository
     audit_events: AuditEventRepository
 
@@ -83,3 +121,4 @@ class UnitOfWork(Protocol):
 
     async def rollback(self) -> None:
         ...
+UnitOfWorkFactory = Callable[[], UnitOfWork]

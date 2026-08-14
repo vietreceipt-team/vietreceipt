@@ -4,11 +4,12 @@ from types import TracebackType
 from typing import Self
 from uuid import UUID
 
-from backend.app.domain.enums import ReceiptStatus
+from backend.app.domain.enums import FieldName, ReceiptStatus
 from backend.app.domain.errors import StaleUpdate
 from backend.app.domain.models import (
     AuditEvent,
     CorrectionHistory,
+    ExtractedField,
     Receipt,
 )
 from backend.app.ports.persistence import ReceiptUpload
@@ -89,6 +90,63 @@ class FakeReceiptRepository:
         self.items[receipt.receipt_id] = receipt
         return receipt
 
+class FakeFieldRepository:
+    def __init__(
+        self,
+        fields: Sequence[ExtractedField] = (),
+    ) -> None:
+        self.items = {
+            (field.receipt_id, field.field_name): field
+            for field in fields
+        }
+
+    async def get(
+        self,
+        receipt_id: UUID,
+        field_name: FieldName,
+    ) -> ExtractedField | None:
+        return self.items.get((receipt_id, field_name))
+
+    async def list_for_receipt(
+        self,
+        receipt_id: UUID,
+        *,
+        kie_run_id: UUID | None = None,
+    ) -> Sequence[ExtractedField]:
+        fields = [
+            field
+            for field in self.items.values()
+            if field.receipt_id == receipt_id
+        ]
+
+        if kie_run_id is not None:
+            fields = [
+                field
+                for field in fields
+                if field.kie_run_id == kie_run_id
+            ]
+
+        return fields
+
+    async def save(
+        self,
+        field: ExtractedField,
+        *,
+        expected_updated_at: datetime,
+    ) -> ExtractedField:
+        key = (field.receipt_id, field.field_name)
+        current = self.items.get(key)
+
+        if (
+            current is not None
+            and current.updated_at != expected_updated_at
+        ):
+            raise StaleUpdate(
+                "Field was updated by another request."
+            )
+
+        self.items[key] = field
+        return field
 
 class FakeCorrectionHistoryRepository:
     def __init__(self) -> None:
@@ -133,8 +191,10 @@ class FakeUnitOfWork:
     def __init__(
         self,
         receipts: Sequence[Receipt] = (),
+        fields: Sequence[ExtractedField] = (),
     ) -> None:
         self.receipts = FakeReceiptRepository(receipts)
+        self.fields = FakeFieldRepository(fields)
         self.correction_history = (
             FakeCorrectionHistoryRepository()
         )

@@ -13,6 +13,10 @@ class ReceiptNotFound(DomainError):
     code = "RECEIPT_NOT_FOUND"
 
 
+class FieldNotFound(DomainError):
+    code = "FIELD_NOT_FOUND"
+
+
 class InvalidReceiptState(DomainError):
     code = "RECEIPT_STATE_CONFLICT"
 
@@ -50,7 +54,7 @@ class StaleUpdate(DomainError):
     code = "STALE_UPDATE"
 
 
-class InvalidFieldValue(DomainError):
+class InvalidFieldValue(DomainError, ValueError):
     code = "INVALID_FIELD_VALUE"
 
     def __init__(self, field_name: FieldName, reason: str) -> None:
