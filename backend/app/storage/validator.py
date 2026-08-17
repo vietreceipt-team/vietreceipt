@@ -53,4 +53,9 @@ class ReceiptImageValidator:
             raise UnsupportedImageFormatError(
                 f"Decoded image format {detected_format!r} is unsupported"
             ) from exc
-        return ValidatedImage(data=data, format=image_format)
+        return ValidatedImage(
+            data=data,
+            format=image_format,
+            width_px=width,
+            height_px=height,
+        )

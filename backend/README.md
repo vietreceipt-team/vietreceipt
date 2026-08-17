@@ -71,3 +71,37 @@ Backend tự động lên lịch xử lý sau khi upload thành công. `UPLOADED
 - API correction dùng canonical field name và một payload `APPLY`/`CLEAR`; correction và verify đều kiểm tra `expected_updated_at` để chống ghi đè thay đổi mới hơn.
 - Chỉ dữ liệu `VERIFIED` được export chính thức theo mặc định.
 - Mọi thay đổi contract phải cập nhật OpenAPI, JSON Schema, ví dụ và consumer test trong cùng Pull Request.
+
+
+## Receipt persistence & application service (Backend-2 W2)
+
+`app.services.ReceiptService` orchestrates image validation, safe object-key generation,
+object storage, and receipt metadata persistence without depending on FastAPI, boto3,
+filesystem paths, or SQL statements.
+
+PostgreSQL metadata access is behind `ReceiptRepository`; the SQLAlchemy implementation
+is `SQLAlchemyReceiptRepository`. Runtime database configuration has one source of truth:
+`DATABASE_URL`.
+
+Creation consistency strategy:
+
+1. validate bytes and derive canonical content type/width/height;
+2. store the image using a server-generated key;
+3. insert receipt metadata;
+4. if the database insert fails, attempt compensating object deletion;
+5. if compensation also fails, log the failure and raise a typed application error.
+
+Delete strategy is image-first, metadata-second. A missing object is treated as already
+deleted. Storage unavailability stops metadata deletion. If metadata deletion fails after
+image deletion, the inconsistency is logged and surfaced as `ReceiptDeleteFailure`.
+
+Database schema changes are managed by Alembic. Production startup must not use
+`Base.metadata.create_all()`.
+
+From `backend/`:
+
+```shell
+python -m pip install -e ".[test]"
+python -m pytest
+alembic upgrade head
+```
