@@ -120,29 +120,50 @@ verify_persistence_markers() {
   echo "[ok] PostgreSQL, Redis and MinIO data survived container recreation"
 }
 
+check_backend_openapi() {
+  compose exec -T backend python -c \
+    'import urllib.request; urllib.request.urlopen("http://localhost:8000/openapi.json")'
+  echo "[ok] Backend serves /openapi.json"
+}
+
+check_frontend_responds() {
+  local status
+  status="$(compose exec -T frontend node -e '
+    const http = require("http");
+    http.get("http://localhost:3000", (res) => {
+      console.log(res.statusCode);
+    }).on("error", () => { console.log("0"); });
+  ')"
+  if [[ "$status" != "200" && "$status" != "307" ]]; then
+    echo "Frontend returned unexpected status '$status'." >&2
+    return 1
+  fi
+  echo "[ok] Frontend responds on :3000"
+}
+
 cd "$repo_root"
 
-echo "[1/8] Validate Compose configuration"
+echo "[1/10] Validate Compose configuration"
 compose config --quiet
 
-echo "[2/8] Start infrastructure"
+echo "[2/10] Start infrastructure"
 compose up -d
 
-echo "[3/8] Check service health and MinIO bootstrap"
+echo "[3/10] Check service health and MinIO bootstrap"
 wait_for_healthy postgres
 wait_for_healthy redis
 wait_for_healthy minio
 wait_for_init
 verify_bucket
 
-echo "[4/8] Check service-name DNS on the internal network"
+echo "[4/10] Check service-name DNS on the internal network"
 compose exec -T postgres getent hosts postgres redis minio >/dev/null
 echo "[ok] postgres, redis and minio resolve by service name"
 
-echo "[5/8] Write persistence markers"
+echo "[5/10] Write persistence markers"
 write_persistence_markers
 
-echo "[6/8] Recreate containers and verify named volumes"
+echo "[6/10] Recreate containers and verify named volumes"
 compose up -d --force-recreate
 wait_for_healthy postgres
 wait_for_healthy redis
@@ -150,10 +171,18 @@ wait_for_healthy minio
 wait_for_init
 verify_persistence_markers
 
-echo "[7/8] Run Backend storage tests"
+echo "[7/10] Check Backend and Worker containers"
+wait_for_healthy backend
+wait_for_healthy worker
+compose exec -T backend getent hosts postgres redis minio >/dev/null
+echo "[ok] backend resolves postgres, redis and minio by service name"
+check_backend_openapi
+check_frontend_responds
+
+echo "[8/10] Run Backend storage tests"
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 "$python_bin" -m pytest backend/tests
 
-echo "[8/8] Run repository contract tests"
+echo "[9/10] Run repository contract tests"
 "$python_bin" tests/contracts/run_contract_tests.py
 
-echo "All infrastructure smoke checks passed."
+echo "[10/10] All infrastructure smoke checks passed."
