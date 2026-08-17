@@ -24,6 +24,7 @@ import {
   REVIEW_REASON_CODES,
   VALUE_STATUSES,
   findFieldForSourceBlock,
+  findFieldsForSourceBlock,
   getSourceBlocksForField,
   type ApiCanonicalFields,
   type ApiExtractedField,
@@ -564,4 +565,26 @@ test("source highlighting maps field to OCR polygons in both directions", () => 
     findFieldForSourceBlock(reviewReceipt.fields!, "missing_block"),
     undefined,
   );
+});
+
+test("one OCR block can highlight every canonical field that cites it", () => {
+  const sharedBlockFields = {
+    ...reviewReceipt.fields!,
+    merchant_name: {
+      ...reviewReceipt.fields!.merchant_name,
+      machine: {
+        ...reviewReceipt.fields!.merchant_name.machine,
+        source_block_ids: [
+          ...reviewReceipt.fields!.merchant_name.machine.source_block_ids,
+          "block_total_value",
+        ],
+      },
+    },
+  };
+
+  assert.deepEqual(
+    findFieldsForSourceBlock(sharedBlockFields, "block_total_value"),
+    ["merchant_name", "total_amount"],
+  );
+  assert.deepEqual(findFieldsForSourceBlock(sharedBlockFields, "missing_block"), []);
 });

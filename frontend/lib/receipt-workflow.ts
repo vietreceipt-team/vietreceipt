@@ -1,5 +1,6 @@
 import {
   CORE_FIELD_TYPES,
+  type CanonicalFields,
   type FieldType,
   type FieldValue,
   type ProcessingStage,
@@ -39,6 +40,13 @@ export function createFieldInteractionState(field: ReceiptField): FieldInteracti
     valueStatus: field.effective_status,
     error: null,
   };
+}
+
+export function getFieldInteractionState(
+  states: Partial<Record<FieldType, FieldInteractionState>>,
+  field: ReceiptField,
+) {
+  return states[field.field_name] ?? createFieldInteractionState(field);
 }
 
 export function reduceFieldInteraction(
@@ -82,6 +90,40 @@ export function replaceReceiptField(
     ...receipt,
     fields: { ...receipt.fields, [field.field_name]: field },
   };
+}
+
+const draftPhases = new Set<FieldSavePhase>([
+  "EDITING",
+  "SAVING",
+  "SAVE_ERROR",
+  "STALE",
+]);
+
+export function reconcileFieldStatesAfterCorrection(
+  current: Partial<Record<FieldType, FieldInteractionState>>,
+  latestFields: CanonicalFields,
+  savedFieldName: FieldType,
+) {
+  return Object.fromEntries(
+    CORE_FIELD_TYPES.map((fieldName) => {
+      const local = current[fieldName];
+      if (
+        fieldName !== savedFieldName &&
+        local &&
+        draftPhases.has(local.phase)
+      ) {
+        return [fieldName, local];
+      }
+
+      const authoritative = createFieldInteractionState(latestFields[fieldName]);
+      return [
+        fieldName,
+        fieldName === savedFieldName
+          ? { ...authoritative, phase: "SAVED" as const }
+          : authoritative,
+      ];
+    }),
+  ) as Record<FieldType, FieldInteractionState>;
 }
 
 export function canVerifyReceipt(receipt: ReceiptDetail) {

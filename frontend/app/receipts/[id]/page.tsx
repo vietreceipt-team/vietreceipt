@@ -23,23 +23,28 @@ import {
   canVerifyReceipt,
   createFieldInteractionState,
   getAdjacentField,
+  getFieldInteractionState,
   getReceiptStatePresentation,
   parseCorrectionInput,
+  reconcileFieldStatesAfterCorrection,
   reduceFieldInteraction,
   replaceReceiptField,
   type FieldInteractionAction,
   type FieldInteractionState,
 } from "../../../lib/receipt-workflow";
 import {
+  createReviewInteractionSession,
   createReviewTelemetryEvent,
   emitReviewTelemetry,
+  recordReviewInteraction,
+  type ReviewInteractionSession,
 } from "../../../lib/review-telemetry";
 import { useReceiptWorkflow } from "../../../lib/use-receipt-workflow";
 import {
   CORE_FIELD_TYPES,
   FIELD_LABELS,
   VALUE_STATUSES,
-  findFieldForSourceBlock,
+  findFieldsForSourceBlock,
   type FieldType,
   type OcrBlock,
   type ReceiptDetail,
@@ -125,7 +130,7 @@ export default function ReceiptReviewPage() {
     receiptId: string;
     states: FieldStates;
   }>({ receiptId, states: {} });
-  const [activeFieldType, setActiveFieldType] = useState<FieldType>("total_amount");
+  const [activeFieldTypes, setActiveFieldTypes] = useState<FieldType[]>(["total_amount"]);
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [verifying, setVerifying] = useState(false);
@@ -133,7 +138,7 @@ export default function ReceiptReviewPage() {
   const [staleState, setStaleState] = useState<{ receiptId: string; message: string } | null>(null);
   const [noticeState, setNoticeState] = useState<{ receiptId: string; tone: "success" | "error"; message: string } | null>(null);
   const fieldRefs = useRef<Partial<Record<FieldType, HTMLInputElement | HTMLTextAreaElement | null>>>({});
-  const reviewStartedRef = useRef<string | null>(null);
+  const reviewSessionRef = useRef<ReviewInteractionSession | null>(null);
   const previousReceiptRef = useRef<string | null>(null);
 
   const fieldStates = fieldStateStore.receiptId === receiptId
@@ -166,13 +171,6 @@ export default function ReceiptReviewPage() {
       emitReviewTelemetry(createReviewTelemetryEvent("RECEIPT_CHANGED", receipt.receipt_id));
     }
     previousReceiptRef.current = receipt.receipt_id;
-    if (
-      receipt.status === "NEEDS_REVIEW" &&
-      reviewStartedRef.current !== receipt.receipt_id
-    ) {
-      reviewStartedRef.current = receipt.receipt_id;
-      emitReviewTelemetry(createReviewTelemetryEvent("REVIEW_STARTED", receipt.receipt_id));
-    }
   }, [receipt]);
 
   const orderedFields = useMemo(
@@ -192,16 +190,32 @@ export default function ReceiptReviewPage() {
     });
   }
 
+  function startReviewInteraction(fieldName?: FieldType) {
+    if (!receipt || receipt.status !== "NEEDS_REVIEW") return;
+    const session =
+      reviewSessionRef.current?.receiptId === receipt.receipt_id
+        ? reviewSessionRef.current
+        : createReviewInteractionSession(receipt.receipt_id);
+    const recorded = recordReviewInteraction(session, fieldName);
+    reviewSessionRef.current = recorded.session;
+    recorded.events.forEach((event) => emitReviewTelemetry(event));
+  }
+
   function activateField(fieldName: FieldType) {
-    if (activeFieldType !== fieldName && receipt) {
-      emitReviewTelemetry(
-        createReviewTelemetryEvent("FIELD_FOCUSED", receipt.receipt_id, { field_name: fieldName }),
-      );
-    }
-    setActiveFieldType(fieldName);
+    startReviewInteraction(fieldName);
+    setActiveFieldTypes([fieldName]);
+  }
+
+  function activateEvidenceBlock(blockId: string) {
+    if (!receipt?.fields) return;
+    const fieldNames = findFieldsForSourceBlock(receipt.fields, blockId);
+    if (fieldNames.length === 0) return;
+    startReviewInteraction(fieldNames[0]);
+    setActiveFieldTypes(fieldNames);
   }
 
   function editField(field: ReceiptField, rawValue: string) {
+    startReviewInteraction(field.field_name);
     const value = parseCorrectionInput(field.field_name, rawValue);
     dispatchField(field.field_name, {
       type: "EDIT",
@@ -215,26 +229,32 @@ export default function ReceiptReviewPage() {
     }
   }
 
-  function editStatus(fieldName: FieldType, valueStatus: ValueStatus) {
-    const state = fieldStates[fieldName];
-    if (!state) return;
-    dispatchField(fieldName, {
+  function editStatus(field: ReceiptField, valueStatus: ValueStatus) {
+    startReviewInteraction(field.field_name);
+    const state = getFieldInteractionState(fieldStates, field);
+    dispatchField(field.field_name, {
       type: "EDIT",
       value: valueStatus === "PRESENT" ? state.value : null,
       valueStatus,
     });
   }
 
-  async function refreshAuthoritativeReceipt() {
+  async function refreshAuthoritativeReceipt(savedFieldName?: FieldType) {
     const latest = await reload();
-    setFieldStates(createStates(latest));
+    setFieldStates((current) =>
+      savedFieldName && latest.fields
+        ? reconcileFieldStatesAfterCorrection(current, latest.fields, savedFieldName)
+        : createStates(latest),
+    );
     setStaleMessage(null);
     return latest;
   }
 
   async function applyCorrection(field: ReceiptField) {
-    const state = fieldStates[field.field_name];
-    if (!receipt || !state || state.phase === "SAVING") return;
+    if (!receipt) return;
+    startReviewInteraction(field.field_name);
+    const state = getFieldInteractionState(fieldStates, field);
+    if (state.phase === "SAVING") return;
     dispatchField(field.field_name, { type: "SAVE" });
     setNotice(null);
     try {
@@ -253,7 +273,7 @@ export default function ReceiptReviewPage() {
         }),
       );
       try {
-        await refreshAuthoritativeReceipt();
+        await refreshAuthoritativeReceipt(field.field_name);
       } catch (reloadError) {
         setStaleMessage("Correction đã được Backend lưu nhưng chưa lấy được receipt.updated_at mới. Hãy tải phiên bản mới trước khi verify.");
         setNotice({ tone: "error", message: getApiErrorMessage(reloadError) });
@@ -270,7 +290,9 @@ export default function ReceiptReviewPage() {
   }
 
   async function clearCorrection(field: ReceiptField) {
-    if (!receipt || fieldStates[field.field_name]?.phase === "SAVING") return;
+    if (!receipt) return;
+    startReviewInteraction(field.field_name);
+    if (getFieldInteractionState(fieldStates, field).phase === "SAVING") return;
     dispatchField(field.field_name, { type: "SAVE" });
     setNotice(null);
     try {
@@ -288,7 +310,7 @@ export default function ReceiptReviewPage() {
         }),
       );
       try {
-        await refreshAuthoritativeReceipt();
+        await refreshAuthoritativeReceipt(field.field_name);
       } catch (reloadError) {
         setStaleMessage("CLEAR đã được Backend lưu nhưng chưa lấy được receipt.updated_at mới. Hãy tải phiên bản mới trước khi verify.");
         setNotice({ tone: "error", message: getApiErrorMessage(reloadError) });
@@ -306,6 +328,7 @@ export default function ReceiptReviewPage() {
 
   async function verifyReceipt() {
     if (!receipt || verifying || !canVerifyReceipt(receipt)) return;
+    startReviewInteraction();
     setVerifying(true);
     setNotice(null);
     try {
@@ -438,8 +461,9 @@ export default function ReceiptReviewPage() {
 
   const fields = receipt.fields;
   const canEdit = receipt.status === "NEEDS_REVIEW";
-  const activeField = fields[activeFieldType];
-  const activeSourceIds = new Set(activeField.machine.source_block_ids);
+  const activeSourceIds = new Set(
+    activeFieldTypes.flatMap((fieldName) => fields[fieldName].machine.source_block_ids),
+  );
   const unresolvedCount = orderedFields.filter((field) => field.effective_needs_review).length;
   const mutationInProgress = Object.values(fieldStates).some((state) => state?.phase === "SAVING");
   const verifyEnabled = canVerifyReceipt(receipt) && !mutationInProgress && !staleMessage;
@@ -465,15 +489,15 @@ export default function ReceiptReviewPage() {
                 <svg viewBox="0 0 1 1" preserveAspectRatio="none" className="absolute inset-0 size-full" aria-label="Các polygon OCR">
                   {(receipt.ocr_blocks ?? []).map((block) => {
                     const isActive = activeSourceIds.has(block.block_id);
-                    const fieldName = findFieldForSourceBlock(fields, block.block_id);
+                    const fieldNames = findFieldsForSourceBlock(fields, block.block_id);
                     return (
                       <polygon
                         key={block.block_id}
                         points={polygonPoints(block)}
                         vectorEffect="non-scaling-stroke"
                         className="pointer-events-none"
-                        fill={isActive ? "rgba(45,212,191,.32)" : fieldName ? "rgba(251,191,36,.08)" : "transparent"}
-                        stroke={isActive ? "#2dd4bf" : fieldName ? "rgba(252,211,77,.7)" : "transparent"}
+                        fill={isActive ? "rgba(45,212,191,.32)" : fieldNames.length > 0 ? "rgba(251,191,36,.08)" : "transparent"}
+                        stroke={isActive ? "#2dd4bf" : fieldNames.length > 0 ? "rgba(252,211,77,.7)" : "transparent"}
                         strokeWidth={isActive ? 3 : 2}
                       />
                     );
@@ -481,16 +505,17 @@ export default function ReceiptReviewPage() {
                 </svg>
                 <div className="absolute inset-0">
                   {(receipt.ocr_blocks ?? []).map((block) => {
-                    const fieldName = findFieldForSourceBlock(fields, block.block_id);
-                    if (!fieldName) return null;
+                    const fieldNames = findFieldsForSourceBlock(fields, block.block_id);
+                    if (fieldNames.length === 0) return null;
                     return (
                       <button
                         key={block.block_id}
                         type="button"
                         style={blockHitArea(block)}
-                        onClick={() => activateField(fieldName)}
+                        onFocus={() => activateEvidenceBlock(block.block_id)}
+                        onClick={() => activateEvidenceBlock(block.block_id)}
                         className="absolute z-10 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
-                        aria-label={`Bằng chứng OCR cho ${FIELD_LABELS[fieldName]}: ${block.text}`}
+                        aria-label={`Bằng chứng OCR cho ${fieldNames.map((fieldName) => FIELD_LABELS[fieldName]).join(", ")}: ${block.text}`}
                       />
                     );
                   })}
@@ -529,14 +554,15 @@ export default function ReceiptReviewPage() {
 
           <div className="space-y-3">
             {orderedFields.map((field) => {
-              const state = fieldStates[field.field_name] ?? createFieldInteractionState(field);
-              const isActive = activeFieldType === field.field_name;
+              const state = getFieldInteractionState(fieldStates, field);
+              const isActive = activeFieldTypes.includes(field.field_name);
               const isSaving = state.phase === "SAVING";
               const machineValue = field.machine.normalized_value;
               return (
                 <fieldset
                   key={field.field_name}
                   onFocus={() => activateField(field.field_name)}
+                  onPointerDown={() => activateField(field.field_name)}
                   className={`rounded-2xl border p-3.5 transition ${isActive ? "border-teal-400 bg-teal-50/40 ring-2 ring-teal-500/10" : "border-slate-200"}`}
                 >
                   <legend className="px-1 text-sm font-bold text-slate-700">{FIELD_LABELS[field.field_name]}</legend>
@@ -574,7 +600,7 @@ export default function ReceiptReviewPage() {
 
                   {canEdit && (
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <select value={state.valueStatus} disabled={isSaving} onChange={(event) => editStatus(field.field_name, event.target.value as ValueStatus)} className="h-9 min-w-40 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
+                      <select value={state.valueStatus} disabled={isSaving} onChange={(event) => editStatus(field, event.target.value as ValueStatus)} className="h-9 min-w-40 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700">
                         {VALUE_STATUSES.map((valueStatus) => <option key={valueStatus} value={valueStatus}>{statusLabels[valueStatus]}</option>)}
                       </select>
                       <button type="button" disabled={isSaving} onClick={() => void applyCorrection(field)} className="h-9 rounded-lg bg-teal-800 px-3 text-xs font-bold text-white disabled:bg-slate-300">{isSaving ? "Đang lưu..." : field.effective_needs_review && state.phase === "VIEW" ? "Xác nhận bằng APPLY" : "Lưu APPLY"}</button>

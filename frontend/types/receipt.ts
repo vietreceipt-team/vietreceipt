@@ -287,11 +287,18 @@ export function getSourceBlocksForField(
   return (receipt.ocr_blocks ?? []).filter((block) => sourceIds.has(block.block_id));
 }
 
+export function findFieldsForSourceBlock(
+  fields: CanonicalFields,
+  blockId: string,
+): FieldType[] {
+  return CORE_FIELD_TYPES.filter((fieldType) =>
+    fields[fieldType].machine.source_block_ids.includes(blockId),
+  );
+}
+
 export function findFieldForSourceBlock(
   fields: CanonicalFields,
   blockId: string,
 ): FieldType | undefined {
-  return CORE_FIELD_TYPES.find((fieldType) =>
-    fields[fieldType].machine.source_block_ids.includes(blockId),
-  );
+  return findFieldsForSourceBlock(fields, blockId)[0];
 }

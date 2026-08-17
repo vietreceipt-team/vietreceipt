@@ -3,6 +3,7 @@ import test from "node:test";
 import { mockReceipts } from "../data/mock-receipts";
 import {
   ApiRequestError,
+  createApplyCorrectionRequest,
   createVietReceiptApi,
   getApiErrorMessage,
   uploadReceipt,
@@ -12,13 +13,19 @@ import {
   canVerifyReceipt,
   createFieldInteractionState,
   getAdjacentField,
+  getFieldInteractionState,
   getReceiptStatePresentation,
   isPollingStatus,
   parseCorrectionInput,
+  reconcileFieldStatesAfterCorrection,
   reduceFieldInteraction,
   replaceReceiptField,
 } from "../lib/receipt-workflow";
-import { createReviewTelemetryEvent } from "../lib/review-telemetry";
+import {
+  createReviewInteractionSession,
+  createReviewTelemetryEvent,
+  recordReviewInteraction,
+} from "../lib/review-telemetry";
 import type {
   ApiCanonicalFields,
   ApiReceiptDetail,
@@ -154,6 +161,73 @@ test("field-specific reducer exposes EDITING, SAVING, SAVED, error and stale pha
   assert.equal(reduceFieldInteraction(saving, { type: "STALE", message: "stale" }).phase, "STALE");
 });
 
+test("prefetched fields can APPLY their effective value and change status before text editing", () => {
+  const field = reviewReceipt.fields!.total_amount;
+  const initial = getFieldInteractionState({}, field);
+
+  assert.equal(initial.value, field.effective_value);
+  assert.equal(initial.valueStatus, field.effective_status);
+  assert.deepEqual(
+    createApplyCorrectionRequest(field, initial.value, initial.valueStatus),
+    {
+      operation: "APPLY",
+      value_status: field.effective_status,
+      value: field.effective_value,
+      expected_updated_at: field.updated_at,
+    },
+  );
+
+  const saving = reduceFieldInteraction(initial, { type: "SAVE" });
+  assert.equal(saving.phase, "SAVING");
+  assert.equal(saving.value, field.effective_value);
+
+  const statusChanged = reduceFieldInteraction(initial, {
+    type: "EDIT",
+    value: null,
+    valueStatus: "NOT_PRESENT",
+  });
+  assert.equal(statusChanged.phase, "EDITING");
+  assert.equal(statusChanged.value, null);
+  assert.equal(statusChanged.valueStatus, "NOT_PRESENT");
+});
+
+test("authoritative correction refresh preserves unsaved drafts on other fields", () => {
+  const merchantField = reviewReceipt.fields!.merchant_name;
+  const totalField = reviewReceipt.fields!.total_amount;
+  const merchantDraft = reduceFieldInteraction(
+    createFieldInteractionState(merchantField),
+    { type: "EDIT", value: "Cửa hàng đang sửa", valueStatus: "PRESENT" },
+  );
+  const totalSaving = reduceFieldInteraction(
+    createFieldInteractionState(totalField),
+    { type: "SAVE" },
+  );
+  const latestFields = {
+    ...reviewReceipt.fields!,
+    total_amount: {
+      ...totalField,
+      corrected_value: 113000,
+      corrected_status: "PRESENT" as const,
+      has_correction: true,
+      effective_value: 113000,
+      effective_status: "PRESENT" as const,
+      effective_needs_review: false,
+      updated_at: "2026-08-17T04:00:00Z",
+    },
+  };
+
+  const reconciled = reconcileFieldStatesAfterCorrection(
+    { merchant_name: merchantDraft, total_amount: totalSaving },
+    latestFields,
+    "total_amount",
+  );
+
+  assert.equal(reconciled.merchant_name.phase, "EDITING");
+  assert.equal(reconciled.merchant_name.value, "Cửa hàng đang sửa");
+  assert.equal(reconciled.total_amount.phase, "SAVED");
+  assert.equal(reconciled.total_amount.value, 113000);
+});
+
 test("correction response replaces only the field before a fresh GET supplies receipt concurrency token", async () => {
   const originalToken = reviewReceipt.updated_at;
   const savedField = {
@@ -241,6 +315,29 @@ test("verify eligibility, keyboard order and telemetry remain HITL-safe", () => 
   assert.equal(JSON.stringify(event).includes("raw_text"), false);
   assert.equal(JSON.stringify(event).includes("image"), false);
   assert.equal(event.review_mode, "PREFILL_FULL_REVIEW");
+});
+
+test("review telemetry starts only on explicit interaction and focuses the default field", () => {
+  const idle = createReviewInteractionSession(reviewReceipt.receipt_id);
+  assert.equal(idle.started, false);
+  assert.equal(idle.lastFocusedField, null);
+
+  const first = recordReviewInteraction(
+    idle,
+    "total_amount",
+    () => new Date("2026-08-17T03:30:00Z"),
+  );
+  assert.deepEqual(first.events.map((event) => event.event), [
+    "REVIEW_STARTED",
+    "FIELD_FOCUSED",
+  ]);
+  assert.equal(first.events[1].field_name, "total_amount");
+
+  const duplicate = recordReviewInteraction(first.session, "total_amount");
+  assert.deepEqual(duplicate.events, []);
+
+  const nextField = recordReviewInteraction(first.session, "merchant_name");
+  assert.deepEqual(nextField.events.map((event) => event.event), ["FIELD_FOCUSED"]);
 });
 
 test("404, 409, 422 and 5xx errors produce distinct workflow guidance", () => {

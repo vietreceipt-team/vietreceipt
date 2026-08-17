@@ -94,7 +94,7 @@ Keyboard cơ bản:
 
 ## Measurement-ready telemetry
 
-`frontend/lib/review-telemetry.ts` phát event hook `vietreceipt:review-event` cho review start, field focus/edit, APPLY, CLEAR, verify, chuyển receipt và retry. Payload chỉ gồm event name, timestamp, receipt ID, field/operation khi cần và `PREFILL_FULL_REVIEW` mode.
+`frontend/lib/review-telemetry.ts` phát event hook `vietreceipt:review-event` cho review start, field focus/edit, APPLY, CLEAR, verify, chuyển receipt và retry. `REVIEW_STARTED` chỉ phát ở tương tác pointer/focus/keyboard đầu tiên của người review; render màn hình không tự tính là bắt đầu review. Payload chỉ gồm event name, timestamp, receipt ID, field/operation khi cần và `PREFILL_FULL_REVIEW` mode.
 
 Không log raw image bytes, OCR text, field value, token hoặc credential. Task này không gửi telemetry tới analytics backend và không claim selective review hiệu quả.
 
