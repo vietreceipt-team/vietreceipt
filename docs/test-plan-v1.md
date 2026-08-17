@@ -23,7 +23,7 @@ Run from the repository root:
 cp .env.example .env
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-contracts.txt
-.venv/bin/python -m pip install -e "./backend[test]"
+.venv/bin/python -m pip install -e "./backend[test]" -r backend/requirements-dev.txt
 PYTHON_BIN=.venv/bin/python ./infra/scripts/smoke-test.sh
 ```
 

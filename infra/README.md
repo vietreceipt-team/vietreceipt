@@ -37,10 +37,10 @@ docker compose up -d
 docker compose ps -a
 ```
 
-Compose khởi động PostgreSQL, Redis và MinIO trên network
-`vietreceipt_internal`. Container `minio-init` chờ MinIO healthy, tạo bucket
-private `vietreceipt` nếu chưa có, rồi thoát với code 0. Việc chạy lại init là
-an toàn.
+Compose khởi động PostgreSQL, Redis, MinIO, Backend, Worker và Frontend trên
+network `vietreceipt_internal`. Container `minio-init` chờ MinIO healthy, tạo
+bucket private `vietreceipt` nếu chưa có, rồi thoát với code 0. Việc chạy lại
+init là an toàn.
 
 Các endpoint từ máy host:
 
@@ -50,9 +50,20 @@ Các endpoint từ máy host:
 | Redis | `localhost:6379` |
 | MinIO S3 API | `http://localhost:9000` |
 | MinIO Console | `http://localhost:9001` |
+| Backend API | `http://localhost:8000` (OpenAPI tại `/openapi.json`, docs tại `/docs`) |
+| Frontend (Next.js dev server) | `http://localhost:3000` |
 
-Backend và Worker chạy trong cùng Compose network phải dùng service name, không
-dùng `localhost`:
+`Backend` build từ `infra/docker/backend.Dockerfile`, chạy đúng app FastAPI mà
+Backend-1 commit tại `backend/app/main.py`; DevOps chỉ container hoá, không
+sửa domain/API code. `Worker` build từ `infra/docker/worker.Dockerfile`, chạy
+một Celery app rỗng (`infra/docker/worker/celery_app.py`) chỉ để chứng minh
+worker kết nối được Redis broker — **chưa có task xử lý hóa đơn nào**; task đó
+thuộc về Backend-1/Backend-2. `Frontend` build từ
+`infra/docker/frontend.Dockerfile`, chạy `next dev` cho môi trường local; đây
+không phải production image.
+
+Backend, Worker và Frontend chạy trong cùng Compose network phải dùng service
+name, không dùng `localhost`:
 
 ```dotenv
 DATABASE_URL=postgresql+psycopg://vietreceipt:...@postgres:5432/vietreceipt
@@ -77,7 +88,7 @@ docker compose logs -f
 docker compose down
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-contracts.txt
-.venv/bin/python -m pip install -e "./backend[test]"
+.venv/bin/python -m pip install -e "./backend[test]" -r backend/requirements-dev.txt
 PYTHON_BIN=.venv/bin/python ./infra/scripts/smoke-test.sh
 ```
 

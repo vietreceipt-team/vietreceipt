@@ -98,3 +98,117 @@ Validated locally on 2026-08-14 with Python 3.12.13 and Docker Compose:
 - The complete shared OpenAPI/JSON Schema contract suite passed, including 9
   positive and 23 negative schema cases.
 - `.env` and `.data/` are ignored, while `.env.example` remains tracked.
+
+## Update — 2026-08-17: Backend, Worker and Frontend containers
+
+`origin/main` merged the Week-2 Core Receipt and HITL API (#19) after this
+branch diverged, so `backend/app/main.py` (a real FastAPI entrypoint) did not
+exist here until now. This update merges `origin/main` into the branch and
+adds the three containers that were previously deliberately deferred.
+
+### What changed
+
+- Merged `origin/main` (merge commit, no rebase/force-push) to bring in
+  `backend/app/main.py` and the full API package.
+- Replaced the placeholder `infra/docker/backend.Dockerfile` with a real
+  image: installs `backend/requirements.txt`, runs
+  `uvicorn backend.app.main:app`. DevOps only wires the container; the app
+  code is Backend-1's.
+- Added `infra/docker/worker.Dockerfile` and
+  `infra/docker/worker/celery_app.py` — a Celery app with **no registered
+  task**, only proving the worker can reach the Redis broker. Task/business
+  logic remains Backend-1/Backend-2 scope.
+- Added `infra/docker/frontend.Dockerfile` running `next dev` for local
+  Compose use (not a production image).
+- Added `backend`, `worker` and `frontend` services to `docker-compose.yml`,
+  each on `vietreceipt_internal`, each consuming the existing canonical
+  `DATABASE_URL` / `REDIS_URL` / `CELERY_*` / `STORAGE_*` variables. `backend`
+  and `worker` have Docker healthchecks; `frontend` does not (dev server has
+  no cheap health endpoint), so the smoke test checks it at the HTTP level
+  instead.
+- Added `BACKEND_PORT` / `FRONTEND_PORT` overrides to `.env.example`.
+- Extended `infra/scripts/smoke-test.sh` to wait for `backend`/`worker`
+  health, assert `backend` resolves `postgres`/`redis`/`minio` by service
+  name (the concrete proof for DoD item 9), and check `backend` and
+  `frontend` respond over HTTP.
+- Fixed the CI install step: the merged `backend/tests` now includes
+  FastAPI route tests using `TestClient`, which requires `httpx2` (this
+  project's pinned HTTP client, declared in `backend/requirements-dev.txt`)
+  — not just the `pyproject.toml` `[test]` extra (`pytest` only). Both CI
+  jobs now install
+  `pip install -e "./backend[test]" -r backend/requirements-dev.txt`.
+
+### Deliberately still not done
+
+- Worker still has zero receipt-processing tasks — that is Backend-1/
+  Backend-2 scope, not DevOps.
+- Frontend is not wired to call the Backend API (no `NEXT_PUBLIC_API_*`
+  variable exists in the frontend code yet); containerizing it does not
+  change that.
+- `backend`'s `service_registry` is `None` by default (`create_app()`), so
+  most `/api/v1/*` endpoints will 500 until Backend wires real
+  persistence/repositories. The healthcheck deliberately targets
+  `/openapi.json`, which does not depend on `service_registry`.
+
+### Validation — 2026-08-17
+
+- `docker compose build backend worker frontend` succeeded.
+- `docker compose up -d` brought up all 6 services; `postgres`, `redis`,
+  `minio`, `backend` and `worker` reached `healthy`; `minio-init` exited 0.
+- `GET http://localhost:8000/openapi.json` returned the real VietReceipt
+  OpenAPI document.
+- `GET http://localhost:3000` returned the Next.js app shell.
+- `backend` container resolved `postgres`, `redis` and `minio` by service
+  name via `getent hosts`.
+- `docker compose exec backend pip install -e "./backend[test]" -r
+  backend/requirements-dev.txt && pytest backend/tests` — 122 passed (31
+  storage tests + 91 API/domain tests from the Week-2 merge).
+
+## Update — 2026-08-17 (cont.): Backend entrypoint contract confirmed
+
+Backend owner confirmed the FastAPI entrypoint contract in writing:
+
+- Module path from the repository root: `backend.app.main:app`.
+- Run command: `python -m uvicorn backend.app.main:app --host 0.0.0.0 --port
+  8000`.
+- Dependencies: `fastapi==0.141.1`, `pydantic==2.13.4`,
+  `pydantic-settings==2.15.0`, `python-multipart==0.0.32`,
+  `uvicorn[standard]==0.52.3` (all in `backend/requirements.txt`).
+- No `/healthz` or `/readyz` endpoint exists yet in PR #19; Backend
+  explicitly advises against configuring a Compose healthcheck against an
+  endpoint that does not exist.
+
+`infra/docker/backend.Dockerfile` already matched this contract in
+substance (same module path, host, port, dependency source) and was
+adjusted to use the exact `python -m uvicorn ...` invocation form for
+one-to-one traceability against the confirmed command.
+
+The `backend` Compose healthcheck intentionally targets `/openapi.json`
+instead — a route FastAPI serves out of the box, independent of
+`app.state.service_registry` — as an interim liveness probe. **When Backend
+ships `/healthz` (and optionally `/readyz`), the healthcheck in
+`docker-compose.yml` should switch to it**; this is not done yet because
+the endpoint does not exist.
+
+Backend owner also confirmed the `STORAGE_*` naming (vs. the `S3_*` names
+in the original task text) is correct and should stay as-is; no rename is
+needed.
+
+### Worker: still not a real integration
+
+The Celery module path, worker command and Redis/Celery dependencies were
+confirmed **not yet decided** by Backend/Worker owners as of PR #19 — no
+concrete Celery application exists in `backend/` yet. The `worker` service
+added in this branch (`infra/docker/worker/celery_app.py`,
+`infra/docker/worker.Dockerfile`) is a **DevOps-owned infra skeleton**, not
+the integration of a real entrypoint: it has zero registered tasks and its
+own separately pinned `celery[redis]==5.4.0`. Its healthcheck already uses
+the method the Backend owner suggested (`celery -A <app> inspect ping`).
+
+This is a materially different situation from Backend, which is a real
+"integrate the entrypoint that now exists" task. Worker remains a "build a
+placeholder now, replace later" task until Backend/Worker owners commit a
+concrete Celery app and its own pinned dependencies. When that happens,
+DevOps must point `infra/docker/worker.Dockerfile` at their module path and
+retire the DevOps-owned `celery_app.py` skeleton and
+`infra/docker/worker/requirements.txt` pin in favor of Backend's own.
