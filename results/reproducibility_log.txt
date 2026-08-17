@@ -73,8 +73,16 @@ independent reviewer completes annotation QA.
 
 Week-2 integration and field-aware verification
 ------------------------------------------------
-Branch base SHA: 494bdd73fd89d23b731c994f34f284c6ea157965
+Canonical main SHA: 7b1a40eef791af81f320fdc47fdf1393ae822ddf
+Evaluator source revision: 78c8ac88d8f6feec12313ae363a9fc384de1e4e3
 Issue: https://github.com/vietreceipt-team/vietreceipt/issues/18
+
+The field-aware report was generated from the clean committed evaluator source
+revision above. Its provenance records the same full SHA and
+`git_worktree_dirty=false`. To reproduce that exact source state, check out the
+revision, install `requirements.txt` and `requirements-contracts.txt`, then run
+the commands below. The report remains dependency-blocked on verified KIE/Data
+field annotations and Oracle evidence; no semantic labels were fabricated.
 
 Commands:
 
@@ -84,15 +92,19 @@ The report covers all five canonical fields and records the exact missing
 KIE/Data dependency instead of fabricating field labels.
 
 python -m unittest discover -s tests -v
-PASS: 18 tests. Week-1 artifact regression remains green. Week-2 tests cover
+PASS: 23 tests. Week-1 artifact regression remains green. Week-2 tests cover
 the callable pipeline, Backend-style UUIDs, reprocess identity, immutable
 artifacts, schema and semantic invariants, benchmark ID separation, six-way
-field error taxonomy, Oracle/Real manifest support, quality slices and
-reproducibility provenance.
+field error taxonomy, annotation-integrity fail-fast behavior, verified
+Oracle/Real evidence, quality slices and reproducibility provenance.
 
 python tests/contracts/run_contract_tests.py
-PASS: canonical JSON Schemas/OpenAPI, positive and negative cases,
+PASS: canonical JSON Schemas/OpenAPI, 9 positive and 23 negative cases,
 cross-record linkage, block-ID uniqueness and zero-based reading order.
+
+python scripts/evaluate.py --require-complete
+PASS: provisional frozen baseline remains COMPLETE at 40/40 samples with
+macro-average CER 30.79% and WER 74.18%.
 
 python scripts/run_baseline.py --image data/test_set/images/R001.jpg \
   --receipt-id 31915ef1-6fb4-4e7d-b6f5-53be51c50e3d \

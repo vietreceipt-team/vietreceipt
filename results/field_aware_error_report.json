@@ -116,9 +116,9 @@
   "quality_stratum_summaries": [],
   "field_error_rows": [],
   "provenance": {
-    "git_commit_sha": "494bdd73fd89d23b731c994f34f284c6ea157965",
-    "git_worktree_dirty": true,
-    "generated_at": "2026-08-14T08:20:33.049287+00:00",
+    "git_commit_sha": "78c8ac88d8f6feec12313ae363a9fc384de1e4e3",
+    "git_worktree_dirty": false,
+    "generated_at": "2026-08-17T05:49:21.500500+00:00",
     "python_version": "3.12.13",
     "ocr_engine": "paddleocr",
     "paddleocr_package_version": "3.0.3",
@@ -127,7 +127,7 @@
     "model_family": "PP-OCRv3",
     "language": "vi",
     "dataset_version": "vietreceipt-week1-frozen-40-v1",
-    "manifest_sha256": "d1ff35c4adc38b89de02a5187caaf7936c32948618c74e7c2f84cc728a6369a9",
+    "manifest_sha256": "51109f8016f5d2f9556a436fa7f0da8d231ab9d18bd92c405d884bffe60801d3",
     "annotation_qa_state": "pending independent transcription review and KIE/Data five-field gold annotation",
     "run_command": "python scripts/evaluate_field_aware.py",
     "generated_report": "results/field_aware_error_report.json"
