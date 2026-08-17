@@ -1,9 +1,10 @@
 # Báo cáo nhánh `feat/devops-local-infra-foundation`
 
 Người thực hiện: Đặng Quang Trung — DevOps
-Ngày lập báo cáo: 2026-08-17 (cập nhật lần 2, cùng ngày, sau khi bổ sung Backend/Worker/Frontend)
+Ngày lập báo cáo: 2026-08-17 (cập nhật lần 3, cùng ngày, sau khi commit và push)
 Nhánh: `feat/devops-local-infra-foundation`
-Trạng thái push: 3 commit gốc (`4da7c54`, `58f93f5`, `7cf4e77`) đã push, trùng `origin/feat/devops-local-infra-foundation`. Nhánh vừa **merge `origin/main`** vào local (mang theo Week-2 Core Receipt + HITL API, PR #19) và có thêm các thay đổi mới trong working tree — **chưa commit, chưa push**.
+Commit HEAD: `e5f78bc`
+Trạng thái push: **đã push đầy đủ.** `origin/feat/devops-local-infra-foundation` trùng đúng `e5f78bc` — không còn commit local nào chưa lên remote. Push gồm: merge commit từ `origin/main` (`46e5fd4`, mang theo Week-2 Core Receipt + HITL API, PR #19) và 3 commit mới (`889d274`, `a0c8bf0`, `e5f78bc`), tổng cộng nối thêm 13 commit lên nhánh so với lần push trước (`7cf4e77`).
 
 ---
 
@@ -115,14 +116,14 @@ Worker khác hẳn: Backend/Worker owner xác nhận **chưa chốt** Celery mod
 
 ## 7. Commit và push
 
-Các thay đổi trong lượt này được commit theo nhóm logic:
+Các thay đổi trong lượt này được commit theo nhóm logic rồi push:
 
-1. Merge commit từ `origin/main` (đã tạo tự động lúc `git merge`, không rebase/force-push).
-2. `feat(infra): containerize backend, worker and frontend for local compose` — Dockerfile, `docker-compose.yml`, `.env.example`.
-3. `test(infra): extend smoke checks and fix backend CI dependency install` — `infra/scripts/smoke-test.sh`, `.github/workflows/backend-and-infra.yml`.
-4. `docs(infra): document backend/worker/frontend containers and confirm STORAGE_*` — toàn bộ tài liệu liên quan.
+1. `46e5fd4` — Merge commit từ `origin/main` (đã tạo tự động lúc `git merge`, không rebase/force-push).
+2. `889d274` — `feat(infra): containerize backend, worker and frontend for local compose` — Dockerfile, `docker-compose.yml`, `.env.example`.
+3. `a0c8bf0` — `test(infra): extend smoke checks and fix backend CI dependency install` — `infra/scripts/smoke-test.sh`, `.github/workflows/backend-and-infra.yml`.
+4. `e5f78bc` — `docs(infra): document backend/worker/frontend containers and confirm STORAGE_*` — toàn bộ tài liệu liên quan.
 
-Đã push lên `origin/feat/devops-local-infra-foundation` bằng `git push` thường (không force), vì nhánh chỉ được nối thêm commit, không viết lại lịch sử đã có trên remote.
+Đã push bằng `git push origin feat/devops-local-infra-foundation` thường (không force): `7cf4e77..e5f78bc`. Không viết lại lịch sử đã có trên remote — chỉ nối thêm commit.
 
 ---
 
