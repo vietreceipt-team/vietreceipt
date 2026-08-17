@@ -164,9 +164,16 @@ records are added to the manifest, the same command regenerates the real report.
 
 Each manifest record can provide both `real_ocr_path` and `oracle_ocr_path`.
 Both artifacts must validate as canonical OCRResult v1.3 and refer to the same
-receipt. This gives KIE a reproducible input pair for controlled/oracle and real
-OCR runs. OCR does not invent polygons or set confidence to `1.0` when verified
-oracle block evidence is unavailable.
+receipt, but they must be different files with different `ocr_run_id` values.
+Oracle availability also requires `oracle_qa_state=VERIFIED` and non-empty
+`oracle_provenance`; the evaluator rejects an ordinary canonical OCR JSON being
+relabelled as Oracle evidence. This gives KIE a reproducible input pair for
+controlled/oracle and real OCR runs. OCR does not invent polygons or set
+confidence to `1.0` when verified oracle block evidence is unavailable.
+
+The integration identity contract is final: the worker invokes OCR with a
+Backend-generated `ocr_run_id`; OCR consumes that ID and returns the same run
+identity.
 
 ## Confidence semantics
 

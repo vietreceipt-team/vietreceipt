@@ -161,6 +161,10 @@ class FieldAwareAnalysisTests(unittest.TestCase):
                         "annotation_path": annotation_path.name,
                         "real_ocr_path": real_path.name,
                         "oracle_ocr_path": oracle_path.name,
+                        "oracle_qa_state": "VERIFIED",
+                        "oracle_provenance": (
+                            "synthetic fixture independently designated as oracle evidence"
+                        ),
                     }
                 ],
             }
@@ -197,6 +201,143 @@ class FieldAwareAnalysisTests(unittest.TestCase):
             ):
                 self.assertIn(key, provenance)
             self.assertTrue(report_path.exists())
+
+    def test_missing_source_block_is_annotation_integrity_error(self) -> None:
+        invalid = dict(self.annotation["fields"]["merchant_address"])
+        invalid["source_block_ids"] = ["block_missing"]
+        invalid["annotator_note"] = "OCR_GEOMETRY: must not mask broken linkage"
+
+        with self.assertRaisesRegex(ValueError, "Annotation integrity error"):
+            classify_field_error(invalid, self.real)
+
+    def test_present_empty_source_requires_explicit_omission_note(self) -> None:
+        invalid = dict(self.annotation["fields"]["total_amount"])
+        invalid["annotator_note"] = None
+
+        with self.assertRaisesRegex(ValueError, "requires an annotator_note"):
+            classify_field_error(invalid, self.real)
+
+    def test_real_artifact_reused_as_oracle_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            annotation_path = root / "annotation.json"
+            real_path = root / "real.json"
+            manifest_path = root / "manifest.json"
+            annotation_path.write_text(json.dumps(self.annotation), encoding="utf-8")
+            real_path.write_text(json.dumps(self.real), encoding="utf-8")
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "dataset_version": "synthetic-week2-test-v1",
+                        "annotation_qa_state": "synthetic fixture",
+                        "example_only": True,
+                        "records": [
+                            {
+                                "test_id": "SYN001",
+                                "annotation_path": annotation_path.name,
+                                "real_ocr_path": real_path.name,
+                                "oracle_ocr_path": real_path.name,
+                                "oracle_qa_state": "VERIFIED",
+                                "oracle_provenance": "synthetic verified oracle fixture",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "reuses real artifact"):
+                evaluate_field_errors(
+                    manifest_path=manifest_path,
+                    report_path=root / "report.json",
+                    allow_examples=True,
+                )
+
+    def test_oracle_requires_verified_qa_and_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            annotation_path = root / "annotation.json"
+            real_path = root / "real.json"
+            oracle_path = root / "oracle.json"
+            manifest_path = root / "manifest.json"
+            annotation_path.write_text(json.dumps(self.annotation), encoding="utf-8")
+            real_path.write_text(json.dumps(self.real), encoding="utf-8")
+            oracle_path.write_text(
+                json.dumps(ocr_document(ORACLE_RUN_ID, ["oracle"])), encoding="utf-8"
+            )
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "dataset_version": "synthetic-week2-test-v1",
+                        "annotation_qa_state": "synthetic fixture",
+                        "example_only": True,
+                        "records": [
+                            {
+                                "test_id": "SYN001",
+                                "annotation_path": annotation_path.name,
+                                "real_ocr_path": real_path.name,
+                                "oracle_ocr_path": oracle_path.name,
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "oracle_qa_state=VERIFIED"):
+                evaluate_field_errors(
+                    manifest_path=manifest_path,
+                    report_path=root / "report.json",
+                    allow_examples=True,
+                )
+
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["records"][0]["oracle_qa_state"] = "VERIFIED"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "requires oracle_provenance"):
+                evaluate_field_errors(
+                    manifest_path=manifest_path,
+                    report_path=root / "report.json",
+                    allow_examples=True,
+                )
+
+    def test_oracle_must_use_a_distinct_run_id(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            annotation_path = root / "annotation.json"
+            real_path = root / "real.json"
+            oracle_path = root / "oracle.json"
+            manifest_path = root / "manifest.json"
+            annotation_path.write_text(json.dumps(self.annotation), encoding="utf-8")
+            real_path.write_text(json.dumps(self.real), encoding="utf-8")
+            oracle_path.write_text(json.dumps(self.real), encoding="utf-8")
+            manifest_path.write_text(
+                json.dumps(
+                    {
+                        "dataset_version": "synthetic-week2-test-v1",
+                        "annotation_qa_state": "synthetic fixture",
+                        "example_only": True,
+                        "records": [
+                            {
+                                "test_id": "SYN001",
+                                "annotation_path": annotation_path.name,
+                                "real_ocr_path": real_path.name,
+                                "oracle_ocr_path": oracle_path.name,
+                                "oracle_qa_state": "VERIFIED",
+                                "oracle_provenance": "synthetic verified oracle fixture",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(ValueError, "reuses real OCR run"):
+                evaluate_field_errors(
+                    manifest_path=manifest_path,
+                    report_path=root / "report.json",
+                    allow_examples=True,
+                )
 
     def test_non_example_report_covers_five_fields_even_before_gold_arrives(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

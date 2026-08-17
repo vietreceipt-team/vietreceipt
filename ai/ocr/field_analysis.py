@@ -43,6 +43,7 @@ NOTE_ERROR_CODES = {
     "OCR_READING_ORDER": "ocr_reading_order",
     "OCR_GEOMETRY": "ocr_geometry_evidence",
 }
+ORACLE_QA_VERIFIED = "VERIFIED"
 
 
 def normalize_evidence_text(value: str) -> str:
@@ -100,8 +101,20 @@ def classify_field_error(
 
     blocks_by_id = {block["block_id"]: block for block in real_ocr["blocks"]}
     missing_source_ids = [block_id for block_id in source_ids if block_id not in blocks_by_id]
+    if missing_source_ids:
+        raise ValueError(
+            "Annotation integrity error for "
+            f"{field_annotation['field_name']}: source_block_ids not found in "
+            f"OCR run {real_ocr['ocr_run_id']}: {', '.join(missing_source_ids)}"
+        )
+    if status == "PRESENT" and not source_ids and explicit_type != "ocr_omission":
+        raise ValueError(
+            "Annotation integrity error for "
+            f"{field_annotation['field_name']}: PRESENT with empty source_block_ids "
+            "requires an annotator_note beginning with OCR_OMISSION"
+        )
     aligned_blocks = sorted(
-        (blocks_by_id[block_id] for block_id in source_ids if block_id in blocks_by_id),
+        (blocks_by_id[block_id] for block_id in source_ids),
         key=lambda block: block["reading_order"],
     )
     observed_text = normalize_evidence_text(
@@ -114,12 +127,6 @@ def classify_field_error(
     elif status != "PRESENT":
         error_type = "not_an_ocr_error"
         reason = f"annotation status {status} is not a confirmed present field"
-    elif missing_source_ids:
-        error_type = "ocr_geometry_evidence"
-        reason = "annotation references missing OCR evidence blocks"
-    elif not source_ids:
-        error_type = "ocr_omission"
-        reason = "present field has no aligned OCR evidence"
     elif observed_text != expected_text:
         error_type = "ocr_substitution"
         reason = "aligned OCR text differs from verified transcription"
@@ -136,6 +143,39 @@ def classify_field_error(
         "source_block_ids": source_ids,
         "missing_source_block_ids": missing_source_ids,
     }
+
+
+def _load_verified_oracle(
+    *,
+    record: dict[str, Any],
+    manifest_path: Path,
+    real_ocr_path: Path,
+    real_ocr: dict[str, Any],
+) -> dict[str, Any] | None:
+    oracle_path_value = record.get("oracle_ocr_path")
+    if not oracle_path_value:
+        return None
+
+    test_id = record["test_id"]
+    oracle_ocr_path = _resolve(manifest_path, oracle_path_value)
+    if oracle_ocr_path == real_ocr_path:
+        raise ValueError(f"Oracle artifact reuses real artifact for {test_id}")
+    if record.get("oracle_qa_state") != ORACLE_QA_VERIFIED:
+        raise ValueError(
+            f"Oracle evidence for {test_id} requires "
+            f"oracle_qa_state={ORACLE_QA_VERIFIED}"
+        )
+    oracle_provenance = record.get("oracle_provenance")
+    if not isinstance(oracle_provenance, str) or not oracle_provenance.strip():
+        raise ValueError(f"Oracle evidence for {test_id} requires oracle_provenance")
+
+    oracle_ocr = _load_json(oracle_ocr_path)
+    validate_ocr_result(oracle_ocr)
+    if oracle_ocr["receipt_id"] != real_ocr["receipt_id"]:
+        raise ValueError(f"Oracle receipt_id mismatch for {test_id}")
+    if oracle_ocr["ocr_run_id"] == real_ocr["ocr_run_id"]:
+        raise ValueError(f"Oracle ocr_run_id reuses real OCR run for {test_id}")
+    return oracle_ocr
 
 
 def _git_provenance() -> dict[str, Any]:
@@ -246,13 +286,14 @@ def evaluate_field_errors(
         if annotation["example_only"] and not allow_examples:
             raise ValueError(f"Example annotation is not benchmark evidence: {annotation_path}")
 
-        oracle_path_value = record.get("oracle_ocr_path")
-        oracle_available = bool(oracle_path_value)
+        oracle_ocr = _load_verified_oracle(
+            record=record,
+            manifest_path=manifest_path,
+            real_ocr_path=real_ocr_path,
+            real_ocr=real_ocr,
+        )
+        oracle_available = oracle_ocr is not None
         if oracle_available:
-            oracle_ocr = _load_json(_resolve(manifest_path, oracle_path_value))
-            validate_ocr_result(oracle_ocr)
-            if oracle_ocr["receipt_id"] != real_ocr["receipt_id"]:
-                raise ValueError(f"Oracle receipt_id mismatch for {record['test_id']}")
             oracle_available_count += 1
 
         for field_name in CANONICAL_FIELDS:
