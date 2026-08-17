@@ -40,6 +40,12 @@ interface ContractFixture {
     openapi_path: string;
     schema_version: string;
   };
+  integration_source: {
+    pull_request: number;
+    branch: string;
+    head_commit: string;
+    merge_commit: string;
+  };
   receipt_statuses: string[];
   field_names: string[];
   value_statuses: string[];
@@ -154,6 +160,12 @@ test("runtime constants mirror the frozen Backend/KIE v1.3 fixture", () => {
     commit: "f1eaed210144140184388cdb84d71c1d79493e13",
     openapi_path: "openapi/openapi.yaml",
     schema_version: "1.3",
+  });
+  assert.deepEqual(contract.integration_source, {
+    pull_request: 19,
+    branch: "feat/15-core-receipt-hitl-api",
+    head_commit: "2793a6b93b97506b0b38c63168fa0e953c965f54",
+    merge_commit: "7b1a40eef791af81f320fdc47fdf1393ae822ddf",
   });
   assert.deepEqual(RECEIPT_STATUSES, contract.receipt_statuses);
   assert.deepEqual(CORE_FIELD_TYPES, contract.field_names);

@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "test": "tsx --test tests/*.test.ts",
-    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit --incremental false",
     "lint": "eslint . --ignore-pattern .next"
   },
   "dependencies": {

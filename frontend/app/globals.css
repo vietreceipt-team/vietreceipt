@@ -47,6 +47,12 @@ button:disabled {
   scrollbar-width: thin;
 }
 
+@keyframes upload {
+  0% { transform: translateX(-120%); }
+  50% { transform: translateX(120%); }
+  100% { transform: translateX(320%); }
+}
+
 .paper-texture {
   background-color: #f1eee7;
   background-image:

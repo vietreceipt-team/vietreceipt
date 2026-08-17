@@ -204,6 +204,7 @@ export interface ReceiptDetail {
   processing_error?: ProcessingError | null;
   created_at: string;
   updated_at: string;
+  processed_at?: string | null;
   verified_by?: string | null;
   verified_at?: string | null;
 
@@ -266,6 +267,8 @@ export interface ApiErrorResponse {
   error: {
     code: string;
     message: string;
+    details?: Record<string, unknown> | null;
+    request_id?: string;
   };
 }
 
