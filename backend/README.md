@@ -105,3 +105,34 @@ python -m pip install -e ".[test]"
 python -m pytest
 alembic upgrade head
 ```
+
+
+## Backend-2 receipt persistence integration
+
+Backend-2 implements the concrete `ReceiptPersistenceService` port exposed by the
+canonical Week-2 backend architecture. `ReceiptService` remains owned by the canonical
+application layer; Backend-2 does not create a competing service.
+
+Creation flow:
+
+`ReceiptUpload -> content validation -> safe object key -> object storage -> canonical Receipt -> SQLAlchemy persistence`
+
+If object storage succeeds but the database commit fails, the adapter attempts
+compensating object deletion and raises canonical `PersistenceFailure`. A cleanup
+failure is logged and remains observable.
+
+`storage_key` and canonical storage `content_type` are persistence-internal metadata and
+are not added to the public/domain `Receipt` model.
+
+### Integration notes
+
+Two contract gaps remain outside Backend-2 ownership:
+
+1. `ReceiptUpload` currently carries no authenticated owner/user reference, so Backend-2
+   cannot persist `user_id` without inventing a contract field.
+2. The canonical `ReceiptService.upload_receipt()` wraps non-`PersistenceFailure`
+   exceptions from the persistence port. That means validation/storage errors may be
+   projected as `PersistenceFailure` at the API layer unless Backend Owner explicitly
+   defines typed error propagation.
+
+Backend-2 does not change those canonical contracts in this branch.

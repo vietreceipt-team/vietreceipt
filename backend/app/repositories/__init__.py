@@ -1,3 +1,17 @@
-from .receipt_repository import ReceiptRepository
+from .protocols import (
+    AuditEventRepository,
+    CorrectionHistoryRepository,
+    FieldRepository,
+    ReceiptRepository,
+    UnitOfWork,
+    UnitOfWorkFactory,
+)
 
-__all__ = ["ReceiptRepository"]
+__all__ = [
+    "AuditEventRepository",
+    "CorrectionHistoryRepository",
+    "FieldRepository",
+    "ReceiptRepository",
+    "UnitOfWork",
+    "UnitOfWorkFactory",
+]
