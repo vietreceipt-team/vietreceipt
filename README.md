@@ -22,6 +22,7 @@ Scope: Core receipt digitization flow with five fields: `merchant_name`, `receip
 | `tests/contracts/` | Python-only positive and negative contract suite |
 | `requirements-contracts.txt` | Exact Python dependency pin for contract validation |
 | `docs/review-checklist.md` | Sign-off checklist for all five members |
+| `infra/README.md` | Local Docker Compose stack: start/stop/reset, service endpoints, environment variables |
 
 ## Decisions fixed in v1
 
