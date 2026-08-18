@@ -1,0 +1,72 @@
+VietReceipt OCR Week-1 reproducibility evidence
+Date: 2026-08-14 (Asia/Saigon)
+Platform: Windows x86_64, CPU inference
+
+Fresh environment
+-----------------
+Python: 3.12.13
+PaddlePaddle: 3.0.0
+PaddleOCR: 3.0.3
+PaddleX: 3.0.3
+NumPy: 1.26.4
+Pillow: 10.4.0
+JiWER: 3.0.3
+jsonschema: 4.23.0
+pip check: No broken requirements found.
+
+OCR configuration
+-----------------
+Model family: PP-OCRv3
+Recognition model selected by PaddleOCR for vi: latin_PP-OCRv3_mobile_rec
+Detection model: PP-OCRv3_mobile_det
+Language: vi
+Document orientation classifier: disabled
+Document unwarping: disabled
+Text-line orientation: enabled (PP-LCNet_x1_0_textline_ori)
+MKL-DNN: disabled
+
+Why PP-OCRv3 is used: PaddleOCR 3.0.3 rejects the combination PP-OCRv4 + vi.
+PP-OCRv4 in this package line supports ch/en only; PP-OCRv3 is the declared
+Vietnamese-compatible model family. Package version and model family are not
+interchangeable labels.
+
+Commands and outcomes
+---------------------
+python -m pip install -r requirements.txt
+PASS
+
+python -m pip check
+PASS: No broken requirements found.
+
+python -m unittest discover -s tests -p "test_*.py" -v
+PASS: 5 tests
+The committed-artifact regression test validated all 40 rows in
+results/benchmark_run_mapping.csv against their corresponding OCR output.
+
+python -m compileall -q scripts tests
+PASS
+
+python scripts/evaluate.py --require-complete
+PASS with declared coverage status COMPLETE
+Evaluation scope: provisional full frozen 40-sample baseline / probe
+Coverage: 40/40 non-empty first-pass transcriptions
+Annotation QA: pending independent review for all annotated samples
+Missing IDs: none
+Metric: macro-average CER/WER over evaluated samples
+Normalization: collapse all whitespace sequences to one ASCII space
+Macro-average CER: 30.79%
+Macro-average WER: 74.18%
+
+Artifact provenance
+-------------------
+The current committed set contains 40 OCR artifacts for R001-R040. All declare
+OCRResult schema_version 1.3 and engine {"name": "paddleocr", "version":
+"3.0.3"}. The regression test verifies for every mapping row that the output
+exists, validates against the canonical schema, matches receipt_id and
+ocr_run_id, has unique block_id values, uses reading_order 0..N-1, and contains
+exactly four normalized points per polygon.
+
+This verification validates the committed artifacts; it does not rerun model
+inference. The set contains 1,970 OCR blocks in total (12 minimum and 163
+maximum per artifact). Ground-truth metrics remain provisional until an
+independent reviewer completes annotation QA.

@@ -1,0 +1,59 @@
+record_type,sample_id,cer_percent,wer_percent,metadata_key,metadata_value
+sample,R001,17.48,67.9,,
+sample,R002,46.97,88.24,,
+sample,R003,22.03,84.48,,
+sample,R004,23.92,78.79,,
+sample,R005,29.4,67.65,,
+sample,R006,20.93,68.0,,
+sample,R007,22.51,70.49,,
+sample,R008,21.72,75.9,,
+sample,R009,23.56,61.06,,
+sample,R010,23.08,88.24,,
+sample,R011,14.45,59.33,,
+sample,R012,21.31,70.0,,
+sample,R013,17.96,69.7,,
+sample,R014,26.57,87.27,,
+sample,R015,32.14,54.23,,
+sample,R016,24.07,89.66,,
+sample,R017,18.06,63.87,,
+sample,R018,32.46,87.64,,
+sample,R019,29.33,79.66,,
+sample,R020,49.0,88.24,,
+sample,R021,8.42,41.5,,
+sample,R022,29.66,81.48,,
+sample,R023,28.02,80.0,,
+sample,R024,35.91,68.78,,
+sample,R025,43.48,71.11,,
+sample,R026,42.34,95.06,,
+sample,R027,37.41,80.65,,
+sample,R028,47.4,77.84,,
+sample,R029,25.61,74.51,,
+sample,R030,20.13,75.41,,
+sample,R031,29.25,90.99,,
+sample,R032,37.24,60.28,,
+sample,R033,72.57,88.14,,
+sample,R034,39.18,52.63,,
+sample,R035,29.79,80.6,,
+sample,R036,23.51,46.37,,
+sample,R037,41.99,73.91,,
+sample,R038,52.83,82.74,,
+sample,R039,40.66,76.62,,
+sample,R040,29.06,68.16,,
+metadata,,,,evaluation_scope,Provisional full frozen 40-sample baseline / probe
+metadata,,,,status,COMPLETE
+metadata,,,,annotation_scope,40/40 non-empty first-pass transcriptions
+metadata,,,,annotation_qa_status,pending independent review for all annotated samples
+metadata,,,,expected_count,40
+metadata,,,,evaluated_count,40
+metadata,,,,missing_count,0
+metadata,,,,evaluated_sample_ids,"R001,R002,R003,R004,R005,R006,R007,R008,R009,R010,R011,R012,R013,R014,R015,R016,R017,R018,R019,R020,R021,R022,R023,R024,R025,R026,R027,R028,R029,R030,R031,R032,R033,R034,R035,R036,R037,R038,R039,R040"
+metadata,,,,missing_sample_ids,
+metadata,,,,missing_gt_ids,
+metadata,,,,empty_gt_ids,
+metadata,,,,missing_ocr_ids,
+metadata,,,,invalid_ocr_ids,
+metadata,,,,normalization_policy,collapse all whitespace sequences to one ASCII space
+metadata,,,,metric_policy,macro-average CER/WER over evaluated samples
+metadata,,,,sampling_rationale,40/40 manifest samples evaluated using non-empty transcriptions and schema-valid OCR outputs; metrics based on pending-QA first-pass annotations are provisional
+metadata,,,,macro_cer_percent,30.79
+metadata,,,,macro_wer_percent,74.18

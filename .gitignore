@@ -205,6 +205,7 @@ tempCodeRunnerFile.py
 
 # Ruff stuff:
 .ruff_cache/
+.paddlex-cache/
 
 # PyPI configuration file
 .pypirc
@@ -216,3 +217,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# OCR-specific local/private artifacts
+data/raw/
+data/candidates/
+data/test_set/images/
+results/candidate_sheets/
+results/.DS_Store
+.DS_Store
+Thumbs.db
+*.code-workspace
