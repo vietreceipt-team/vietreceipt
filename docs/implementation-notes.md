@@ -194,21 +194,38 @@ Backend owner also confirmed the `STORAGE_*` naming (vs. the `S3_*` names
 in the original task text) is correct and should stay as-is; no rename is
 needed.
 
-### Worker: still not a real integration
+### Worker: skeleton is the W1 deliverable, not a placeholder debt
 
 The Celery module path, worker command and Redis/Celery dependencies were
 confirmed **not yet decided** by Backend/Worker owners as of PR #19 — no
 concrete Celery application exists in `backend/` yet. The `worker` service
 added in this branch (`infra/docker/worker/celery_app.py`,
-`infra/docker/worker.Dockerfile`) is a **DevOps-owned infra skeleton**, not
-the integration of a real entrypoint: it has zero registered tasks and its
-own separately pinned `celery[redis]==5.4.0`. Its healthcheck already uses
-the method the Backend owner suggested (`celery -A <app> inspect ping`).
+`infra/docker/worker.Dockerfile`) is a **DevOps-owned infra skeleton**: it
+has zero registered tasks and its own separately pinned
+`celery[redis]==5.4.0`. Its healthcheck already uses the method the Backend
+owner suggested (`celery -A <app> inspect ping`).
 
-This is a materially different situation from Backend, which is a real
-"integrate the entrypoint that now exists" task. Worker remains a "build a
-placeholder now, replace later" task until Backend/Worker owners commit a
-concrete Celery app and its own pinned dependencies. When that happens,
-DevOps must point `infra/docker/worker.Dockerfile` at their module path and
-retire the DevOps-owned `celery_app.py` skeleton and
+This is a materially different situation from Backend, which was a real
+"integrate the entrypoint that now exists" task. **For Worker, the skeleton
+itself is the W1 deliverable** — the task asks for a "Worker
+container/skeleton", and that is what shipped. It is not a blocker for
+closing this task.
+
+Replacing it with a real application worker is follow-up work under **Issue
+#21 (Backend processing integration)**, owned by Backend-1, because the
+real processing path — `enqueue receipt_id → worker claim → PROCESSING →
+OCR → KIE → NEEDS_REVIEW` — is receipt-processing business semantics.
+
+Ownership split for the worker, to keep this unambiguous:
+
+- **DevOps** owns the worker *container and process*: Dockerfile, broker
+  configuration, networking, healthcheck, logs/runtime visibility.
+- **Backend-1** owns the worker *handler and orchestration*:
+  `ProcessingScheduler` semantics, application queue adapter, processing
+  job payload, receipt state transitions, retry/idempotency and business
+  failure semantics.
+
+When Backend-1 commits a concrete Celery app, DevOps points
+`infra/docker/worker.Dockerfile` at their module path and retires the
+DevOps-owned `celery_app.py` skeleton and
 `infra/docker/worker/requirements.txt` pin in favor of Backend's own.

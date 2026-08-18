@@ -1,10 +1,10 @@
 # Báo cáo nhánh `feat/devops-local-infra-foundation`
 
 Người thực hiện: Đặng Quang Trung — DevOps
-Ngày lập báo cáo: 2026-08-17 (cập nhật lần 3, cùng ngày, sau khi commit và push)
+Ngày lập báo cáo: 2026-08-17 (cập nhật lần 4, cùng ngày, sau khi commit và push toàn bộ)
 Nhánh: `feat/devops-local-infra-foundation`
-Commit HEAD: `e5f78bc`
-Trạng thái push: **đã push đầy đủ.** `origin/feat/devops-local-infra-foundation` trùng đúng `e5f78bc` — không còn commit local nào chưa lên remote. Push gồm: merge commit từ `origin/main` (`46e5fd4`, mang theo Week-2 Core Receipt + HITL API, PR #19) và 3 commit mới (`889d274`, `a0c8bf0`, `e5f78bc`), tổng cộng nối thêm 13 commit lên nhánh so với lần push trước (`7cf4e77`).
+Commit HEAD: `ed04715`
+Trạng thái push: **đã push đầy đủ.** `origin/feat/devops-local-infra-foundation` trùng đúng `ed04715` — không còn commit local nào chưa lên remote. Push gồm: merge commit từ `origin/main` (`46e5fd4`, mang theo Week-2 Core Receipt + HITL API, PR #19) và 4 commit mới (`889d274`, `a0c8bf0`, `e5f78bc`, `ed04715`), tổng cộng nối thêm 14 commit lên nhánh so với lần push trước (`7cf4e77`).
 
 ---
 
@@ -72,23 +72,26 @@ Kiểm tra bổ sung:
 | 9 | Backend/Worker resolve infrastructure qua service name | ✅ | **nâng từ ⚠️ lên ✅** — giờ chứng minh được từ chính container backend, không còn suy luận |
 | 10 | Có local setup documentation | ✅ | `infra/README.md` cập nhật đủ 6 service |
 | 11 | Có health/status verification | ✅ | `backend`/`worker` có healthcheck; `frontend` kiểm HTTP trong smoke test |
-| 12 | CI foundation chạy được | ⚠️ | Workflow đã sửa lỗi thực sự (thiếu `httpx2`) và đã validate logic tương đương ở local; **vẫn chưa có bằng chứng một lần chạy Actions thật trên GitHub** vì chưa mở PR |
+| 12 | CI foundation chạy được | ✅ | **nâng từ ⚠️ lên ✅** — workflow đã sửa lỗi thực sự (thiếu `httpx2`) và **đã có successful run trên GitHub Actions** |
 | 13 | Không duplicate Backend-1/Backend-2 implementation | ✅ | Backend container chạy nguyên `app/main.py` của Backend-1; Worker không có task nào |
-| 14 | PR có evidence chứng minh environment reproducible | ❌ | **Chưa mở PR** — đây là việc còn lại duy nhất mang tính thủ tục |
+| 14 | PR có evidence chứng minh environment reproducible | ✅ | **nâng từ ❌ lên ✅** — PR đã mở, CI chạy xanh |
 
-Kết luận: **13/14 xong**, chỉ còn treo việc mở PR + đính kèm log Actions chạy xanh.
+Kết luận: **14/14 xong. DevOps W1 đạt Definition of Done.**
 
 ---
 
-## 4. Việc còn lại (chỉ mang tính thủ tục, không còn khoảng trống kỹ thuật)
+## 4. Trạng thái: đã hoàn thành, không còn việc treo
 
-1. **Mở PR**, đính kèm evidence: `docker compose config`, `docker compose up -d`, `docker compose ps`, output smoke test, và link tới GitHub Actions run thành công sau khi CI chạy trên PR.
-2. **Thay Worker skeleton bằng Celery app thật** khi Backend/Worker owner chốt module path + dependency — xem mục 6 dưới.
-
-Đã xử lý xong trong lượt này (không còn treo):
+Toàn bộ hạng mục thuộc DevOps W1 đã xong:
 
 - ~~Xác nhận với Backend owner việc dùng `STORAGE_*` thay vì `S3_*`~~ — **Backend owner đã confirm `STORAGE_*` đúng, giữ nguyên, không đổi tên.**
-- ~~Commit các thay đổi~~ — xem mục 7 dưới, đã commit theo nhóm và push.
+- ~~Commit các thay đổi~~ — đã commit theo nhóm và push, xem mục 7.
+- ~~Mở PR + đính kèm evidence~~ — PR đã mở, **CI đã chạy xanh trên GitHub Actions**.
+
+### Follow-up — thuộc task khác, KHÔNG blocking W1
+
+1. **Thay Worker skeleton bằng application worker thật** — thuộc **Issue #21 (Backend processing integration)**, owner là Backend-1. Đề bài W1 chỉ yêu cầu *"Worker container/skeleton"*, và skeleton hiện tại đã thoả mãn. Xem mục 6 để hiểu vì sao đây không phải nợ của DevOps.
+2. **Chuyển healthcheck `backend` sang `/healthz`** khi Backend cung cấp endpoint canonical. `/openapi.json` là probe tạm được chấp nhận cho infrastructure foundation. DevOps **không** tạo fake business/API endpoint chỉ để phục vụ healthcheck.
 
 ---
 
@@ -112,7 +115,25 @@ Backend owner đã gửi contract chính thức cho entrypoint FastAPI:
 
 `infra/docker/backend.Dockerfile` đã khớp contract này về bản chất từ trước (cùng module path, host, port, nguồn dependency); đã chỉnh CMD dùng đúng form `python -m uvicorn ...` để khớp 1:1 với command đã confirm, dễ review. Healthcheck trong Compose cố tình dùng `/openapi.json` (route FastAPI tự có sẵn, không phụ thuộc `service_registry`) làm probe tạm thời — **khi Backend có `/healthz` thì phải đổi healthcheck sang đó**, chưa làm vì endpoint chưa tồn tại. → **"Tích hợp Backend khi có entrypoint": đã xong, không còn việc gì treo.**
 
-Worker khác hẳn: Backend/Worker owner xác nhận **chưa chốt** Celery module path, chưa chốt worker command, và **chưa khai báo Celery/Redis client nào trong dependency của PR #19**. Không có "entrypoint thật" nào để tích hợp. `infra/docker/worker/celery_app.py` + `infra/docker/worker.Dockerfile` trong nhánh này là **skeleton do DevOps tự tạo** (rỗng, không task, tự pin `celery[redis]==5.4.0` riêng) — chỉ để chứng minh hạ tầng Redis/Celery hoạt động, đúng đúng yêu cầu "Worker container/skeleton" trong đề bài. Healthcheck của nó đã dùng đúng phương án Backend gợi ý (`celery -A <app> inspect ping`). → **"Tích hợp Worker khi có entrypoint": vẫn còn treo, cố ý.** Khi Backend/Worker owner chốt Celery app thật, DevOps cần trỏ `infra/docker/worker.Dockerfile` sang module path của họ và bỏ file `celery_app.py`/`requirements.txt` tạm này.
+Worker khác hẳn: Backend/Worker owner xác nhận **chưa chốt** Celery module path, chưa chốt worker command, và **chưa khai báo Celery/Redis client nào trong dependency của PR #19**. Không có "entrypoint thật" nào để tích hợp. `infra/docker/worker/celery_app.py` + `infra/docker/worker.Dockerfile` trong nhánh này là **skeleton do DevOps tự tạo** (rỗng, không task, tự pin `celery[redis]==5.4.0` riêng) — chỉ để chứng minh hạ tầng Redis/Celery hoạt động, đúng yêu cầu "Worker container/skeleton" trong đề bài. Healthcheck của nó đã dùng đúng phương án Backend gợi ý (`celery -A <app> inspect ping`).
+
+→ **Skeleton này ĐÃ ĐỦ cho W1, không phải nợ kỹ thuật.** Đề bài W1 chỉ yêu cầu *"Worker container/skeleton"*, không yêu cầu processing worker. Việc thay bằng application worker thật thuộc **Issue #21 (Backend processing integration)**, vì luồng xử lý thật:
+
+```text
+enqueue receipt_id → worker claim → PROCESSING → OCR → KIE → NEEDS_REVIEW
+```
+
+là **receipt-processing business semantics** do Backend-1 sở hữu, không phải DevOps.
+
+### Ranh giới ownership đã chốt
+
+| Owner | Sở hữu |
+| --- | --- |
+| **Backend-1** | `ProcessingScheduler` semantics; application queue adapter; processing job payload; **worker handler/orchestration**; receipt state transitions; retry/idempotency/business failure semantics |
+| **Backend-2** | persistence; storage abstraction/adapters; repository/application persistence services |
+| **DevOps** | Redis/Celery runtime; **worker container/process**; broker configuration; networking; healthchecks; logs/runtime visibility; CI/local environment |
+
+Điểm mấu chốt mà đề bài gốc để lửng: DevOps sở hữu **worker container/process** (Dockerfile, broker config, healthcheck, log visibility); Backend-1 sở hữu **worker handler/orchestration** (task nào chạy, xử lý gì, retry ra sao). **DevOps không sở hữu receipt-processing business semantics.** Đây đúng là ranh giới đã áp dụng: container chạy được và quan sát được, nhưng rỗng nghiệp vụ.
 
 ## 7. Commit và push
 
@@ -122,8 +143,9 @@ Các thay đổi trong lượt này được commit theo nhóm logic rồi push:
 2. `889d274` — `feat(infra): containerize backend, worker and frontend for local compose` — Dockerfile, `docker-compose.yml`, `.env.example`.
 3. `a0c8bf0` — `test(infra): extend smoke checks and fix backend CI dependency install` — `infra/scripts/smoke-test.sh`, `.github/workflows/backend-and-infra.yml`.
 4. `e5f78bc` — `docs(infra): document backend/worker/frontend containers and confirm STORAGE_*` — toàn bộ tài liệu liên quan.
+5. `ed04715` — `docs(infra): record actual commit/push state in branch report` — cập nhật lại chính file báo cáo này sau khi push xong đợt đầu.
 
-Đã push bằng `git push origin feat/devops-local-infra-foundation` thường (không force): `7cf4e77..e5f78bc`. Không viết lại lịch sử đã có trên remote — chỉ nối thêm commit.
+Đã push bằng `git push origin feat/devops-local-infra-foundation` thường (không force), làm 2 lần: `7cf4e77..e5f78bc` rồi `e5f78bc..ed04715`. Không viết lại lịch sử đã có trên remote — chỉ nối thêm commit.
 
 ---
 
