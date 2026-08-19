@@ -7,6 +7,12 @@
     "openapi_path": "openapi/openapi.yaml",
     "schema_version": "1.3"
   },
+  "integration_source": {
+    "pull_request": 19,
+    "branch": "feat/15-core-receipt-hitl-api",
+    "head_commit": "2793a6b93b97506b0b38c63168fa0e953c965f54",
+    "merge_commit": "7b1a40eef791af81f320fdc47fdf1393ae822ddf"
+  },
   "receipt_statuses": [
     "UPLOADED",
     "PROCESSING",

@@ -204,6 +204,7 @@ export interface ReceiptDetail {
   processing_error?: ProcessingError | null;
   created_at: string;
   updated_at: string;
+  processed_at?: string | null;
   verified_by?: string | null;
   verified_at?: string | null;
 
@@ -266,6 +267,8 @@ export interface ApiErrorResponse {
   error: {
     code: string;
     message: string;
+    details?: Record<string, unknown> | null;
+    request_id?: string;
   };
 }
 
@@ -284,11 +287,18 @@ export function getSourceBlocksForField(
   return (receipt.ocr_blocks ?? []).filter((block) => sourceIds.has(block.block_id));
 }
 
+export function findFieldsForSourceBlock(
+  fields: CanonicalFields,
+  blockId: string,
+): FieldType[] {
+  return CORE_FIELD_TYPES.filter((fieldType) =>
+    fields[fieldType].machine.source_block_ids.includes(blockId),
+  );
+}
+
 export function findFieldForSourceBlock(
   fields: CanonicalFields,
   blockId: string,
 ): FieldType | undefined {
-  return CORE_FIELD_TYPES.find((fieldType) =>
-    fields[fieldType].machine.source_block_ids.includes(blockId),
-  );
+  return findFieldsForSourceBlock(fields, blockId)[0];
 }
