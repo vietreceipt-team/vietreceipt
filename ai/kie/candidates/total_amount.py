@@ -97,6 +97,71 @@ def _spans_overlap(
     return first_start < second_end and second_start < first_end
 
 
+def _candidate_metadata(
+    predicted_value: str,
+) -> tuple[
+    tuple[str, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    matched_patterns: tuple[str, ...]
+    ambiguity_indicators: tuple[str, ...] = ()
+
+    if CORRUPTED_AMOUNT_WITH_CURRENCY_PATTERN.fullmatch(
+        predicted_value
+    ):
+        matched_patterns = (
+            "corrupted_amount_with_currency",
+        )
+        ambiguity_indicators = (
+            "digit_letter_confusion",
+        )
+    elif AMOUNT_WITH_CURRENCY_PATTERN.fullmatch(
+        predicted_value
+    ):
+        matched_patterns = (
+            "amount_with_currency",
+        )
+    else:
+        matched_patterns = (
+            "amount_without_currency_in_positive_context",
+        )
+
+    normalization_indicators: list[str] = []
+
+    if (
+        AMOUNT_WITH_CURRENCY_PATTERN.fullmatch(
+            predicted_value
+        )
+        or CORRUPTED_AMOUNT_WITH_CURRENCY_PATTERN.fullmatch(
+            predicted_value
+        )
+    ):
+        normalization_indicators.append(
+            "currency_marker_present"
+        )
+
+    if re.search(
+        r"[\dO][.,\s][\dO]{3}",
+        predicted_value,
+        flags=re.IGNORECASE | re.UNICODE,
+    ):
+        normalization_indicators.append(
+            "grouping_separator_present"
+        )
+
+    if predicted_value.lstrip().startswith("-"):
+        normalization_indicators.append(
+            "negative_sign_present"
+        )
+
+    return (
+        matched_patterns,
+        ambiguity_indicators,
+        tuple(normalization_indicators),
+    )
+
+
 def generate_total_amount_candidates(
     ocr_result: dict[str, Any],
 ) -> list[Candidate]:
@@ -200,9 +265,16 @@ def generate_total_amount_candidates(
         )
 
         for match in matches:
+            predicted_value = match.group(0).strip()
+            (
+                matched_patterns,
+                ambiguity_indicators,
+                normalization_indicators,
+            ) = _candidate_metadata(predicted_value)
+
             candidate = Candidate(
                 field_name="total_amount",
-                predicted_value=match.group(0).strip(),
+                predicted_value=predicted_value,
                 source_block_ids=source_block_ids,
                 raw_text=raw_text,
                 matched_positive_keywords=positive_keywords,
@@ -212,6 +284,11 @@ def generate_total_amount_candidates(
                 layout_score=0.0,
                 ocr_score=float(block["confidence"]),
                 final_score=0.0,
+                matched_patterns=matched_patterns,
+                ambiguity_indicators=ambiguity_indicators,
+                normalization_indicators=(
+                    normalization_indicators
+                ),
             )
 
             candidate = replace(

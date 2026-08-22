@@ -709,6 +709,30 @@ class KIEBaselineTests(unittest.TestCase):
             ]
         )
 
+        candidates = generate_total_amount_candidates(
+            ocr
+        )
+
+        self.assertEqual(len(candidates), 1)
+
+        candidate = candidates[0]
+
+        self.assertEqual(
+            candidate.matched_patterns,
+            ("corrupted_amount_with_currency",),
+        )
+        self.assertEqual(
+            candidate.ambiguity_indicators,
+            ("digit_letter_confusion",),
+        )
+        self.assertEqual(
+            candidate.normalization_indicators,
+            (
+                "currency_marker_present",
+                "grouping_separator_present",
+            ),
+        )
+
         result = run_kie(
             ocr,
             kie_run_id=KIE_RUN_ID,
@@ -730,7 +754,6 @@ class KIEBaselineTests(unittest.TestCase):
             "NORMALIZATION_FAILED",
             field["review_reasons"],
         )
-
     # ------------------------------------------------------------------
     # 09. Multi-block merchant address
     # ------------------------------------------------------------------
