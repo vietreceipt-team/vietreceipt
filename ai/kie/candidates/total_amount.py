@@ -14,13 +14,32 @@ from ai.kie.ranking.features import (
 from ai.kie.ranking.scorer import score_candidate
 
 
+CURRENCY_MARKER_PATTERN = (
+    r"(?:VND|VNĐ|₫|Đ|USD|EUR|GBP|JPY|CNY|KRW|THB|SGD|AUD|CAD|[$€£¥])"
+)
+
+
 AMOUNT_WITH_CURRENCY_PATTERN = re.compile(
-    r"(?:\d{1,3}(?:[.,\s]\d{3})+|\d+)\s*(?:VND|VNĐ|₫|Đ)",
+    rf"(?<![\w.,])-?"
+    rf"(?:\d{{1,3}}(?:[.,\s]\d{{3}})+|\d+)\s*"
+    rf"{CURRENCY_MARKER_PATTERN}(?!\w)",
     flags=re.IGNORECASE | re.UNICODE,
 )
 
-GROUPED_AMOUNT_PATTERN = re.compile(
-    r"\b\d{1,3}(?:[.,\s]\d{3})+\b",
+
+CORRUPTED_AMOUNT_WITH_CURRENCY_PATTERN = re.compile(
+    rf"(?<![\w.,])-?"
+    rf"(?=[\dO.,\s]*O)"
+    rf"(?:[\dO]{{1,3}}(?:[.,\s][\dO]{{3}})+|[\dO]+)\s*"
+    rf"{CURRENCY_MARKER_PATTERN}(?!\w)",
+    flags=re.IGNORECASE | re.UNICODE,
+)
+
+
+AMOUNT_WITHOUT_CURRENCY_PATTERN = re.compile(
+    r"(?<![\w.,])-?"
+    r"(?:\d{1,3}(?:[.,\s]\d{3})+|\d+)"
+    r"(?![\w.,])",
     flags=re.UNICODE,
 )
 
@@ -114,34 +133,42 @@ def generate_total_amount_candidates(
             NEGATIVE_KEYWORDS,
         )
 
-        # Amounts with an explicit VND marker may become candidates
-        # even without a positive semantic keyword.
-        currency_matches = list(
-            AMOUNT_WITH_CURRENCY_PATTERN.finditer(
-                block["text"]
-            )
+        # Explicit currency markers remain candidates even when their
+        # currency is unsupported or their digits contain a conservative
+        # OCR ambiguity. Normalization and review classify those cases.
+        currency_matches = sorted(
+            (
+                list(
+                    AMOUNT_WITH_CURRENCY_PATTERN.finditer(
+                        block["text"]
+                    )
+                )
+                + list(
+                    CORRUPTED_AMOUNT_WITH_CURRENCY_PATTERN.finditer(
+                        block["text"]
+                    )
+                )
+            ),
+            key=lambda match: match.span(),
         )
 
-        # Amounts without an explicit currency marker are only accepted
-        # when positive semantic context exists.
-        grouped_matches = []
+        # Amounts without an explicit currency marker are accepted only
+        # when a positive total-amount context exists.
+        contextual_matches = []
 
         if positive_keywords:
-            grouped_matches = list(
-                GROUPED_AMOUNT_PATTERN.finditer(
+            contextual_matches = list(
+                AMOUNT_WITHOUT_CURRENCY_PATTERN.finditer(
                     block["text"]
                 )
             )
 
-        # Avoid duplicate candidates such as:
-        #
-        #   "325.000 VND"
-        #
-        # where the currency regex matches "325.000 VND"
-        # and the grouped-number regex also matches "325.000".
-        non_duplicate_grouped_matches = [
+        # Avoid duplicate candidates such as "325.000 VND", for which
+        # both the explicit-currency and contextual patterns see the
+        # numeric span.
+        non_duplicate_contextual_matches = [
             match
-            for match in grouped_matches
+            for match in contextual_matches
             if not any(
                 _spans_overlap(
                     match.span(),
@@ -151,9 +178,12 @@ def generate_total_amount_candidates(
             )
         ]
 
-        matches = (
-            currency_matches
-            + non_duplicate_grouped_matches
+        matches = sorted(
+            (
+                currency_matches
+                + non_duplicate_contextual_matches
+            ),
+            key=lambda match: match.span(),
         )
 
         if not matches:

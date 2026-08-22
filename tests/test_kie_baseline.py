@@ -356,6 +356,167 @@ class KIEBaselineTests(unittest.TestCase):
             "325.000 VND",
         )
 
+    def test_08a_negative_amount_preserves_sign_during_generation(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "TỔNG THANH TOÁN: -325.000 VND",
+                    0,
+                    0.65,
+                ),
+            ]
+        )
+
+        candidates = generate_total_amount_candidates(
+            ocr
+        )
+
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(
+            candidates[0].predicted_value,
+            "-325.000 VND",
+        )
+
+    def test_08b_negative_amount_requires_pipeline_review(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "TỔNG THANH TOÁN: -325.000 VND",
+                    0,
+                    0.65,
+                ),
+            ]
+        )
+
+        result = run_kie(
+            ocr,
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["total_amount"]
+
+        self.assertEqual(
+            field["predicted_value"],
+            "-325.000 VND",
+        )
+        self.assertIsNone(
+            field["normalized_value"]
+        )
+        self.assertTrue(
+            field["machine_needs_review"]
+        )
+        self.assertIn(
+            "NEGATIVE_AMOUNT",
+            field["review_reasons"],
+        )
+
+    def test_08c_unsupported_currency_requires_pipeline_review(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "TỔNG THANH TOÁN: 325.000 USD",
+                    0,
+                    0.65,
+                ),
+            ]
+        )
+
+        result = run_kie(
+            ocr,
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["total_amount"]
+
+        self.assertEqual(
+            field["predicted_value"],
+            "325.000 USD",
+        )
+        self.assertIsNone(
+            field["normalized_value"]
+        )
+        self.assertTrue(
+            field["machine_needs_review"]
+        )
+        self.assertIn(
+            "UNSUPPORTED_CURRENCY",
+            field["review_reasons"],
+        )
+
+    def test_08d_plain_integer_amount_is_extracted_in_positive_context(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "TỔNG THANH TOÁN: 325000",
+                    0,
+                    0.65,
+                ),
+            ]
+        )
+
+        result = run_kie(
+            ocr,
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["total_amount"]
+
+        self.assertEqual(
+            field["predicted_value"],
+            "325000",
+        )
+        self.assertEqual(
+            field["normalized_value"],
+            325000,
+        )
+    def test_08e_corrupted_money_reaches_normalization_review(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "TỔNG THANH TOÁN: 325.OOO VND",
+                    0,
+                    0.65,
+                ),
+            ]
+        )
+
+        result = run_kie(
+            ocr,
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["total_amount"]
+
+        self.assertEqual(
+            field["predicted_value"],
+            "325.OOO VND",
+        )
+        self.assertIsNone(
+            field["normalized_value"]
+        )
+        self.assertTrue(
+            field["machine_needs_review"]
+        )
+        self.assertIn(
+            "NORMALIZATION_FAILED",
+            field["review_reasons"],
+        )
+
     # ------------------------------------------------------------------
     # 09. Multi-block merchant address
     # ------------------------------------------------------------------
