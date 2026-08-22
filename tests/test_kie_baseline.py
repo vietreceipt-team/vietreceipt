@@ -3,6 +3,9 @@ from __future__ import annotations
 import unittest
 from uuid import UUID
 
+from ai.kie.candidates.invoice_id import (
+    generate_invoice_id_candidates,
+)
 from ai.kie.candidates.merchant_address import (
     generate_merchant_address_candidates,
 )
@@ -18,7 +21,10 @@ from ai.kie.normalization.merchant_address import (
 from ai.kie.normalization.receipt_date import normalize_receipt_date
 from ai.kie.normalization.total_amount import normalize_total_amount
 from ai.kie.pipeline import run_kie
-from ai.kie.ranking.scorer import rank_candidates
+from ai.kie.ranking.scorer import (
+    rank_candidates,
+    score_candidate,
+)
 from ai.kie.review import decide_review
 
 
@@ -259,7 +265,183 @@ class KIEBaselineTests(unittest.TestCase):
             result.normalized_value,
             str,
         )
+    def test_06a_accentless_invoice_label_is_extracted(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "SO HD: 001238",
+                    0,
+                    0.30,
+                ),
+            ]
+        )
 
+        result = run_kie(
+            ocr,
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["invoice_id"]
+
+        self.assertEqual(
+            field["predicted_value"],
+            "001238",
+        )
+        self.assertEqual(
+            field["normalized_value"],
+            "001238",
+        )
+        self.assertEqual(
+            field["source_block_ids"],
+            ["b0"],
+        )
+    def test_06b_transaction_id_is_available_as_typed_fallback(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "MA GIAO DICH: TXN-0099",
+                    0,
+                    0.30,
+                ),
+            ]
+        )
+
+        candidates = generate_invoice_id_candidates(
+            ocr
+        )
+
+        self.assertEqual(len(candidates), 1)
+
+        candidate = candidates[0]
+
+        self.assertEqual(
+            candidate.predicted_value,
+            "TXN-0099",
+        )
+        self.assertEqual(
+            candidate.candidate_role,
+            "fallback",
+        )
+
+        result = run_kie(
+            ocr,
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        self.assertEqual(
+            result["fields"]["invoice_id"][
+                "normalized_value"
+            ],
+            "TXN-0099",
+        )
+
+    def test_06c_split_transaction_label_is_typed_fallback(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "MA GIAO DICH",
+                    0,
+                    0.30,
+                ),
+                make_block(
+                    "b1",
+                    "TXN-0099",
+                    1,
+                    0.34,
+                ),
+            ]
+        )
+
+        candidates = generate_invoice_id_candidates(
+            ocr
+        )
+
+        self.assertEqual(len(candidates), 1)
+
+        candidate = candidates[0]
+
+        self.assertEqual(
+            candidate.predicted_value,
+            "TXN-0099",
+        )
+        self.assertEqual(
+            candidate.candidate_role,
+            "fallback",
+        )
+        self.assertEqual(
+            candidate.source_block_ids,
+            ("b0", "b1"),
+        )
+        self.assertEqual(
+            candidate.matched_patterns,
+            ("split_fallback_label_value",),
+        )
+
+    def test_06d_primary_invoice_id_outranks_fallback(
+        self,
+    ) -> None:
+        ocr = make_ocr(
+            [
+                make_block(
+                    "b0",
+                    "MA GIAO DICH: TXN-9999",
+                    0,
+                    0.50,
+                    confidence=0.99,
+                ),
+                make_block(
+                    "b1",
+                    "SO HD: 001238",
+                    1,
+                    0.90,
+                    confidence=0.10,
+                ),
+            ]
+        )
+
+        candidates = generate_invoice_id_candidates(
+            ocr
+        )
+
+        self.assertEqual(
+            {
+                candidate.candidate_role
+                for candidate in candidates
+            },
+            {"primary", "fallback"},
+        )
+
+        ranked = rank_candidates(candidates)
+
+        self.assertEqual(
+            ranked[0].candidate_role,
+            "primary",
+        )
+        self.assertEqual(
+            ranked[0].predicted_value,
+            "001238",
+        )
+
+        result = run_kie(
+            ocr,
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        self.assertEqual(
+            result["fields"]["invoice_id"][
+                "predicted_value"
+            ],
+            "001238",
+        )
     # ------------------------------------------------------------------
     # 07. Multiple total candidates
     # ------------------------------------------------------------------
@@ -298,6 +480,38 @@ class KIEBaselineTests(unittest.TestCase):
         self.assertIn(
             "MULTIPLE_CANDIDATES",
             decision.review_reasons,
+        )
+
+    def test_07a_candidate_score_is_positive_weighted_sum(
+        self,
+    ) -> None:
+        candidate = Candidate(
+            field_name="invoice_id",
+            predicted_value="001238",
+            source_block_ids=("b0",),
+            raw_text="SO HD: 001238",
+            matched_positive_keywords=("số hđ",),
+            matched_negative_keywords=(),
+            pattern_score=0.8,
+            context_score=0.6,
+            layout_score=0.4,
+            ocr_score=1.0,
+            final_score=0.0,
+        )
+
+        scored = score_candidate(
+            candidate,
+            {
+                "pattern": 0.25,
+                "context": 0.25,
+                "layout": 0.25,
+                "ocr_quality": 0.25,
+            },
+        )
+
+        self.assertAlmostEqual(
+            scored.final_score,
+            0.7,
         )
 
     # ------------------------------------------------------------------

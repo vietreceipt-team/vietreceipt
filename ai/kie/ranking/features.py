@@ -269,16 +269,33 @@ def invoice_id_pattern_score(
     config: dict[str, Any],
 ) -> float:
     feature_config = _invoice_id_features(config)["pattern"]
+    source_block_count = len(
+        candidate.source_block_ids
+    )
 
-    if len(candidate.source_block_ids) == 1:
-        return float(
-            feature_config["labeled_primary_id"]
-        )
+    if candidate.candidate_role == "primary":
+        if source_block_count == 1:
+            return float(
+                feature_config["labeled_primary_id"]
+            )
 
-    if len(candidate.source_block_ids) == 2:
-        return float(
-            feature_config["split_label_value"]
-        )
+        if source_block_count == 2:
+            return float(
+                feature_config["split_label_value"]
+            )
+
+    if candidate.candidate_role == "fallback":
+        if source_block_count == 1:
+            return float(
+                feature_config["labeled_fallback_id"]
+            )
+
+        if source_block_count == 2:
+            return float(
+                feature_config[
+                    "split_fallback_label_value"
+                ]
+            )
 
     return float(
         feature_config["unsupported"]

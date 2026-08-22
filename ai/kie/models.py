@@ -16,6 +16,10 @@ class Candidate:
     layout_score: float
     ocr_score: float
     final_score: float
+    candidate_role: str = "primary"
+    matched_patterns: tuple[str, ...] = ()
+    ambiguity_indicators: tuple[str, ...] = ()
+    normalization_indicators: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

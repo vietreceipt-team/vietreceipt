@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import replace
 from typing import Any
 
@@ -29,6 +30,28 @@ PRIMARY_POSITIVE_KEYWORDS = (
     "receipt number",
 )
 
+FALLBACK_POSITIVE_KEYWORDS = (
+    "mã giao dịch",
+    "số giao dịch",
+    "mã gd",
+    "số gd",
+    "mã tham chiếu",
+    "số tham chiếu",
+    "transaction id",
+    "transaction no",
+    "transaction number",
+    "reference id",
+    "reference no",
+    "reference number",
+    "ref id",
+    "ref no",
+)
+
+
+ALL_POSITIVE_KEYWORDS = (
+    PRIMARY_POSITIVE_KEYWORDS
+    + FALLBACK_POSITIVE_KEYWORDS
+)
 
 NEGATIVE_KEYWORDS = (
     "mã số thuế",
@@ -56,8 +79,8 @@ NEGATIVE_KEYWORDS = (
 # Capture group 1 is the candidate value.
 PRIMARY_INVOICE_ID_PATTERN = re.compile(
     r"(?:"
-    r"SỐ\s*(?:HÓA\s*ĐƠN|HĐ)"
-    r"|MÃ\s*HÓA\s*ĐƠN"
+    r"SO\s*(?:HOA\s*DON|HD)"
+    r"|MA\s*HOA\s*DON"
     r"|INVOICE\s*(?:NO|NUMBER)"
     r"|RECEIPT\s*(?:NO|NUMBER)"
     r")"
@@ -66,6 +89,18 @@ PRIMARY_INVOICE_ID_PATTERN = re.compile(
     flags=re.IGNORECASE | re.UNICODE,
 )
 
+FALLBACK_INVOICE_ID_PATTERN = re.compile(
+    r"(?:"
+    r"(?:MA|SO)\s*"
+    r"(?:GIAO\s*DICH|GD|THAM\s*CHIEU)"
+    r"|TRANSACTION\s*(?:ID|NO|NUMBER)"
+    r"|REFERENCE\s*(?:ID|NO|NUMBER)"
+    r"|REF\s*(?:ID|NO|NUMBER)"
+    r")"
+    r"\s*[:#-]?\s*"
+    r"([A-Z0-9][A-Z0-9._/-]*)",
+    flags=re.IGNORECASE | re.UNICODE,
+)
 
 # Used when label and value are split across two OCR blocks.
 #
@@ -77,17 +112,44 @@ VALUE_ONLY_PATTERN = re.compile(
     flags=re.IGNORECASE | re.UNICODE,
 )
 
+def _fold_vietnamese_diacritics(
+    text: str,
+) -> str:
+    decomposed = unicodedata.normalize(
+        "NFD",
+        text,
+    )
+
+    without_combining_marks = "".join(
+        character
+        for character in decomposed
+        if unicodedata.category(character) != "Mn"
+    )
+
+    return (
+        without_combining_marks
+        .replace("Đ", "D")
+        .replace("đ", "d")
+    )
+
 
 def _matched_keywords(
     text: str,
     keywords: tuple[str, ...],
 ) -> tuple[str, ...]:
-    lowered = text.casefold()
+    folded_text = (
+        _fold_vietnamese_diacritics(text)
+        .casefold()
+    )
 
     return tuple(
         keyword
         for keyword in keywords
-        if keyword.casefold() in lowered
+        if (
+            _fold_vietnamese_diacritics(keyword)
+            .casefold()
+            in folded_text
+        )
     )
 
 
@@ -110,7 +172,7 @@ def _select_context_blocks(
 
     current_positive = _matched_keywords(
         current["text"],
-        PRIMARY_POSITIVE_KEYWORDS,
+        ALL_POSITIVE_KEYWORDS,
     )
 
     current_negative = _matched_keywords(
@@ -128,7 +190,7 @@ def _select_context_blocks(
 
     previous_positive = _matched_keywords(
         previous["text"],
-        PRIMARY_POSITIVE_KEYWORDS,
+        ALL_POSITIVE_KEYWORDS,
     )
 
     if previous_positive:
@@ -182,7 +244,7 @@ def generate_invoice_id_candidates(
 
         positive_keywords = _matched_keywords(
             context_text,
-            PRIMARY_POSITIVE_KEYWORDS,
+            ALL_POSITIVE_KEYWORDS,
         )
 
         negative_keywords = _matched_keywords(
@@ -191,26 +253,83 @@ def generate_invoice_id_candidates(
         )
 
         predicted_value: str | None = None
+        candidate_role = "primary"
+        matched_patterns: tuple[str, ...] = ()
 
-        # Case 1:
-        # Label and value are in the same OCR block.
-        labeled_match = PRIMARY_INVOICE_ID_PATTERN.search(
-            block["text"]
+        folded_block_text = (
+            _fold_vietnamese_diacritics(
+                block["text"]
+            )
         )
 
-        if labeled_match is not None:
-            predicted_value = labeled_match.group(1).strip()
+        primary_match = PRIMARY_INVOICE_ID_PATTERN.search(
+            folded_block_text
+        )
 
-        # Case 2:
-        # Previous block contains label, current block contains value.
-        elif (
-            len(context_blocks) == 2
-            and positive_keywords
-        ):
-            value_text = block["text"].strip()
+        if primary_match is not None:
+            predicted_value = (
+                primary_match.group(1).strip()
+            )
+            matched_patterns = (
+                "labeled_primary_id",
+            )
 
-            if VALUE_ONLY_PATTERN.fullmatch(value_text):
-                predicted_value = value_text
+        else:
+            fallback_match = (
+                FALLBACK_INVOICE_ID_PATTERN.search(
+                    folded_block_text
+                )
+            )
+
+            if fallback_match is not None:
+                predicted_value = (
+                    fallback_match.group(1).strip()
+                )
+                candidate_role = "fallback"
+                matched_patterns = (
+                    "labeled_fallback_id",
+                )
+
+            elif (
+                len(context_blocks) == 2
+                and positive_keywords
+            ):
+                value_text = block["text"].strip()
+
+                if VALUE_ONLY_PATTERN.fullmatch(
+                    value_text
+                ):
+                    previous_text = context_blocks[
+                        0
+                    ]["text"]
+
+                    previous_primary_keywords = (
+                        _matched_keywords(
+                            previous_text,
+                            PRIMARY_POSITIVE_KEYWORDS,
+                        )
+                    )
+
+                    previous_fallback_keywords = (
+                        _matched_keywords(
+                            previous_text,
+                            FALLBACK_POSITIVE_KEYWORDS,
+                        )
+                    )
+
+                    if previous_primary_keywords:
+                        predicted_value = value_text
+                        candidate_role = "primary"
+                        matched_patterns = (
+                            "split_label_value",
+                        )
+
+                    elif previous_fallback_keywords:
+                        predicted_value = value_text
+                        candidate_role = "fallback"
+                        matched_patterns = (
+                            "split_fallback_label_value",
+                        )
 
         if predicted_value is None:
             continue
@@ -237,6 +356,8 @@ def generate_invoice_id_candidates(
             layout_score=0.0,
             ocr_score=float(block["confidence"]),
             final_score=0.0,
+            candidate_role=candidate_role,
+            matched_patterns=matched_patterns,
         )
 
         candidate = replace(

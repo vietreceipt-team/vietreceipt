@@ -70,6 +70,8 @@ features:
     pattern:
       labeled_primary_id: 1.0
       split_label_value: 0.9
+      labeled_fallback_id: 0.65
+      split_fallback_label_value: 0.55
       unsupported: 0.0
 
     context:

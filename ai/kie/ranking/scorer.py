@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Mapping
+from typing import Any, Mapping
 
 from ai.kie.models import Candidate
 
@@ -12,6 +12,12 @@ REQUIRED_WEIGHTS = (
     "layout",
     "ocr_quality",
 )
+
+
+CANDIDATE_ROLE_PRIORITY = {
+    "primary": 2,
+    "fallback": 1,
+}
 
 
 def score_candidate(
@@ -52,22 +58,32 @@ def score_candidate(
         candidate,
         final_score=final_score,
     )
-    
+
+
 def rank_candidates(
     candidates: list[Candidate],
 ) -> list[Candidate]:
     """
-    Rank candidates from highest to lowest final_score.
+    Rank primary candidates before fallback candidates, then rank each
+    role from highest to lowest final_score.
 
-    Python's sort is stable, so candidates with equal scores preserve
-    their deterministic generation order.
+    Python's sort is stable, so equal keys preserve deterministic
+    generation order.
     """
 
     return sorted(
         candidates,
-        key=lambda candidate: candidate.final_score,
+        key=lambda candidate: (
+            CANDIDATE_ROLE_PRIORITY.get(
+                candidate.candidate_role,
+                0,
+            ),
+            candidate.final_score,
+        ),
         reverse=True,
     )
+
+
 def candidate_margin(
     ranked_candidates: list[Candidate],
 ) -> float | None:
@@ -104,7 +120,8 @@ def has_close_competitor(
         return False
 
     return margin < margin_threshold
-from typing import Any, Mapping
+
+
 def has_close_competitor_from_config(
     ranked_candidates: list[Candidate],
     config: Mapping[str, Any],
