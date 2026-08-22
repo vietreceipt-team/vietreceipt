@@ -5,6 +5,7 @@ import unicodedata
 from dataclasses import replace
 from typing import Any
 
+from ai.kie.candidates.metadata import unreadable_source_indicators
 from ai.kie.config import load_baseline_config
 from ai.kie.models import Candidate
 from ai.kie.ranking.features import (
@@ -201,11 +202,14 @@ def _select_context_blocks(
 
 def generate_invoice_id_candidates(
     ocr_result: dict[str, Any],
+    *,
+    config: dict[str, Any] | None = None,
 ) -> list[Candidate]:
     """
     Generate and score invoice_id candidates.
 
-    Baseline v0.1 supports primary invoice/receipt identifiers only.
+    Baseline v0.1 prefers primary invoice/receipt identifiers and exposes
+    transaction/reference identifiers as typed internal fallbacks.
 
     This function:
     - generates candidates;
@@ -217,11 +221,12 @@ def generate_invoice_id_candidates(
     - cast identifiers to integers;
     - remove leading zeroes;
     - resolve multiple candidates;
-    - use transaction/reference IDs as fallback;
     - produce final KIE field status/review decisions.
     """
 
-    config = load_baseline_config()
+    if config is None:
+        config = load_baseline_config()
+
     weights = config["weights"]
 
     blocks = sorted(
@@ -344,6 +349,12 @@ def generate_invoice_id_candidates(
             for context_block in context_blocks
         )
 
+        normalization_indicators = (
+            ("leading_zero_preserved",)
+            if predicted_value.startswith("0")
+            else ("identifier_string_preserved",)
+        )
+
         candidate = Candidate(
             field_name="invoice_id",
             predicted_value=predicted_value,
@@ -358,6 +369,12 @@ def generate_invoice_id_candidates(
             final_score=0.0,
             candidate_role=candidate_role,
             matched_patterns=matched_patterns,
+            ambiguity_indicators=(
+                unreadable_source_indicators(raw_text)
+            ),
+            normalization_indicators=(
+                normalization_indicators
+            ),
         )
 
         candidate = replace(

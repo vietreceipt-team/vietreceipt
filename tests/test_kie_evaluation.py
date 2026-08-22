@@ -8,7 +8,9 @@ from tempfile import TemporaryDirectory
 
 from ai.kie.evaluation import (
     COMPLETED_STATUS,
+    ERROR_TAXONOMY_DEFINITIONS,
     WAITING_STATUS,
+    classify_root_cause,
     compute_field_metrics,
     evaluate_manifest,
     write_evaluation_report,
@@ -199,6 +201,84 @@ def make_ready_fixture(
 
 class KIEMetricTests(unittest.TestCase):
 
+    def test_required_root_cause_taxonomy_is_explicit(self) -> None:
+        self.assertEqual(
+            set(ERROR_TAXONOMY_DEFINITIONS),
+            {
+                "OCR_OMISSION",
+                "OCR_SUBSTITUTION",
+                "CANDIDATE_GENERATION_FAILURE",
+                "CANDIDATE_RANKING_FAILURE",
+                "NORMALIZATION_FAILURE",
+                "AMBIGUITY",
+                "ANNOTATION_ISSUE",
+            },
+        )
+
+    def test_root_cause_uses_oracle_as_control(self) -> None:
+        gold = {
+            "annotation_status": "PRESENT",
+            "normalized_value": "001238",
+        }
+        correct_oracle = {
+            "value_status": "PRESENT",
+            "predicted_value": "001238",
+            "normalized_value": "001238",
+            "review_reasons": [],
+        }
+        missing_real = {
+            "value_status": "UNKNOWN",
+            "predicted_value": None,
+            "normalized_value": None,
+            "review_reasons": ["NO_CANDIDATE"],
+        }
+        substituted_real = {
+            "value_status": "PRESENT",
+            "predicted_value": "001288",
+            "normalized_value": "001288",
+            "review_reasons": [],
+        }
+        missing_oracle = dict(missing_real)
+        failed_normalization = {
+            "value_status": "AMBIGUOUS",
+            "predicted_value": "00I238",
+            "normalized_value": None,
+            "review_reasons": ["NORMALIZATION_FAILED"],
+        }
+
+        self.assertEqual(
+            classify_root_cause(
+                gold,
+                missing_real,
+                correct_oracle,
+            ),
+            "OCR_OMISSION",
+        )
+        self.assertEqual(
+            classify_root_cause(
+                gold,
+                substituted_real,
+                correct_oracle,
+            ),
+            "OCR_SUBSTITUTION",
+        )
+        self.assertEqual(
+            classify_root_cause(
+                gold,
+                missing_real,
+                missing_oracle,
+            ),
+            "CANDIDATE_GENERATION_FAILURE",
+        )
+        self.assertEqual(
+            classify_root_cause(
+                gold,
+                failed_normalization,
+                failed_normalization,
+            ),
+            "NORMALIZATION_FAILURE",
+        )
+
     def test_field_metrics_distinguish_status_and_value_errors(
         self,
     ) -> None:
@@ -268,6 +348,14 @@ class KIEMetricTests(unittest.TestCase):
         self.assertEqual(
             metrics["overall"]["exact_match_accuracy"],
             0.4,
+        )
+        self.assertEqual(
+            metrics["overall"]["macro_exact_match"],
+            0.4,
+        )
+        self.assertEqual(
+            metrics["fields"]["receipt_date"]["error_count"],
+            1,
         )
         self.assertEqual(
             metrics["overall"]["status_accuracy"],
@@ -371,6 +459,13 @@ class KIEEvaluatorTests(unittest.TestCase):
                     "exact_match_accuracy"
                 ],
                 0.0,
+            )
+            self.assertEqual(
+                report["error_analysis"]["all"]["counts"],
+                {
+                    category: 0
+                    for category in ERROR_TAXONOMY_DEFINITIONS
+                },
             )
 
             report_path = write_evaluation_report(

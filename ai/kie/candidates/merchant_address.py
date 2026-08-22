@@ -4,6 +4,7 @@ import re
 from dataclasses import replace
 from typing import Any
 
+from ai.kie.candidates.metadata import unreadable_source_indicators
 from ai.kie.config import load_baseline_config
 from ai.kie.models import Candidate
 from ai.kie.ranking.features import (
@@ -386,6 +387,29 @@ def generate_merchant_address_candidates(
             for source_block in source_blocks
         ) / len(source_blocks)
 
+        matched_patterns: list[str] = []
+
+        if LABELED_ADDRESS_PATTERN.search(raw_text):
+            matched_patterns.append("labeled_address")
+
+        if ADMINISTRATIVE_PATTERN.search(predicted_value):
+            matched_patterns.append("administrative_context")
+
+        if STREET_NUMBER_PATTERN.search(predicted_value):
+            matched_patterns.append("street_number")
+
+        normalization_indicators: list[str] = []
+
+        if len(source_blocks) > 1:
+            normalization_indicators.append(
+                "multi_block_join_required"
+            )
+
+        if LABELED_ADDRESS_PATTERN.search(raw_text):
+            normalization_indicators.append(
+                "address_label_removed"
+            )
+
         candidate = Candidate(
             field_name="merchant_address",
             predicted_value=predicted_value,
@@ -401,6 +425,13 @@ def generate_merchant_address_candidates(
             layout_score=0.0,
             ocr_score=ocr_score,
             final_score=0.0,
+            matched_patterns=tuple(matched_patterns),
+            ambiguity_indicators=(
+                unreadable_source_indicators(raw_text)
+            ),
+            normalization_indicators=tuple(
+                normalization_indicators
+            ),
         )
 
         candidate = replace(

@@ -42,3 +42,16 @@ Exit code `0` means evaluation completed. Exit code `2` means the report
 was written with status `WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS`; its
 metrics remain `null`. Invalid or inconsistent artifacts raise an error
 instead of being silently skipped.
+
+When evaluation completes, the report contains:
+
+- per-field, micro and macro Exact Match, status accuracy, normalization
+  accuracy, precision, recall, F1, coverage and review rate;
+- separate Real OCR and Oracle OCR results for all/development/held-out;
+- Oracle-minus-Real propagation gaps;
+- paired root-cause analysis for OCR omission, OCR substitution, candidate
+  generation/ranking failure, normalization failure and ambiguity;
+- a zero-initialized `ANNOTATION_ISSUE` category that may only be populated
+  after explicit human QA, never inferred from model disagreement;
+- hashes and versions for the manifest, split, config, schema and every
+  annotation/OCR input artifact.

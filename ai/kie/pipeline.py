@@ -20,7 +20,8 @@ from ai.kie.candidates.receipt_date import (
 from ai.kie.candidates.total_amount import (
     generate_total_amount_candidates,
 )
-from ai.kie.confidence import candidate_confidence
+from ai.kie.confidence import field_confidence
+from ai.kie.config import load_baseline_config
 from ai.kie.contract import (
     validate_kie_result,
     validate_ocr_result,
@@ -46,7 +47,7 @@ from ai.kie.review import ReviewDecision, decide_review
 
 
 EXTRACTOR_NAME = "deterministic-kie-baseline"
-EXTRACTOR_VERSION = "0.1.0"
+EXTRACTOR_VERSION = "0.2.0"
 
 
 FIELD_NAMES = (
@@ -273,6 +274,7 @@ def _build_candidate_field(
     ranked_candidates: list[Candidate],
     normalization_result: NormalizationResult,
     decision: ReviewDecision,
+    config: dict[str, Any],
 ) -> dict[str, Any]:
     """
     Assemble one canonical KIE field from ranked machine evidence.
@@ -319,8 +321,10 @@ def _build_candidate_field(
         "normalized_value": normalized_value,
         "normalization": normalization,
         "value_status": value_status,
-        "confidence": candidate_confidence(
-            best
+        "confidence": field_confidence(
+            ranked_candidates,
+            normalization_result,
+            config,
         ),
         "machine_needs_review": (
             decision.machine_needs_review
@@ -347,6 +351,7 @@ def _build_candidate_field(
 def _process_field(
     field_name: str,
     ocr_result: dict[str, Any],
+    config: dict[str, Any],
 ) -> dict[str, Any]:
     """
     Run candidate generation -> ranking -> normalization -> review
@@ -362,7 +367,8 @@ def _process_field(
     ]
 
     candidates = generator(
-        ocr_result
+        ocr_result,
+        config=config,
     )
 
     ranked_candidates = rank_candidates(
@@ -378,6 +384,7 @@ def _process_field(
             field_name,
             [],
             None,
+            config=config,
         )
 
         return _empty_unknown_field(
@@ -399,6 +406,7 @@ def _process_field(
         field_name,
         ranked_candidates,
         normalization_result,
+        config=config,
     )
 
     return _build_candidate_field(
@@ -407,6 +415,7 @@ def _process_field(
         ranked_candidates,
         normalization_result,
         decision,
+        config,
     )
 
 
@@ -446,10 +455,13 @@ def run_kie(
             "kie_run_id must be a uuid.UUID"
         )
 
+    config = load_baseline_config()
+
     fields = {
         field_name: _process_field(
             field_name,
             ocr_result,
+            config,
         )
         for field_name in FIELD_NAMES
     }

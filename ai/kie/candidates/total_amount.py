@@ -4,6 +4,10 @@ import re
 from dataclasses import replace
 from typing import Any
 
+from ai.kie.candidates.metadata import (
+    merge_indicators,
+    unreadable_source_indicators,
+)
 from ai.kie.config import load_baseline_config
 from ai.kie.models import Candidate
 from ai.kie.ranking.features import (
@@ -164,8 +168,12 @@ def _candidate_metadata(
 
 def generate_total_amount_candidates(
     ocr_result: dict[str, Any],
+    *,
+    config: dict[str, Any] | None = None,
 ) -> list[Candidate]:
-    config = load_baseline_config()
+    if config is None:
+        config = load_baseline_config()
+
     weights = config["weights"]
 
     blocks = sorted(
@@ -271,6 +279,10 @@ def generate_total_amount_candidates(
                 ambiguity_indicators,
                 normalization_indicators,
             ) = _candidate_metadata(predicted_value)
+            ambiguity_indicators = merge_indicators(
+                ambiguity_indicators,
+                unreadable_source_indicators(raw_text),
+            )
 
             candidate = Candidate(
                 field_name="total_amount",

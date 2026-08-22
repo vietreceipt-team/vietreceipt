@@ -6,6 +6,15 @@ weights:
   layout: 0.25
   ocr_quality: 0.15
 
+confidence:
+  version: "heuristic-confidence-v0.2"
+  weights:
+    ranking_score: 0.70
+    candidate_separation: 0.10
+    normalization_certainty: 0.15
+    ambiguity_evidence: 0.05
+  separation_full_margin: 0.25
+
 features:
   merchant_name:
     pattern:
@@ -51,6 +60,7 @@ features:
       iso_date: 1.0
       four_digit_year: 0.9
       two_digit_year: 0.5
+      missing_component: 0.3
       unsupported: 0.0
 
     context:
@@ -108,7 +118,7 @@ features:
       footer_score: 0.3
 
 review:
-  policy_version: "heuristic-review-v0.1"
+  policy_version: "heuristic-review-v0.2"
   close_candidate_margin: 0.10
 
   low_confidence_thresholds:

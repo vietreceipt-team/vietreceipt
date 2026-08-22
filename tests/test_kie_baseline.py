@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from uuid import UUID
 
 from ai.kie.candidates.invoice_id import (
@@ -9,10 +10,18 @@ from ai.kie.candidates.invoice_id import (
 from ai.kie.candidates.merchant_address import (
     generate_merchant_address_candidates,
 )
+from ai.kie.candidates.merchant_name import (
+    generate_merchant_name_candidates,
+)
+from ai.kie.candidates.receipt_date import (
+    generate_receipt_date_candidates,
+)
 from ai.kie.candidates.total_amount import (
     generate_total_amount_candidates,
 )
 from ai.kie.contract import validate_kie_result
+from ai.kie.confidence import CONFIDENCE_VERSION, field_confidence
+from ai.kie.config import load_baseline_config
 from ai.kie.models import Candidate, NormalizationResult
 from ai.kie.normalization.invoice_id import normalize_invoice_id
 from ai.kie.normalization.merchant_address import (
@@ -512,6 +521,88 @@ class KIEBaselineTests(unittest.TestCase):
         self.assertAlmostEqual(
             scored.final_score,
             0.7,
+        )
+
+    def test_07b_ranking_and_confidence_config_are_versioned(
+        self,
+    ) -> None:
+        config = load_baseline_config()
+
+        self.assertEqual(
+            config["version"],
+            "baseline-ranking-v0.1",
+        )
+        self.assertAlmostEqual(
+            sum(config["weights"].values()),
+            1.0,
+        )
+        self.assertEqual(
+            config["confidence"]["version"],
+            CONFIDENCE_VERSION,
+        )
+        self.assertAlmostEqual(
+            sum(
+                config["confidence"]["weights"].values()
+            ),
+            1.0,
+        )
+
+    def test_07c_field_confidence_uses_decision_evidence(
+        self,
+    ) -> None:
+        config = load_baseline_config()
+        best = make_candidate(
+            "total_amount",
+            "325000",
+            score=0.90,
+        )
+        close = make_candidate(
+            "total_amount",
+            "320000",
+            score=0.89,
+            source_block_ids=("b1",),
+        )
+        normalized = NormalizationResult(
+            normalized_value=325000,
+            rule="vnd_plain_integer",
+            version="normalization-v0.1",
+        )
+        failed = NormalizationResult(
+            normalized_value=None,
+            rule=None,
+            version=None,
+        )
+
+        separated_confidence = field_confidence(
+            [best],
+            normalized,
+            config,
+        )
+        close_confidence = field_confidence(
+            [best, close],
+            normalized,
+            config,
+        )
+        ambiguous_confidence = field_confidence(
+            [
+                replace(
+                    best,
+                    ambiguity_indicators=(
+                        "digit_letter_confusion",
+                    ),
+                )
+            ],
+            failed,
+            config,
+        )
+
+        self.assertGreater(
+            separated_confidence,
+            close_confidence,
+        )
+        self.assertGreater(
+            close_confidence,
+            ambiguous_confidence,
         )
 
     # ------------------------------------------------------------------
@@ -1133,6 +1224,148 @@ class KIEBaselineTests(unittest.TestCase):
         self.assertEqual(
             result["kie_run_id"],
             str(KIE_RUN_ID),
+        )
+
+    def test_17_candidate_metadata_covers_all_field_generators(
+        self,
+    ) -> None:
+        merchant = generate_merchant_name_candidates(
+            make_ocr(
+                [
+                    make_block(
+                        "b0",
+                        "CỬA HÀNG MINH AN",
+                        0,
+                        0.05,
+                    )
+                ]
+            )
+        )[0]
+        receipt_date = generate_receipt_date_candidates(
+            make_ocr(
+                [
+                    make_block(
+                        "b0",
+                        "08/09/2026",
+                        0,
+                        0.30,
+                    )
+                ]
+            )
+        )[0]
+        address = generate_merchant_address_candidates(
+            make_ocr(
+                [
+                    make_block(
+                        "b0",
+                        "ĐỊA CHỈ: 12 NGUYỄN TRÃI",
+                        0,
+                        0.10,
+                    ),
+                    make_block(
+                        "b1",
+                        "PHƯỜNG 3, QUẬN 5",
+                        1,
+                        0.15,
+                    ),
+                ]
+            )
+        )[0]
+
+        self.assertEqual(
+            merchant.matched_patterns,
+            ("explicit_store",),
+        )
+        self.assertEqual(
+            receipt_date.matched_patterns,
+            ("four_digit_year",),
+        )
+        self.assertIn(
+            "day_month_order_requires_context",
+            receipt_date.ambiguity_indicators,
+        )
+        self.assertIn(
+            "labeled_address",
+            address.matched_patterns,
+        )
+        self.assertIn(
+            "multi_block_join_required",
+            address.normalization_indicators,
+        )
+
+    def test_18_missing_date_component_requires_review(
+        self,
+    ) -> None:
+        result = run_kie(
+            make_ocr(
+                [
+                    make_block(
+                        "b0",
+                        "NGÀY GIAO DỊCH: 19/08",
+                        0,
+                        0.30,
+                    )
+                ]
+            ),
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["receipt_date"]
+
+        self.assertEqual(field["value_status"], "AMBIGUOUS")
+        self.assertIn(
+            "MISSING_DATE_COMPONENT",
+            field["review_reasons"],
+        )
+
+    def test_19_unclear_merchant_source_role_requires_review(
+        self,
+    ) -> None:
+        result = run_kie(
+            make_ocr(
+                [
+                    make_block(
+                        "b0",
+                        "MINH AN RETAIL",
+                        0,
+                        0.05,
+                    )
+                ]
+            ),
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["merchant_name"]
+
+        self.assertEqual(field["value_status"], "AMBIGUOUS")
+        self.assertIn(
+            "SOURCE_ROLE_UNCLEAR",
+            field["review_reasons"],
+        )
+
+    def test_20_explicit_unreadable_marker_requires_review(
+        self,
+    ) -> None:
+        result = run_kie(
+            make_ocr(
+                [
+                    make_block(
+                        "b0",
+                        "CỬA HÀNG MINH �",
+                        0,
+                        0.05,
+                    )
+                ]
+            ),
+            kie_run_id=KIE_RUN_ID,
+        )
+
+        field = result["fields"]["merchant_name"]
+
+        self.assertEqual(field["value_status"], "UNREADABLE")
+        self.assertIn(
+            "UNREADABLE_SOURCE",
+            field["review_reasons"],
         )
 
 

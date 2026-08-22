@@ -88,17 +88,33 @@ def candidate_margin(
     ranked_candidates: list[Candidate],
 ) -> float | None:
     """
-    Return the score gap between top-1 and top-2 candidates.
+    Return the score gap to the next candidate with the same role.
 
-    Returns None when fewer than two candidates exist.
+    A typed fallback identifier is not a direct competitor of a primary
+    invoice/receipt identifier. Returns None when the top candidate has no
+    same-role competitor.
     """
 
     if len(ranked_candidates) < 2:
         return None
 
-    return (
-        ranked_candidates[0].final_score
-        - ranked_candidates[1].final_score
+    best = ranked_candidates[0]
+
+    competitor = next(
+        (
+            candidate
+            for candidate in ranked_candidates[1:]
+            if candidate.candidate_role == best.candidate_role
+        ),
+        None,
+    )
+
+    if competitor is None:
+        return None
+
+    return max(
+        0.0,
+        best.final_score - competitor.final_score,
     )
 
 

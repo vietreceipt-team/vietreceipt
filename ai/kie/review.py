@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Sequence
 
-from ai.kie.confidence import candidate_confidence
+from ai.kie.confidence import field_confidence
 from ai.kie.config import load_baseline_config
 from ai.kie.models import Candidate, NormalizationResult
 from ai.kie.ranking.scorer import (
@@ -53,6 +53,15 @@ FOUR_DIGIT_DATE_PATTERN = re.compile(
 )
 
 
+MISSING_DATE_COMPONENT_PATTERN = re.compile(
+    r"^\s*"
+    r"(?:0?[1-9]|[12]\d|3[01])[/\-]"
+    r"(?:0?[1-9]|1[0-2])"
+    r"\s*$",
+    flags=re.UNICODE,
+)
+
+
 NON_VND_CURRENCY_PATTERN = re.compile(
     r"(?:"
     r"\bUSD\b"
@@ -94,6 +103,9 @@ def _receipt_date_failure_reason(
 
     if TWO_DIGIT_YEAR_PATTERN.fullmatch(stripped):
         return "UNSUPPORTED_TWO_DIGIT_YEAR"
+
+    if MISSING_DATE_COMPONENT_PATTERN.fullmatch(stripped):
+        return "MISSING_DATE_COMPONENT"
 
     match = FOUR_DIGIT_DATE_PATTERN.fullmatch(
         stripped
@@ -231,12 +243,24 @@ def decide_review(
 
     reasons: list[str] = []
 
+    def add_reason(reason: str) -> None:
+        if reason not in reasons:
+            reasons.append(reason)
+
+    if "unreadable_source" in best.ambiguity_indicators:
+        add_reason("UNREADABLE_SOURCE")
+
+    if "source_role_unclear" in best.ambiguity_indicators:
+        add_reason("SOURCE_ROLE_UNCLEAR")
+
     # ------------------------------------------------------------------
     # Low heuristic confidence
     # ------------------------------------------------------------------
 
-    confidence = candidate_confidence(
-        best
+    confidence = field_confidence(
+        ranked,
+        normalization_result,
+        config,
     )
 
     threshold = float(
@@ -244,9 +268,7 @@ def decide_review(
     )
 
     if confidence < threshold:
-        reasons.append(
-            "LOW_CONFIDENCE"
-        )
+        add_reason("LOW_CONFIDENCE")
 
     # ------------------------------------------------------------------
     # Multiple close candidates
@@ -256,9 +278,7 @@ def decide_review(
         ranked,
         config,
     ):
-        reasons.append(
-            "MULTIPLE_CANDIDATES"
-        )
+        add_reason("MULTIPLE_CANDIDATES")
 
     # ------------------------------------------------------------------
     # Normalization failure
@@ -276,13 +296,9 @@ def decide_review(
         )
 
         if specific_reason is not None:
-            reasons.append(
-                specific_reason
-            )
+            add_reason(specific_reason)
         else:
-            reasons.append(
-                "NORMALIZATION_FAILED"
-            )
+            add_reason("NORMALIZATION_FAILED")
 
     # ------------------------------------------------------------------
     # Final deterministic decision

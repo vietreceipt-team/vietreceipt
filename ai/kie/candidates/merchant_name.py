@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import Any
 
+from ai.kie.candidates.metadata import unreadable_source_indicators
 from ai.kie.models import Candidate
 
 from dataclasses import replace
@@ -69,12 +71,19 @@ GENERIC_DOCUMENT_TITLES = (
 # Candidate patterns
 # ---------------------------------------------------------------------------
 
-EXPLICIT_MERCHANT_PATTERN = re.compile(
+LEGAL_ENTITY_PATTERN = re.compile(
     r"\b(?:"
     r"CÔNG\s+TY"
     r"|CTY"
     r"|DOANH\s+NGHIỆP"
-    r"|CỬA\s+HÀNG"
+    r")\b",
+    flags=re.IGNORECASE | re.UNICODE,
+)
+
+
+EXPLICIT_STORE_PATTERN = re.compile(
+    r"\b(?:"
+    r"CỬA\s+HÀNG"
     r"|SIÊU\s+THỊ"
     r"|NHÀ\s+THUỐC"
     r"|CHI\s+NHÁNH"
@@ -255,9 +264,10 @@ def generate_merchant_name_candidates(
         ):
             continue
 
-        explicit_match = (
-            EXPLICIT_MERCHANT_PATTERN.search(text)
-            is not None
+        legal_entity_match = LEGAL_ENTITY_PATTERN.search(text)
+        explicit_store_match = EXPLICIT_STORE_PATTERN.search(text)
+        explicit_match = bool(
+            legal_entity_match or explicit_store_match
         )
 
         center_y = _block_center_y(block)
@@ -268,6 +278,26 @@ def generate_merchant_name_candidates(
 
         if not explicit_match and not is_header_candidate:
             continue
+
+        if legal_entity_match is not None:
+            matched_patterns = ("legal_entity",)
+        elif explicit_store_match is not None:
+            matched_patterns = ("explicit_store",)
+        else:
+            matched_patterns = ("header_text",)
+
+        ambiguity_indicators = unreadable_source_indicators(text)
+
+        if not explicit_match and not positive_keywords:
+            ambiguity_indicators += ("source_role_unclear",)
+
+        normalization_indicators: list[str] = []
+
+        if unicodedata.normalize("NFC", text) != text:
+            normalization_indicators.append("unicode_nfc_required")
+
+        if re.search(r"\s{2,}", text):
+            normalization_indicators.append("whitespace_collapse_required")
 
         candidate = Candidate(
             field_name="merchant_name",
@@ -283,6 +313,11 @@ def generate_merchant_name_candidates(
             layout_score=0.0,
             ocr_score=float(block["confidence"]),
             final_score=0.0,
+            matched_patterns=matched_patterns,
+            ambiguity_indicators=ambiguity_indicators,
+            normalization_indicators=tuple(
+                normalization_indicators
+            ),
         )
 
         candidate = replace(

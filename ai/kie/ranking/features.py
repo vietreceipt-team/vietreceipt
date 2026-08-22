@@ -183,6 +183,11 @@ def receipt_date_pattern_score(
             feature_config["two_digit_year"]
         )
 
+    if "missing_date_component" in candidate.matched_patterns:
+        return float(
+            feature_config["missing_component"]
+        )
+
     return float(
         feature_config["unsupported"]
     )

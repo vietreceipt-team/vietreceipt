@@ -100,6 +100,9 @@ def _summarize_counts(
 
     return {
         "decision_count": counts["decisions"],
+        "error_count": (
+            counts["decisions"] - counts["exact"]
+        ),
         "gold_present_count": counts["gold_present"],
         "predicted_present_count": counts[
             "predicted_present"
@@ -234,17 +237,28 @@ def compute_field_metrics(
                     }
                 )
 
+    field_summaries = {
+        field_name: _summarize_counts(
+            counts_by_field[field_name]
+        )
+        for field_name in FIELD_NAMES
+    }
+    overall_summary = _summarize_counts(
+        overall_counts
+    )
+    overall_summary["macro_exact_match"] = round(
+        sum(
+            float(summary["exact_match_accuracy"])
+            for summary in field_summaries.values()
+        )
+        / len(FIELD_NAMES),
+        6,
+    )
+
     return {
         "sample_count": len(pairs),
-        "overall": _summarize_counts(
-            overall_counts
-        ),
-        "fields": {
-            field_name: _summarize_counts(
-                counts_by_field[field_name]
-            )
-            for field_name in FIELD_NAMES
-        },
+        "overall": overall_summary,
+        "fields": field_summaries,
         "error_taxonomy": {
             "counts": dict(
                 sorted(error_counts.items())

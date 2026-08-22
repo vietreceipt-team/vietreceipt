@@ -16,6 +16,10 @@ from ai.kie.evaluation.metrics import (
     EvaluationPair,
     compute_field_metrics,
 )
+from ai.kie.evaluation.error_analysis import (
+    ERROR_TAXONOMY_DEFINITIONS,
+    analyze_root_causes,
+)
 from ai.kie.pipeline import (
     EXTRACTOR_NAME,
     EXTRACTOR_VERSION,
@@ -50,7 +54,7 @@ ANNOTATION_SCHEMA_PATH = (
 )
 
 
-EVALUATOR_VERSION = "kie-field-evaluator-v0.1"
+EVALUATOR_VERSION = "kie-field-evaluator-v0.2"
 WAITING_STATUS = (
     "WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS"
 )
@@ -61,7 +65,7 @@ EVALUATION_NAMESPACE = UUID(
 )
 
 
-METRIC_NAMES = (
+FIELD_METRIC_NAMES = (
     "exact_match_accuracy",
     "status_accuracy",
     "normalization_accuracy",
@@ -73,9 +77,18 @@ METRIC_NAMES = (
 )
 
 
+OVERALL_METRIC_NAMES = (
+    *FIELD_METRIC_NAMES,
+    "macro_exact_match",
+)
+
+
 METRIC_DEFINITIONS = {
     "exact_match_accuracy": (
         "gold and prediction have the same status and normalized value"
+    ),
+    "macro_exact_match": (
+        "unweighted mean of the five per-field exact-match accuracies"
     ),
     "status_accuracy": (
         "predicted value_status equals gold annotation_status"
@@ -99,7 +112,7 @@ METRIC_DEFINITIONS = {
 }
 
 
-ERROR_TAXONOMY_DEFINITIONS = {
+OUTCOME_ERROR_DEFINITIONS = {
     "MISSED_PRESENT": (
         "gold is PRESENT but the machine status is not PRESENT"
     ),
@@ -341,6 +354,10 @@ def _base_provenance(
         },
         "ranking_config_version": config["version"],
         "ranking_config_sha256": _sha256(CONFIG_PATH),
+        "confidence_version": config["confidence"]["version"],
+        "review_policy_version": config["review"][
+            "policy_version"
+        ],
         "manifest_path": _display_path(manifest_path),
         "manifest_sha256": _sha256(manifest_path),
         "split_path": _display_path(split_path),
@@ -405,6 +422,8 @@ def _waiting_report(
         "error_taxonomy_definitions": (
             ERROR_TAXONOMY_DEFINITIONS
         ),
+        "outcome_error_definitions": OUTCOME_ERROR_DEFINITIONS,
+        "error_analysis": None,
         "modes": None,
         "propagation_gap": None,
         "provenance": _base_provenance(
@@ -418,6 +437,7 @@ def _waiting_report(
 def _metric_gap(
     oracle: dict[str, Any],
     real: dict[str, Any],
+    metric_names: tuple[str, ...],
 ) -> dict[str, float]:
     return {
         metric_name: round(
@@ -425,7 +445,7 @@ def _metric_gap(
             - float(real[metric_name]),
             6,
         )
-        for metric_name in METRIC_NAMES
+        for metric_name in metric_names
     }
 
 
@@ -439,11 +459,13 @@ def _propagation_gap(
         "overall": _metric_gap(
             oracle_metrics["overall"],
             real_metrics["overall"],
+            OVERALL_METRIC_NAMES,
         ),
         "fields": {
             field_name: _metric_gap(
                 oracle_metrics["fields"][field_name],
                 real_metrics["fields"][field_name],
+                FIELD_METRIC_NAMES,
             )
             for field_name in FIELD_NAMES
         },
@@ -773,6 +795,31 @@ def evaluate_manifest(
     )
     provenance["input_artifact_sha256"] = input_hashes
 
+    error_analysis = {
+        "all": analyze_root_causes(
+            pairs_by_mode["real"],
+            pairs_by_mode["oracle"],
+        ),
+        "by_split": {
+            split_name: analyze_root_causes(
+                [
+                    pair
+                    for pair in pairs_by_mode["real"]
+                    if split_by_test_id[pair[0]] == split_name
+                ],
+                [
+                    pair
+                    for pair in pairs_by_mode["oracle"]
+                    if split_by_test_id[pair[0]] == split_name
+                ],
+            )
+            for split_name in (
+                "development",
+                "held_out",
+            )
+        },
+    }
+
     return {
         "status": COMPLETED_STATUS,
         "dataset_version": dataset_version,
@@ -792,6 +839,8 @@ def evaluate_manifest(
         "error_taxonomy_definitions": (
             ERROR_TAXONOMY_DEFINITIONS
         ),
+        "outcome_error_definitions": OUTCOME_ERROR_DEFINITIONS,
+        "error_analysis": error_analysis,
         "modes": modes,
         "propagation_gap": _propagation_gap(
             real_metrics=modes["real"]["all"],

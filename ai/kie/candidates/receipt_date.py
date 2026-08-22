@@ -6,6 +6,10 @@ from typing import Any
 from ai.kie.models import Candidate
 from dataclasses import replace
 
+from ai.kie.candidates.metadata import (
+    merge_indicators,
+    unreadable_source_indicators,
+)
 from ai.kie.config import load_baseline_config
 from ai.kie.ranking.features import (
     receipt_date_context_score,
@@ -42,6 +46,15 @@ TWO_DIGIT_YEAR_DATE_PATTERN = re.compile(
     r"\b(?:0?[1-9]|[12]\d|3[01])[\/.-]"
     r"(?:0?[1-9]|[12]\d|3[01])[\/.-]"
     r"\d{2}\b",
+    flags=re.UNICODE,
+)
+
+
+MISSING_DATE_COMPONENT_PATTERN = re.compile(
+    r"(?<![\d./-])"
+    r"(?:0?[1-9]|[12]\d|3[01])[/\-]"
+    r"(?:0?[1-9]|1[0-2])"
+    r"(?![/\-]\d)",
     flags=re.UNICODE,
 )
 
@@ -157,6 +170,8 @@ def _select_context_blocks(
 
 def generate_receipt_date_candidates(
     ocr_result: dict[str, Any],
+    *,
+    config: dict[str, Any] | None = None,
 ) -> list[Candidate]:
     """
     Generate receipt_date candidates from a canonical OCRResult.
@@ -177,7 +192,9 @@ def generate_receipt_date_candidates(
     review-policy stages.
     """
 
-    config = load_baseline_config()
+    if config is None:
+        config = load_baseline_config()
+
     weights = config["weights"]
 
     blocks = sorted(
@@ -208,15 +225,20 @@ def generate_receipt_date_candidates(
             NEGATIVE_KEYWORDS,
         )
 
-        matches = []
+        matches: list[tuple[str, re.Match[str]]] = []
 
-        for pattern in (
-            ISO_DATE_PATTERN,
-            FOUR_DIGIT_DATE_PATTERN,
-            TWO_DIGIT_YEAR_DATE_PATTERN,
+        for pattern_name, pattern in (
+            ("iso_date", ISO_DATE_PATTERN),
+            ("four_digit_year", FOUR_DIGIT_DATE_PATTERN),
+            ("two_digit_year", TWO_DIGIT_YEAR_DATE_PATTERN),
+            (
+                "missing_date_component",
+                MISSING_DATE_COMPONENT_PATTERN,
+            ),
         ):
             matches.extend(
-                pattern.finditer(block["text"])
+                (pattern_name, match)
+                for match in pattern.finditer(block["text"])
             )
 
         if not matches:
@@ -232,7 +254,47 @@ def generate_receipt_date_candidates(
             for context_block in context_blocks
         )
 
-        for match in matches:
+        for pattern_name, match in matches:
+            ambiguity_indicators: tuple[str, ...] = ()
+            normalization_indicators: tuple[str, ...]
+
+            if pattern_name == "iso_date":
+                normalization_indicators = ("iso_year_first",)
+            elif pattern_name == "two_digit_year":
+                ambiguity_indicators = ("two_digit_year",)
+                normalization_indicators = (
+                    "unsupported_two_digit_year",
+                )
+            elif pattern_name == "missing_date_component":
+                ambiguity_indicators = (
+                    "missing_date_component",
+                )
+                normalization_indicators = (
+                    "incomplete_date",
+                )
+            else:
+                date_parts = re.split(
+                    r"[./-]",
+                    match.group(0),
+                )
+                first = int(date_parts[0])
+                second = int(date_parts[1])
+
+                if first <= 12 and second <= 12:
+                    ambiguity_indicators = (
+                        "day_month_order_requires_context",
+                    )
+
+                normalization_indicators = (
+                    "four_digit_year",
+                    "numeric_date_order_resolution",
+                )
+
+            ambiguity_indicators = merge_indicators(
+                ambiguity_indicators,
+                unreadable_source_indicators(raw_text),
+            )
+
             candidate = Candidate(
                 field_name="receipt_date",
                 predicted_value=match.group(0).strip(),
@@ -245,6 +307,11 @@ def generate_receipt_date_candidates(
                 layout_score=0.0,
                 ocr_score=float(block["confidence"]),
                 final_score=0.0,
+                matched_patterns=(pattern_name,),
+                ambiguity_indicators=ambiguity_indicators,
+                normalization_indicators=(
+                    normalization_indicators
+                ),
             )
 
             candidate = replace(

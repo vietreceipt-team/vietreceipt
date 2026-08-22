@@ -49,7 +49,7 @@ Ví dụ:
 R001
 ├── annotation A
 └── annotation B
-````
+```
 
 Annotator B không được xem annotation A trước khi hoàn thành annotation của mình.
 
@@ -177,3 +177,19 @@ Một receipt được đưa vào official KIE evaluation khi:
 * [ ] mọi disagreement đã adjudicate;
 * [ ] cả năm field có final gold;
 * [ ] provenance/version metadata đầy đủ.
+
+## 11. Error-analysis boundary
+
+Evaluation dùng cặp Real OCR và Oracle OCR của cùng receipt để phân loại:
+
+* OCR omission;
+* OCR substitution;
+* candidate generation failure;
+* candidate ranking failure;
+* normalization failure;
+* ambiguity.
+
+`ANNOTATION_ISSUE` chỉ được ghi sau khi người làm QA xác nhận annotation
+không nhất quán hoặc không hợp lệ. Không được suy nhãn này chỉ vì KIE dự đoán
+khác gold. Annotation có issue phải quay lại QA/adjudication; không được âm thầm
+giữ trong official metric run.
