@@ -1,106 +1,28 @@
-# VietReceipt Frontend — W2 receipt workflow
+# VietReceipt Frontend — HTML/CSS/JavaScript thuần
 
-Next.js App Router frontend cho workflow Human-in-the-Loop của VietReceipt:
+Frontend Human-in-the-Loop của VietReceipt được chuyển từ Next.js/React/TypeScript sang HTML, CSS và JavaScript ES modules. Việc đổi runtime không thay đổi product contract W1/W2: upload → processing → review → APPLY/CLEAR correction → verify, cùng FAILED/retry.
 
-```text
-Upload → UPLOADED/PROCESSING → NEEDS_REVIEW → APPLY/CLEAR → VERIFIED
-                                      └──── FAILED → Retry ────┘
-```
+Phạm vi này giữ toàn bộ yêu cầu đã chốt ở Frontend W1 Issue #7 và W2 Issue #13. Không bao gồm pilot mode hoặc yêu cầu W3.
 
-- W2 issue: [#13](https://github.com/vietreceipt-team/vietreceipt/issues/13)
-- Frontend owner: [@phamduyductam-design](https://github.com/phamduyductam-design)
-- Frontend chỉ gọi canonical FastAPI REST API; không gọi OCR/KIE, Database, Storage hay tự sinh polygon.
+## Chạy local
 
-## Chạy dự án
+Yêu cầu Node.js 22.13 trở lên:
 
-Yêu cầu Node.js 22.13 trở lên.
-
-```bash
+```powershell
 npm ci
 npm run dev
 ```
 
-Mặc định trình duyệt gọi cùng origin tại `/api/v1`. Khi phát triển local, cấu hình server-side rewrite để tránh CORS:
+Mở `http://127.0.0.1:3000`. Các route được giữ nguyên:
 
-```dotenv
-BACKEND_API_ORIGIN=http://localhost:8000
-```
+- `/login/`
+- `/upload/`
+- `/receipts/`
+- `/receipts/{receipt_id}/`
 
-Nếu Backend được expose trực tiếp cho trình duyệt và đã cấu hình CORS/cookie phù hợp, có thể dùng:
+## Validation
 
-```dotenv
-NEXT_PUBLIC_VIETRECEIPT_API_BASE_URL=http://localhost:8000
-```
-
-Biến public chỉ chứa origin, không chứa credential hay token. `frontend/lib/vietreceipt-api.ts` là integration boundary duy nhất; React components không gọi `fetch()` trực tiếp.
-
-## API dependency
-
-W2 sử dụng các endpoint đã merge trong Backend PR [#19](https://github.com/vietreceipt-team/vietreceipt/pull/19):
-
-- `POST /api/v1/receipts`
-- `GET /api/v1/receipts`
-- `GET /api/v1/receipts/{receipt_id}`
-- `PATCH /api/v1/receipts/{receipt_id}/fields/{field_name}/correction`
-- `POST /api/v1/receipts/{receipt_id}/verify`
-- `POST /api/v1/receipts/{receipt_id}/retry`
-
-Exact integration pin:
-
-- Backend PR #19 head: `2793a6b93b97506b0b38c63168fa0e953c965f54`
-- Merge commit trên `main`: `7b1a40eef791af81f320fdc47fdf1393ae822ddf`
-- Frozen shared OpenAPI v1.3 vẫn bắt nguồn từ PR #3 commit `f1eaed210144140184388cdb84d71c1d79493e13`.
-
-Pin kiểm thử nằm tại `tests/fixtures/backend-contract-v1.3.json`. Khi contract thay đổi, cần cập nhật exact approved SHA, adapter, fixture và contract tests cùng một commit; không copy một fixture mới rồi để test xanh độc lập với canonical OpenAPI.
-
-## Trạng thái và polling
-
-Frontend render đúng năm public states: `UPLOADED`, `PROCESSING`, `NEEDS_REVIEW`, `VERIFIED`, `FAILED`.
-
-- Polling chỉ chạy trong `UPLOADED` và `PROCESSING`.
-- Interval đầu là 2,5 giây, backoff có giới hạn 10 giây và tối đa 120 lần.
-- Polling dừng khi sang `NEEDS_REVIEW`, `VERIFIED`, `FAILED`, khi component unmount hoặc khi receipt ID đổi.
-- Chỉ hiển thị `PREPROCESSING/OCR/KIE/PERSISTING` do Backend trả; không tự tạo phần trăm tiến độ.
-- Retry `202` chỉ có nghĩa Backend đã chấp nhận schedule. UI tải lại receipt thay vì tự gán `PROCESSING`.
-
-## Correction, stale write và authority
-
-Mỗi canonical field có state riêng: `VIEW`, `EDITING`, `SAVING`, `SAVE_ERROR`, `STALE`, `SAVED`.
-
-- `APPLY` dùng `field.updated_at`; `CLEAR` không gửi `value` hoặc `value_status`.
-- Response correction thay đúng field local trước tiên.
-- Backend correction đồng thời làm đổi `receipt.updated_at` nhưng response chỉ chứa field, nên UI gọi lại `GET receipt` để lấy token verify mới. Frontend không tự suy ra timestamp hay effective value.
-- Khi nhận `409`, UI không retry mutation. Nó khóa hành động liên quan và yêu cầu người dùng bấm **Tải phiên bản mới**.
-- Verify dùng `receipt.updated_at` và Backend là authority cuối cùng.
-- `VERIFIED` là read-only nhưng vẫn giữ machine value, human correction, effective value và OCR evidence.
-
-## Evidence và HITL
-
-Backend trả `image_url`, `ocr_blocks` và `source_block_ids`. Frontend:
-
-- render đúng polygon bốn điểm;
-- field → highlight toàn bộ source blocks;
-- polygon → focus field liên quan;
-- fail projection nếu một `source_block_id` không tồn tại, vì tiếp tục render sẽ trình bày provenance sai;
-- không generate/guess polygon, không reconstruct ảnh và không fallback effective value sang predicted value.
-
-Warning hiện tại dùng `effective_needs_review`. Confidence và `machine_needs_review` chỉ là provenance/presentation; W2 không auto-verify, không ẩn field confidence cao và không selective-skip khi chưa có calibrated evidence.
-
-Keyboard cơ bản:
-
-- `Ctrl/⌘ + Enter`: lưu APPLY cho field;
-- `Esc`: bỏ draft local;
-- `Alt + ↑/↓`: chuyển field.
-
-## Measurement-ready telemetry
-
-`frontend/lib/review-telemetry.ts` phát event hook `vietreceipt:review-event` cho review start, field focus/edit, APPLY, CLEAR, verify, chuyển receipt và retry. `REVIEW_STARTED` chỉ phát ở tương tác pointer/focus/keyboard đầu tiên của người review; render màn hình không tự tính là bắt đầu review. Payload chỉ gồm event name, timestamp, receipt ID, field/operation khi cần và `PREFILL_FULL_REVIEW` mode.
-
-Không log raw image bytes, OCR text, field value, token hoặc credential. Task này không gửi telemetry tới analytics backend và không claim selective review hiệu quả.
-
-## Kiểm tra trước Pull Request
-
-```bash
+```powershell
 npm run typecheck
 npm run lint
 npm test
@@ -108,8 +30,78 @@ npm run build
 npm audit --audit-level=high
 ```
 
-Root contract suite vẫn phải chạy để phát hiện drift với shared OpenAPI:
+`typecheck` trong codebase JavaScript nghĩa là kiểm tra syntax của toàn bộ ES modules và xác nhận không còn `.ts/.tsx`. `lint` bổ sung enforcement rằng UI modules không gọi `fetch()` ngoài API boundary và telemetry không chứa dữ liệu nhạy cảm.
 
-```bash
-python tests/contracts/run_contract_tests.py
+## Mock và Backend thật
+
+Mặc định `assets/js/config.js` đặt `dataMode: "mock"`. Mock HTTP adapter dùng cùng interface với API thật và lưu fixture trong `sessionStorage`, nên upload thành công vẫn điều hướng được sang `/receipts/{receipt_id}/`.
+
+Khi Backend đã wire service registry/persistence, đổi:
+
+```js
+dataMode: "api"
 ```
+
+Giữ `apiBaseUrl: ""` để gọi cùng origin tại `/api/v1`. Server hỗ trợ reverse proxy khi có:
+
+```dotenv
+BACKEND_API_ORIGIN=http://localhost:8000
+```
+
+Trong Docker Compose dùng `http://backend:8000`. Chỉ đặt API origin public khác origin nếu Backend đã cấu hình CORS/cookie phù hợp. Không đặt token, mật khẩu hoặc secret trong file public.
+
+## W1/W2 workflow được giữ
+
+- Public states: `UPLOADED`, `PROCESSING`, `NEEDS_REVIEW`, `VERIFIED`, `FAILED`; không public `QUEUED`.
+- Upload dùng multipart field `file`, không gọi `/process`, và điều hướng tới detail sau success.
+- Detail polling 2,5 giây, bounded backoff tối đa 10 giây/120 lần, cleanup khi rời trang, dừng ở terminal states.
+- Processing stage chỉ render `PREPROCESSING`, `OCR`, `KIE`, `PERSISTING`; không tự bịa phần trăm.
+- Năm canonical fields luôn được giữ: `merchant_name`, `receipt_date`, `total_amount`, `invoice_id`, `merchant_address`.
+- Mỗi field có `VIEW`, `EDITING`, `SAVING`, `SAVE_ERROR`, `STALE`, `SAVED`.
+- `APPLY` và `CLEAR` dùng `field.updated_at`; correction response là authoritative field.
+- Sau correction, GET detail lấy `receipt.updated_at` mới nhưng giữ draft chưa lưu của field khác.
+- HTTP 409 không auto-retry; UI hiện nút **Tải phiên bản mới**.
+- Verify dùng `receipt.updated_at`; chỉ Backend quyết định kết quả cuối.
+- VERIFIED là read-only và vẫn hiển thị machine, human correction, effective value cùng OCR evidence.
+- FAILED chỉ hiện retry khi `retryable=true`; HTTP 202 chỉ nghĩa schedule đã được chấp nhận.
+- Field → nhiều OCR blocks và OCR block → nhiều fields đều được highlight; source block thiếu làm adapter fail projection.
+- Keyboard: `Ctrl/⌘+Enter` lưu APPLY, `Esc` bỏ draft, `Alt+↑/↓` chuyển field.
+
+## Telemetry measurement-ready
+
+`assets/js/review-telemetry.js` phát event `vietreceipt:review-event` cho:
+
+- review bắt đầu từ tương tác pointer/focus/keyboard đầu tiên, không phải lúc render;
+- focus/edit field;
+- APPLY/CLEAR correction;
+- verify, chuyển receipt và retry.
+
+Payload chỉ có event name, timestamp, receipt ID, field/operation khi cần và `PREFILL_FULL_REVIEW`. Không chứa ảnh, OCR text, field value, token hoặc credential. Frontend không auto-verify, không selective-skip và không claim confidence đã calibration.
+
+## Cấu trúc
+
+```text
+assets/
+  css/                 stylesheet đã biên dịch + app overrides
+  fonts/               Geist/Geist Mono Latin và tiếng Việt
+  js/
+    api.js              Backend DTO validation + mock/HTTP boundary
+    review-state.js     per-field state và reconcile logic
+    review-telemetry.js privacy-safe measurement hooks
+    common.js           navigation/constants/formatters
+    config.js           mock/API configuration
+    mock-data.js        canonical W1/W2 fixtures
+    login.js
+    upload.js
+    receipts.js
+    receipt-detail.js
+login/index.html
+upload/index.html
+receipts/index.html
+receipts/detail.html
+scripts/               typecheck/lint/build
+tests/                 contract + workflow + interaction tests
+server.js               static routes + Backend reverse proxy
+```
+
+Mọi network request nằm trong `assets/js/api.js`; UI modules chỉ gọi `vietReceiptApi`. Frontend không gọi OCR/KIE, database hoặc storage trực tiếp và không tự tạo polygon.

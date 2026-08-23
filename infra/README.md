@@ -51,7 +51,7 @@ Các endpoint từ máy host:
 | MinIO S3 API | `http://localhost:9000` |
 | MinIO Console | `http://localhost:9001` |
 | Backend API | `http://localhost:8000` (OpenAPI tại `/openapi.json`, docs tại `/docs`) |
-| Frontend (Next.js dev server) | `http://localhost:3000` |
+| Frontend (vanilla HTML/CSS/JavaScript server) | `http://localhost:3000` |
 
 `Backend` build từ `infra/docker/backend.Dockerfile`, chạy đúng app FastAPI mà
 Backend-1 commit tại `backend/app/main.py`; DevOps chỉ container hoá, không
@@ -59,8 +59,10 @@ sửa domain/API code. `Worker` build từ `infra/docker/worker.Dockerfile`, ch�
 một Celery app rỗng (`infra/docker/worker/celery_app.py`) chỉ để chứng minh
 worker kết nối được Redis broker — **chưa có task xử lý hóa đơn nào**; task đó
 thuộc về Backend-1/Backend-2. `Frontend` build từ
-`infra/docker/frontend.Dockerfile`, chạy `next dev` cho môi trường local; đây
-không phải production image.
+`infra/docker/frontend.Dockerfile`, chạy static server không dependency cho môi
+trường local. Server giữ route `/receipts/{receipt_id}/` và reverse proxy
+`/api/v1/*` tới `BACKEND_API_ORIGIN=http://backend:8000`; đây không phải
+production image.
 
 Backend, Worker và Frontend chạy trong cùng Compose network phải dùng service
 name, không dùng `localhost`:
@@ -69,6 +71,7 @@ name, không dùng `localhost`:
 DATABASE_URL=postgresql+psycopg://vietreceipt:...@postgres:5432/vietreceipt
 REDIS_URL=redis://redis:6379/0
 STORAGE_ENDPOINT=http://minio:9000
+BACKEND_API_ORIGIN=http://backend:8000
 ```
 
 `POSTGRES_*` chỉ dành cho container PostgreSQL. `DATABASE_URL` là nguồn cấu

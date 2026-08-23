@@ -1,4 +1,4 @@
-# Runs the Next.js dev server for local Compose use. Not a production image.
+# Runs the dependency-free vanilla frontend server for local Compose use.
 FROM node:22.13.0-bookworm-slim
 
 WORKDIR /app

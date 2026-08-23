@@ -155,6 +155,8 @@ services:
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      BACKEND_API_ORIGIN: http://backend:8000
     depends_on:
       - backend
     networks:
