@@ -83,6 +83,14 @@ results/kie_outputs/<receipt_id>/<kie_run_id>.json
 The writer opens the destination exclusively, so reusing an existing ID raises
 `FileExistsError` and cannot overwrite the old run.
 
+## Determinism boundary
+
+For the same canonical `OCRResult`, `kie_run_id`, extractor version and versioned
+configuration, KIE produces the same field projections, evidence links, normalized
+values, confidence scores and review decisions. `created_at` and `duration_ms` are
+runtime provenance and are intentionally excluded from semantic-equality checks.
+They must never be used as extraction or review-policy inputs.
+
 ## Evaluation
 
 The frozen split is:
@@ -131,12 +139,22 @@ the Oracle OCR artifact have been reviewed and their provenance recorded.
 ## Verification commands
 
 ```bash
-python -m pytest
+python -m unittest \
+  tests.test_kie_baseline \
+  tests.test_kie_evaluation \
+  tests.test_kie_artifacts \
+  -v
 python tests/contracts/run_contract_tests.py
 python scripts/evaluate_kie.py
+python -m pip check
 git diff --check
 ```
 
-The first two commands must pass. Until verified annotations exist, the third
-command is expected to return exit code `2` with explicit waiting reasons, not
-made-up evaluation numbers.
+The unit and contract suites must pass. Until verified annotations exist, the
+evaluator is required to fail closed with exit code `2`, status
+`WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS`, zero evaluated samples and
+`metrics=null`; it must never fabricate evaluation evidence.
+
+GitHub Actions runs the same release gate from
+`.github/workflows/kie-tests.yml` whenever KIE implementation, evaluation,
+configuration, tests or shared contracts change.
