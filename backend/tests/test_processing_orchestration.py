@@ -11,8 +11,9 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import sessionmaker
 
 from backend.app.adapters.celery_scheduler import CeleryProcessingScheduler
-from backend.app.domain.enums import ReceiptStatus
-from backend.app.domain.models import Receipt
+from backend.app.domain.enums import ErrorStage, ReceiptStatus
+from backend.app.domain.errors import StaleUpdate
+from backend.app.domain.models import ProcessingError, Receipt
 from backend.app.persistence.models import (
     Base,
     KIERunRecord,
@@ -275,3 +276,153 @@ def test_invalid_kie_schema_keeps_ocr_but_not_kie(tmp_path):
     assert result.outcome is ProcessingOutcome.FAILED
     assert result.retryable is False
     assert counts(factory) == (1, 1, 0)
+
+def test_same_delivery_id_reuses_same_active_attempt(tmp_path):
+    factory, receipt_id = setup_database(tmp_path)
+    delivery_id = "shared-delivery-id"
+
+    async def claim_twice():
+        async with SQLAlchemyUnitOfWorkFactory(factory)() as uow:
+            first = await uow.processing.claim(
+                receipt_id,
+                delivery_id=delivery_id,
+                attempt_id=uuid4(),
+                ocr_run_id=uuid4(),
+                kie_run_id=uuid4(),
+                started_at=datetime.now(timezone.utc),
+            )
+            assert first is not None
+            await uow.commit()
+
+        async with SQLAlchemyUnitOfWorkFactory(factory)() as uow:
+            second = await uow.processing.claim(
+                receipt_id,
+                delivery_id=delivery_id,
+                attempt_id=uuid4(),
+                ocr_run_id=uuid4(),
+                kie_run_id=uuid4(),
+                started_at=datetime.now(timezone.utc),
+            )
+            assert second is not None
+            await uow.commit()
+
+        return first, second
+
+    first, second = asyncio.run(claim_twice())
+
+    assert second.attempt_id == first.attempt_id
+    assert second.ocr_run_id == first.ocr_run_id
+    assert second.kie_run_id == first.kie_run_id
+    assert counts(factory)[0] == 1
+
+
+def test_stale_worker_cannot_overwrite_terminal_transition(tmp_path):
+    factory, receipt_id = setup_database(tmp_path)
+    delivery_id = "shared-terminal-delivery"
+
+    async def prepare_terminal_attempt():
+        async with SQLAlchemyUnitOfWorkFactory(factory)() as uow:
+            active = await uow.processing.claim(
+                receipt_id,
+                delivery_id=delivery_id,
+                attempt_id=uuid4(),
+                ocr_run_id=uuid4(),
+                kie_run_id=uuid4(),
+                started_at=datetime.now(timezone.utc),
+            )
+            assert active is not None
+            await uow.commit()
+
+        # Simulate a second worker holding the same delivery/attempt identity.
+        async with SQLAlchemyUnitOfWorkFactory(factory)() as uow:
+            stale = await uow.processing.claim(
+                receipt_id,
+                delivery_id=delivery_id,
+                attempt_id=uuid4(),
+                ocr_run_id=uuid4(),
+                kie_run_id=uuid4(),
+                started_at=datetime.now(timezone.utc),
+            )
+            assert stale is not None
+            await uow.commit()
+
+        assert stale.attempt_id == active.attempt_id
+
+        ocr_payload = OCR()(
+            b"image",
+            receipt_id=receipt_id,
+            ocr_run_id=active.ocr_run_id,
+        )
+        kie_payload = KIE()(
+            ocr_payload,
+            kie_run_id=active.kie_run_id,
+        )
+
+        async with SQLAlchemyUnitOfWorkFactory(factory)() as uow:
+            await uow.processing.append_ocr_output(
+                active,
+                ocr_payload,
+                created_at=datetime.now(timezone.utc),
+            )
+            await uow.processing.append_kie_output_and_complete(
+                active,
+                kie_payload,
+                completed_at=datetime.now(timezone.utc),
+            )
+            await uow.commit()
+
+        return stale, kie_payload
+
+    stale, kie_payload = asyncio.run(prepare_terminal_attempt())
+
+    async def stale_success():
+        async with SQLAlchemyUnitOfWorkFactory(factory)() as uow:
+            await uow.processing.append_kie_output_and_complete(
+                stale,
+                kie_payload,
+                completed_at=datetime.now(timezone.utc),
+            )
+
+    try:
+        asyncio.run(stale_success())
+    except StaleUpdate:
+        pass
+    else:
+        raise AssertionError(
+            "Stale worker must not report a second successful completion."
+        )
+
+    error = ProcessingError(
+        stage=ErrorStage.PERSISTING,
+        code="STALE_WORKER",
+        message="Stale worker must not overwrite terminal state.",
+        retryable=True,
+        occurred_at=datetime.now(timezone.utc),
+    )
+
+    async def stale_failure():
+        async with SQLAlchemyUnitOfWorkFactory(factory)() as uow:
+            await uow.processing.mark_failed(stale, error)
+
+    try:
+        asyncio.run(stale_failure())
+    except StaleUpdate:
+        pass
+    else:
+        raise AssertionError(
+            "Stale worker must not overwrite SUCCEEDED with FAILED."
+        )
+
+    session = factory()
+    attempt_record = session.get(
+        ProcessingAttemptRecord,
+        stale.attempt_id,
+    )
+    receipt = asyncio.run(
+        SQLAlchemyReceiptRepository(session).get(receipt_id)
+    )
+    session.close()
+
+    assert attempt_record.status == "SUCCEEDED"
+    assert receipt.status is ReceiptStatus.NEEDS_REVIEW
+    assert counts(factory) == (1, 1, 1)

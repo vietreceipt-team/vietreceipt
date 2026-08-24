@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from backend.app.domain.enums import ProcessingStage, ReceiptStatus
-from backend.app.domain.errors import PersistenceFailure
+from backend.app.domain.errors import PersistenceFailure, StaleUpdate
 from backend.app.domain.models import ProcessingAttempt, ProcessingError
 
 from .models import KIERunRecord, OCRRunRecord, ProcessingAttemptRecord, ReceiptRecord
@@ -119,19 +119,22 @@ class SQLAlchemyProcessingRepository:
         *,
         created_at: datetime,
     ) -> None:
-        if self._session.get(OCRRunRecord, attempt.ocr_run_id) is not None:
-            return
         try:
-            self._session.add(
-                OCRRunRecord(
-                    ocr_run_id=attempt.ocr_run_id,
-                    attempt_id=attempt.attempt_id,
-                    receipt_id=attempt.receipt_id,
-                    payload=payload,
-                    created_at=created_at,
-                )
+            existing = self._session.get(
+                OCRRunRecord,
+                attempt.ocr_run_id,
             )
-            self._session.execute(
+            if existing is not None:
+                if (
+                    existing.attempt_id != attempt.attempt_id
+                    or existing.receipt_id != attempt.receipt_id
+                ):
+                    raise StaleUpdate(
+                        "OCR run identity does not match processing attempt."
+                    )
+                return
+
+            attempt_result = self._session.execute(
                 update(ProcessingAttemptRecord)
                 .where(
                     ProcessingAttemptRecord.attempt_id == attempt.attempt_id,
@@ -139,7 +142,13 @@ class SQLAlchemyProcessingRepository:
                 )
                 .values(stage=ProcessingStage.KIE.value)
             )
-            self._session.execute(
+            if attempt_result.rowcount != 1:
+                raise StaleUpdate(
+                    "Processing attempt is no longer active "
+                    "for OCR checkpoint."
+                )
+
+            receipt_result = self._session.execute(
                 update(ReceiptRecord)
                 .where(
                     ReceiptRecord.receipt_id == attempt.receipt_id,
@@ -151,9 +160,28 @@ class SQLAlchemyProcessingRepository:
                     updated_at=created_at,
                 )
             )
+            if receipt_result.rowcount != 1:
+                raise StaleUpdate(
+                    "Receipt is no longer PROCESSING "
+                    "for OCR checkpoint."
+                )
+
+            self._session.add(
+                OCRRunRecord(
+                    ocr_run_id=attempt.ocr_run_id,
+                    attempt_id=attempt.attempt_id,
+                    receipt_id=attempt.receipt_id,
+                    payload=payload,
+                    created_at=created_at,
+                )
+            )
             self._session.flush()
+        except StaleUpdate:
+            raise
         except SQLAlchemyError as exc:
-            raise PersistenceFailure("Could not append OCR run output.") from exc
+            raise PersistenceFailure(
+                "Could not append OCR run output."
+            ) from exc
 
     async def get_kie_output(self, kie_run_id: UUID) -> dict | None:
         record = self._session.get(KIERunRecord, kie_run_id)
@@ -167,18 +195,7 @@ class SQLAlchemyProcessingRepository:
         completed_at: datetime,
     ) -> None:
         try:
-            if self._session.get(KIERunRecord, attempt.kie_run_id) is None:
-                self._session.add(
-                    KIERunRecord(
-                        kie_run_id=attempt.kie_run_id,
-                        attempt_id=attempt.attempt_id,
-                        receipt_id=attempt.receipt_id,
-                        source_ocr_run_id=attempt.ocr_run_id,
-                        payload=payload,
-                        created_at=completed_at,
-                    )
-                )
-            self._session.execute(
+            attempt_result = self._session.execute(
                 update(ProcessingAttemptRecord)
                 .where(
                     ProcessingAttemptRecord.attempt_id == attempt.attempt_id,
@@ -191,7 +208,13 @@ class SQLAlchemyProcessingRepository:
                     finished_at=completed_at,
                 )
             )
-            self._session.execute(
+            if attempt_result.rowcount != 1:
+                raise StaleUpdate(
+                    "Processing attempt is no longer active "
+                    "for successful completion."
+                )
+
+            receipt_result = self._session.execute(
                 update(ReceiptRecord)
                 .where(
                     ReceiptRecord.receipt_id == attempt.receipt_id,
@@ -207,9 +230,42 @@ class SQLAlchemyProcessingRepository:
                     last_error=None,
                 )
             )
+            if receipt_result.rowcount != 1:
+                raise StaleUpdate(
+                    "Receipt is no longer PROCESSING "
+                    "for successful completion."
+                )
+
+            existing = self._session.get(
+                KIERunRecord,
+                attempt.kie_run_id,
+            )
+            if existing is None:
+                self._session.add(
+                    KIERunRecord(
+                        kie_run_id=attempt.kie_run_id,
+                        attempt_id=attempt.attempt_id,
+                        receipt_id=attempt.receipt_id,
+                        source_ocr_run_id=attempt.ocr_run_id,
+                        payload=payload,
+                        created_at=completed_at,
+                    )
+                )
+            elif (
+                existing.attempt_id != attempt.attempt_id
+                or existing.receipt_id != attempt.receipt_id
+            ):
+                raise StaleUpdate(
+                    "KIE run identity does not match processing attempt."
+                )
+
             self._session.flush()
+        except StaleUpdate:
+            raise
         except SQLAlchemyError as exc:
-            raise PersistenceFailure("Could not append KIE run output.") from exc
+            raise PersistenceFailure(
+                "Could not append KIE run output."
+            ) from exc
 
     async def mark_failed(
         self,
@@ -217,7 +273,7 @@ class SQLAlchemyProcessingRepository:
         error: ProcessingError,
     ) -> None:
         try:
-            self._session.execute(
+            attempt_result = self._session.execute(
                 update(ProcessingAttemptRecord)
                 .where(
                     ProcessingAttemptRecord.attempt_id == attempt.attempt_id,
@@ -231,7 +287,13 @@ class SQLAlchemyProcessingRepository:
                     error=error.model_dump(mode="json"),
                 )
             )
-            self._session.execute(
+            if attempt_result.rowcount != 1:
+                raise StaleUpdate(
+                    "Processing attempt is no longer active "
+                    "for failure transition."
+                )
+
+            receipt_result = self._session.execute(
                 update(ReceiptRecord)
                 .where(
                     ReceiptRecord.receipt_id == attempt.receipt_id,
@@ -244,6 +306,16 @@ class SQLAlchemyProcessingRepository:
                     updated_at=error.occurred_at,
                 )
             )
+            if receipt_result.rowcount != 1:
+                raise StaleUpdate(
+                    "Receipt is no longer PROCESSING "
+                    "for failure transition."
+                )
+
             self._session.flush()
+        except StaleUpdate:
+            raise
         except SQLAlchemyError as exc:
-            raise PersistenceFailure("Could not persist processing failure.") from exc
+            raise PersistenceFailure(
+                "Could not persist processing failure."
+            ) from exc
