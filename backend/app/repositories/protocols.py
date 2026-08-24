@@ -25,6 +25,26 @@ class ReceiptRepository(Protocol):
     async def create(self, receipt: Receipt) -> Receipt:
         ...
 
+    async def get(self, receipt_id: UUID) -> Receipt | None:
+        ...
+
+    async def list_receipts(
+        self,
+        *,
+        page: int,
+        page_size: int,
+        status: ReceiptStatus | None = None,
+    ) -> Sequence[Receipt]:
+        ...
+
+    async def save(
+        self,
+        receipt: Receipt,
+        *,
+        expected_updated_at: datetime,
+    ) -> Receipt:
+        ...
+
 
 @runtime_checkable
 class ProcessingRepository(Protocol):
@@ -69,26 +89,6 @@ class ProcessingRepository(Protocol):
         attempt: ProcessingAttempt,
         error: "ProcessingError",
     ) -> None:
-        ...
-
-    async def get(self, receipt_id: UUID) -> Receipt | None:
-        ...
-
-    async def list_receipts(
-        self,
-        *,
-        page: int,
-        page_size: int,
-        status: ReceiptStatus | None = None,
-    ) -> Sequence[Receipt]:
-        ...
-
-    async def save(
-        self,
-        receipt: Receipt,
-        *,
-        expected_updated_at: datetime,
-    ) -> Receipt:
         ...
 
 @runtime_checkable
