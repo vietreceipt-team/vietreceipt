@@ -1,110 +1,160 @@
 # KIE VietReceipt
 
-Module KIE nhận OCR output theo shared schema đã chuẩn hóa về cấu trúc, sau đó chọn, diễn giải và chuẩn hóa năm field nghiệp vụ của hóa đơn. Tuần 1 chỉ khóa specification, annotation rules, data model và seed rules; chưa triển khai extractor và chưa có benchmark result.
+`ai/kie` implements the deterministic Week-2 baseline from GitHub Issue #16.
+It consumes a canonical immutable `OCRResult` and produces a schema-valid
+`KIEResult` for exactly five fields:
 
-## Owner
+- `merchant_name`
+- `receipt_date`
+- `total_amount`
+- `invoice_id`
+- `merchant_address`
 
-- Dao Minh Phuong — KIE & Data Engineering
-- Related GitHub Issue: #1
+The implementation does not use an LLM/VLM, does not modify OCR output and
+does not create Backend correction/effective-value state.
 
-## Five canonical fields
+## Pipeline
 
-- `merchant_name` — tên cửa hàng/người bán
-- `receipt_date` — ngày giao dịch, canonical `YYYY-MM-DD`
-- `total_amount` — tổng tiền thanh toán, non-negative integer VND
-- `invoice_id` — mã hóa đơn/giao dịch, luôn là string
-- `merchant_address` — địa chỉ cửa hàng/chi nhánh
+```text
+OCRResult validation
+→ field-specific candidate generation
+→ deterministic ranking
+→ field-specific normalization
+→ heuristic field confidence
+→ versioned review policy
+→ KIEResult validation
+```
 
-Không dùng alias như `merchant`, `date`, `total` hoặc `address` qua interface giữa các module.
+Main modules:
 
-## Week 1 deliverables
+- `candidates/`: one generator per canonical field, with actual source block
+  evidence, matched keywords/patterns, ambiguity and normalization indicators;
+- `ranking/`: feature scoring, typed candidate-role priority and stable ranking;
+- `normalization/`: safe deterministic normalization that never rewrites
+  `predicted_value`;
+- `confidence.py`: explainable heuristic field score;
+- `review.py`: canonical review reasons and value-status decisions;
+- `pipeline.py`: integration-ready `run_kie(...)`;
+- `artifacts.py`: immutable per-run JSON persistence;
+- `evaluation/`: field metrics, Real-vs-Oracle comparison and root-cause error
+  analysis.
 
-- [`docs/field-specification.md`](docs/field-specification.md): định nghĩa, include/exclude, candidate selection, normalization và missing-value handling của năm field.
-- [`docs/annotation-guidelines.md`](docs/annotation-guidelines.md): quy trình gán nhãn, status rules, adjudication và quality checklist.
-- [`docs/data-model.md`](docs/data-model.md): production/annotation data model và ER diagrams.
-- [`resources/keyword-regex-seed.yaml`](resources/keyword-regex-seed.yaml): keyword/regex seed chưa benchmark; chỉ dùng tạo candidate.
-- [`examples/annotation-record.example.json`](examples/annotation-record.example.json): synthetic annotation example, không phải dataset/model output.
+The root shared schemas remain the only public contract sources of truth:
 
-Runtime KIE schema không được nhân bản trong `ai/kie/`. Shared schema tại root repository là source of truth duy nhất cho integration contract.
+- `schemas/ocr-result.schema.json`
+- `schemas/kie-result.schema.json`
+- `schemas/annotation-record.schema.json`
 
-## Input contract
+## Candidate ranking and confidence
 
-KIE nhận một immutable OCR run gồm:
+Ranking weights and feature values live in
+`resources/baseline-config-v0.1.yaml` under version
+`baseline-ranking-v0.1`. Candidate ranking combines pattern, context, relative
+layout and OCR evidence quality. Stable generation order breaks exact ties.
+Primary invoice/receipt identifiers rank ahead of typed transaction/reference
+fallback identifiers.
 
-- `receipt_id` và `ocr_run_id`;
-- OCR engine name/version;
-- image width/height;
-- OCR blocks có `block_id`, `text`, `polygon`, `confidence`, `reading_order`.
+Public field confidence uses `heuristic-confidence-v0.2`. It combines:
 
-KIE input contract dùng polygon bốn điểm normalized theo thứ tự top-left, top-right, bottom-right, bottom-left trên ảnh sau EXIF orientation; `reading_order` là integer duy nhất, zero-based trong OCR run. KIE Owner chấp nhận representation này ở phía consumer; OCR Owner và shared OCR schema vẫn phải xác nhận/enforce khả năng sản xuất đúng representation trước khi contract chung được freeze. KIE không phụ thuộc trực tiếp vào raw object của một OCR engine cụ thể và không được sửa OCR text/block đã lưu.
+- the best candidate ranking score;
+- separation from the next same-role candidate;
+- deterministic normalization success;
+- ambiguity indicators.
 
-## KIE-owned output
+The ranking score already contains pattern/context/layout/OCR evidence. Field
+confidence is deterministic and clipped to `[0, 1]`, but it is **not a
+calibrated probability of correctness**. It must not be used to auto-verify or
+bypass human review. Thresholds in `heuristic-review-v0.2` are provisional and
+must not be tuned on the held-out split.
 
-Một KIE run trả đúng năm canonical fields. Machine-owned attributes gồm:
+## Evidence and immutable runs
 
-- `raw_text`;
-- `predicted_value`;
-- `normalized_value`;
-- `value_status`;
-- `confidence`;
-- `machine_needs_review`;
-- `review_reasons`;
-- `source_block_ids`.
+Every populated field preserves real `source_block_ids` from the same OCR run.
+Public `raw_text` is rebuilt from those blocks in `reading_order`; candidate
+text is never accepted as fabricated public evidence.
 
-KIE output được version bằng `kie_run_id`, extractor name/version và `source_ocr_run_id`. Reprocess tạo run mới; không overwrite run cũ.
+Callers supply a UUID to `run_kie(...)`. Reprocessing requires a new
+`kie_run_id`. `run_and_write_kie(...)` stores artifacts at:
 
-`source_block_ids` trong runtime contract là provenance/evidence trực tiếp cho quyết định KIE. `raw_text` được ghép nguyên văn từ các block này theo `reading_order`. Nếu trong tương lai UI cần phân biệt block chứa giá trị và block chỉ cung cấp ngữ cảnh/nhãn, thay đổi đó phải đi qua shared contract thay vì tự thêm field trong module KIE.
+```text
+results/kie_outputs/<receipt_id>/<kie_run_id>.json
+```
 
-## Backend-owned layers
+The writer opens the destination exclusively, so reusing an existing ID raises
+`FileExistsError` and cannot overwrite the old run.
 
-KIE không tạo:
+## Determinism boundary
 
-- `corrected_value` hoặc `corrected_status`;
-- `has_correction`;
-- `effective_value` hoặc `effective_status`;
-- `effective_needs_review`;
-- correction history.
+For the same canonical `OCRResult`, `kie_run_id`, extractor version and versioned
+configuration, KIE produces the same field projections, evidence links, normalized
+values, confidence scores and review decisions. `created_at` and `duration_ms` are
+runtime provenance and are intentionally excluded from semantic-equality checks.
+They must never be used as extraction or review-policy inputs.
 
-Backend giữ các lớp này tách khỏi machine output. `effective_value` chỉ dùng correction/normalization khi effective status là `PRESENT`; mọi non-`PRESENT` effective status có value `null`. Giá trị hiệu lực không fallback sang `predicted_value`.
+## Evaluation
 
-## Shared sources of truth
+The frozen split is:
 
-Sau khi Backend contract v1.3 được merge:
+```text
+resources/kie-evaluation-split-v0.1.csv
+```
 
-- `/schemas/ocr-result.schema.json`
-- `/schemas/kie-result.schema.json`
-- `/schemas/annotation-record.schema.json`
-- `/openapi/openapi.yaml`
-- `/docs/integration-contracts.md`
-- `/docs/receipt-state-machine.md`
+It contains 20 development and 20 held-out receipt IDs. The evaluator reports
+per-field, micro and macro Exact Match, status accuracy, normalization
+accuracy, precision, recall, F1, coverage, review rate, error count and sample
+count. Real OCR and
+Oracle OCR are run separately; the report includes their metric gap and paired
+root-cause analysis for:
 
-Không tạo schema KIE thứ hai trong module này. Contract conflict phải được xử lý bằng Issue/PR chung với Backend, OCR và Frontend.
+- OCR omission;
+- OCR substitution;
+- candidate generation failure;
+- candidate ranking failure;
+- normalization failure;
+- ambiguity;
+- human-QA-confirmed annotation issue.
 
-## Ground-truth boundary
+Run:
 
-Ground-truth annotation là dữ liệu semantic ở mức receipt/field và không được coi là prediction của OCR/KIE. `source_ocr_run_id` cùng `source_block_ids` chỉ là alignment metadata phục vụ audit và error analysis cho snapshot OCR đang dùng trong annotation pilot.
+```bash
+python scripts/evaluate_kie.py
+```
 
-Nếu thay OCR engine hoặc tạo OCR run mới, semantic label như `total_amount=113000` không tự thay đổi chỉ vì block ID thay đổi. Trường hợp OCR omission phải được ghi chú rõ thay vì biến lỗi OCR thành ground truth.
+Exit code `0` means verified evaluation completed. Exit code `2` means the
+report was written with status
+`WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS`; all metrics remain `null`.
 
-## Data integrity rules
+## Current data dependency
 
-- Không tự bịa field value, confidence hoặc benchmark metric.
-- Không ghi đè OCR raw, prediction hoặc normalization bằng correction.
-- JSON `null` biểu diễn giá trị không có; không dùng chuỗi `N/A` hoặc chuỗi rỗng.
-- Non-`PRESENT` phải có `normalized_value=null`.
-- `PRESENT` phải có ít nhất một source block thuộc `source_ocr_run_id` trong runtime KIE output.
-- `machine_needs_review=true` phải có ít nhất một review reason code thuộc enum shared contract và có `review_policy_version`.
-- `raw_text` ghép nguyên văn source blocks theo `reading_order` bằng `\n`.
-- Rule-based inference phải có version và test.
-- V1 không suy luận năm hai chữ số; trường hợp này là `AMBIGUOUS` và normalized value `null`.
-- Keyword/regex match chỉ tạo candidate, không tự quyết định ground truth.
-- Không commit ảnh hóa đơn thật hoặc dữ liệu nhạy cảm chưa được phép.
+`data/kie_evaluation/manifest.json` intentionally contains no records while
+the frozen 40-receipt set is waiting for independent five-field double
+annotation, adjudication and verified Oracle OCR provenance. Do not convert
+OCR transcription files into semantic KIE labels, mark pending data as
+verified, or fabricate metrics.
 
-## Pending external sign-off
+The human workflow is frozen in `docs/gold-protocol.md`. A receipt becomes
+evaluation-ready only after both annotations, all adjudication decisions and
+the Oracle OCR artifact have been reviewed and their provenance recorded.
 
-- **OCR Owner:** polygon, coordinate convention, `block_id`, `reading_order` và source-block linkage.
-- **Frontend Owner:** dữ liệu đủ cho highlighting và dùng `effective_needs_review` trong UI.
-- **Backend Owner:** effective projection, correction audit và concurrency strategy.
-- **DevOps Owner:** private storage, queue và secrets policy.
+## Verification commands
 
-Không đánh dấu các mục này hoàn thành thay owner tương ứng.
+```bash
+python -m unittest \
+  tests.test_kie_baseline \
+  tests.test_kie_evaluation \
+  tests.test_kie_artifacts \
+  -v
+python tests/contracts/run_contract_tests.py
+python scripts/evaluate_kie.py
+python -m pip check
+git diff --check
+```
+
+The unit and contract suites must pass. Until verified annotations exist, the
+evaluator is required to fail closed with exit code `2`, status
+`WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS`, zero evaluated samples and
+`metrics=null`; it must never fabricate evaluation evidence.
+
+GitHub Actions runs the same release gate from
+`.github/workflows/kie-tests.yml` whenever KIE implementation, evaluation,
+configuration, tests or shared contracts change.

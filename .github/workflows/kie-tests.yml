@@ -1,0 +1,97 @@
+name: KIE tests
+
+on:
+  pull_request:
+    paths:
+      - "ai/kie/**"
+      - "data/kie_evaluation/**"
+      - "scripts/evaluate_kie.py"
+      - "tests/test_kie_*.py"
+      - "schemas/**"
+      - "openapi/**"
+      - "requirements-contracts.txt"
+      - ".github/workflows/kie-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ai/kie/**"
+      - "data/kie_evaluation/**"
+      - "scripts/evaluate_kie.py"
+      - "tests/test_kie_*.py"
+      - "schemas/**"
+      - "openapi/**"
+      - "requirements-contracts.txt"
+      - ".github/workflows/kie-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  kie-unit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-contracts.txt
+
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements-contracts.txt
+
+      - name: Run KIE unit and evaluation tests
+        run: |
+          python -m unittest \
+            tests.test_kie_baseline \
+            tests.test_kie_evaluation \
+            tests.test_kie_artifacts \
+            -v
+
+      - name: Run shared contract tests
+        run: python tests/contracts/run_contract_tests.py
+
+      - name: Verify incomplete-data fail-closed behavior
+        shell: bash
+        run: |
+          set +e
+          python scripts/evaluate_kie.py \
+            --report "$RUNNER_TEMP/kie-evaluation-report.json"
+          evaluator_status=$?
+          set -e
+
+          if [ "$evaluator_status" -ne 2 ]; then
+            echo "Expected evaluator exit code 2 while verified annotations are unavailable; got $evaluator_status"
+            exit 1
+          fi
+
+          python - "$RUNNER_TEMP/kie-evaluation-report.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+
+          assert report["status"] == "WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS"
+          assert report["sample_counts"]["required"] == 40
+          assert report["sample_counts"]["manifest_records"] == 0
+          assert report["sample_counts"]["evaluated"] == 0
+          assert report["metrics"] is None
+          assert report["modes"] is None
+          assert report["propagation_gap"] is None
+          assert report["reasons"]
+          PY
+
+      - name: Check installed dependency consistency
+        run: python -m pip check
+
+      - name: Check patch whitespace
+        shell: bash
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"

@@ -1,0 +1,129 @@
+version: "baseline-ranking-v0.1"
+
+weights:
+  pattern: 0.30
+  context: 0.30
+  layout: 0.25
+  ocr_quality: 0.15
+
+confidence:
+  version: "heuristic-confidence-v0.2"
+  weights:
+    ranking_score: 0.70
+    candidate_separation: 0.10
+    normalization_certainty: 0.15
+    ambiguity_evidence: 0.05
+  separation_full_margin: 0.25
+
+features:
+  merchant_name:
+    pattern:
+      explicit_store: 1.0
+      header_text: 0.9
+      legal_entity: 0.6
+      unsupported: 0.0
+
+    context:
+      positive_only: 1.0
+      conflicting: 0.3
+      negative_only: 0.0
+      neutral: 0.5
+
+    layout:
+      strong_header_end_y: 0.15
+      header_end_y: 0.30
+      strong_header_score: 1.0
+      header_score: 0.8
+      body_score: 0.3
+
+  total_amount:
+    pattern:
+      explicit_vnd_marker: 1.0
+      grouped_without_currency: 0.7
+      unsupported: 0.0
+
+    context:
+      positive_only: 1.0
+      conflicting: 0.4
+      negative_only: 0.0
+      neutral: 0.5
+
+    layout:
+      footer_start_y: 0.55
+      middle_start_y: 0.35
+      footer_score: 1.0
+      middle_score: 0.7
+      header_score: 0.3
+
+  receipt_date:
+    pattern:
+      iso_date: 1.0
+      four_digit_year: 0.9
+      two_digit_year: 0.5
+      missing_component: 0.3
+      unsupported: 0.0
+
+    context:
+      positive_only: 1.0
+      conflicting: 0.4
+      negative_only: 0.0
+      neutral: 0.5
+
+    layout:
+      header_end_y: 0.35
+      body_end_y: 0.75
+      header_score: 0.8
+      body_score: 1.0
+      footer_score: 0.5
+
+  invoice_id:
+    pattern:
+      labeled_primary_id: 1.0
+      split_label_value: 0.9
+      labeled_fallback_id: 0.65
+      split_fallback_label_value: 0.55
+      unsupported: 0.0
+
+    context:
+      positive_only: 1.0
+      conflicting: 0.3
+      negative_only: 0.0
+      neutral: 0.2
+
+    layout:
+      header_end_y: 0.40
+      body_end_y: 0.80
+      header_score: 0.8
+      body_score: 1.0
+      footer_score: 0.5
+
+  merchant_address:
+    pattern:
+      labeled_address: 1.0
+      administrative_context: 0.9
+      street_number: 0.8
+      unsupported: 0.0
+
+    context:
+      positive_only: 1.0
+      conflicting: 0.3
+      negative_only: 0.0
+      neutral: 0.5
+
+    layout:
+      header_end_y: 0.35
+      body_end_y: 0.75
+      header_score: 1.0
+      body_score: 0.7
+      footer_score: 0.3
+
+review:
+  policy_version: "heuristic-review-v0.2"
+  close_candidate_margin: 0.10
+
+  low_confidence_thresholds:
+    total_amount: 0.75
+    receipt_date: 0.75
+    invoice_id: 0.75
+    merchant_name: 0.75
+    merchant_address: 0.75
