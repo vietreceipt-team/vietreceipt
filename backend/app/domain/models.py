@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Any, Self
 from uuid import UUID
 from backend.app.domain.validation import validate_canonical_value
 
@@ -38,6 +38,27 @@ class ProcessingError(DomainModel):
     message: str = Field(min_length=1)
     retryable: bool
     occurred_at: AwareDatetime
+
+
+class ProcessingAttempt(DomainModel):
+    attempt_id: UUID
+    receipt_id: UUID
+    delivery_id: str = Field(min_length=1)
+    ocr_run_id: UUID
+    kie_run_id: UUID
+    status: str = Field(pattern="^(ACTIVE|SUCCEEDED|FAILED)$")
+    stage: ProcessingStage
+    started_at: AwareDatetime
+    finished_at: AwareDatetime | None = None
+    error: ProcessingError | None = None
+
+
+class ImmutableRunOutput(DomainModel):
+    run_id: UUID
+    attempt_id: UUID
+    receipt_id: UUID
+    payload: dict[str, Any]
+    created_at: AwareDatetime
 
 
 class NormalizationProvenance(DomainModel):

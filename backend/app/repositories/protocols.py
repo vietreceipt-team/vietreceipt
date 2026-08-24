@@ -15,6 +15,7 @@ from backend.app.domain.models import (
     CorrectionHistory,
     ExtractedField,
     Receipt,
+    ProcessingAttempt,
 )
 
 
@@ -22,6 +23,52 @@ from backend.app.domain.models import (
 @runtime_checkable
 class ReceiptRepository(Protocol):
     async def create(self, receipt: Receipt) -> Receipt:
+        ...
+
+
+@runtime_checkable
+class ProcessingRepository(Protocol):
+    async def claim(
+        self,
+        receipt_id: UUID,
+        *,
+        delivery_id: str,
+        attempt_id: UUID,
+        ocr_run_id: UUID,
+        kie_run_id: UUID,
+        started_at: datetime,
+    ) -> ProcessingAttempt | None:
+        ...
+
+    async def get_ocr_output(self, ocr_run_id: UUID) -> dict | None:
+        ...
+
+    async def append_ocr_output(
+        self,
+        attempt: ProcessingAttempt,
+        payload: dict,
+        *,
+        created_at: datetime,
+    ) -> None:
+        ...
+
+    async def get_kie_output(self, kie_run_id: UUID) -> dict | None:
+        ...
+
+    async def append_kie_output_and_complete(
+        self,
+        attempt: ProcessingAttempt,
+        payload: dict,
+        *,
+        completed_at: datetime,
+    ) -> None:
+        ...
+
+    async def mark_failed(
+        self,
+        attempt: ProcessingAttempt,
+        error: "ProcessingError",
+    ) -> None:
         ...
 
     async def get(self, receipt_id: UUID) -> Receipt | None:
@@ -96,6 +143,7 @@ class AuditEventRepository(Protocol):
 @runtime_checkable
 class UnitOfWork(Protocol):
     receipts: ReceiptRepository
+    processing: ProcessingRepository
     fields: FieldRepository
     correction_history: CorrectionHistoryRepository
     audit_events: AuditEventRepository

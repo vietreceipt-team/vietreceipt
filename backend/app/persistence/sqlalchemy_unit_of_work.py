@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from backend.app.domain.errors import PersistenceFailure
 
 from .sqlalchemy_receipt_repository import SQLAlchemyReceiptRepository
+from .sqlalchemy_processing_repository import SQLAlchemyProcessingRepository
 
 
 class SQLAlchemyUnitOfWork:
@@ -19,10 +20,12 @@ class SQLAlchemyUnitOfWork:
         self._session_factory = session_factory
         self._session: Session | None = None
         self.receipts: SQLAlchemyReceiptRepository
+        self.processing: SQLAlchemyProcessingRepository
 
     async def __aenter__(self) -> Self:
         self._session = self._session_factory()
         self.receipts = SQLAlchemyReceiptRepository(self._session)
+        self.processing = SQLAlchemyProcessingRepository(self._session)
         return self
 
     async def __aexit__(

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import DateTime, Integer, JSON, String
+from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from backend.app.domain.enums import ProcessingStage, ReceiptStatus
@@ -131,3 +131,61 @@ class ReceiptRecord(Base):
         self.review_started_at = receipt.review_started_at
         self.processed_at = receipt.processed_at
         self.verified_at = receipt.verified_at
+
+
+class ProcessingAttemptRecord(Base):
+    __tablename__ = "processing_attempts"
+    __table_args__ = (
+        UniqueConstraint("ocr_run_id"),
+        UniqueConstraint("kie_run_id"),
+        UniqueConstraint("active_receipt_id"),
+    )
+
+    attempt_id: Mapped[UUID] = mapped_column(primary_key=True)
+    receipt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("receipts.receipt_id", ondelete="CASCADE"), nullable=False
+    )
+    # Equal to receipt_id only while ACTIVE. NULL on terminal attempts makes
+    # this a portable single-active-attempt constraint.
+    active_receipt_id: Mapped[UUID | None] = mapped_column(nullable=True)
+    delivery_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    ocr_run_id: Mapped[UUID] = mapped_column(nullable=False)
+    kie_run_id: Mapped[UUID] = mapped_column(nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    stage: Mapped[str] = mapped_column(String(32), nullable=False)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+
+
+class OCRRunRecord(Base):
+    __tablename__ = "ocr_runs"
+    ocr_run_id: Mapped[UUID] = mapped_column(primary_key=True)
+    attempt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("processing_attempts.attempt_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    receipt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("receipts.receipt_id", ondelete="CASCADE"), nullable=False
+    )
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class KIERunRecord(Base):
+    __tablename__ = "kie_runs"
+    kie_run_id: Mapped[UUID] = mapped_column(primary_key=True)
+    attempt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("processing_attempts.attempt_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    receipt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("receipts.receipt_id", ondelete="CASCADE"), nullable=False
+    )
+    source_ocr_run_id: Mapped[UUID] = mapped_column(
+        ForeignKey("ocr_runs.ocr_run_id"), nullable=False
+    )
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

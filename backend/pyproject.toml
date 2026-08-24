@@ -17,6 +17,8 @@ dependencies = [
     "SQLAlchemy>=2.0,<3",
     "psycopg[binary]>=3.1,<4",
     "alembic>=1.13,<2",
+    "celery[redis]>=5.4,<6",
+    "jsonschema[format]>=4.23,<5",
 ]
 
 [project.optional-dependencies]
@@ -28,7 +30,7 @@ test = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["-p", "pytest_asyncio.plugin"]
+addopts = []
 
 [tool.setuptools.packages.find]
 include = ["app*"]

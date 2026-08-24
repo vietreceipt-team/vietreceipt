@@ -75,6 +75,25 @@ Backend tự động lên lịch xử lý sau khi upload thành công. `UPLOADED
 
 ## Receipt persistence & application service (Backend-2 W2)
 
+## Durable processing orchestration (W3)
+
+`backend.app.bootstrap.build_receipt_service()` wires upload/retry to the
+concrete Celery scheduler. The Celery message contains only `receipt_id`.
+`backend.app.worker.celery_app` wires the worker to the same PostgreSQL receipt
+persistence and object storage configuration, then invokes OCR and KIE through
+their callable adapters.
+
+Processing state is database-owned. `processing_attempts` permits one active
+attempt per receipt, records the Celery delivery id for safe redelivery, and
+allocates fresh OCR/KIE run IDs for every retry. `ocr_runs` and `kie_runs` are
+append-only; repository code exposes no update path for their payloads.
+
+Run the worker with:
+
+```bash
+celery -A backend.app.worker.celery_app:celery_app worker --loglevel=info
+```
+
 `app.services.ReceiptService` orchestrates image validation, safe object-key generation,
 object storage, and receipt metadata persistence without depending on FastAPI, boto3,
 filesystem paths, or SQL statements.

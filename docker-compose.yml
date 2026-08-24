@@ -94,11 +94,11 @@ services:
       APP_ENV: ${APP_ENV:-development}
       API_V1_PREFIX: ${API_V1_PREFIX:-/api/v1}
       SECRET_KEY: ${SECRET_KEY:-}
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL}
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
-      STORAGE_BACKEND: ${STORAGE_BACKEND:-filesystem}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://vietreceipt:local_dev_only_change_me@postgres:5432/vietreceipt}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
       STORAGE_FILESYSTEM_ROOT: ${STORAGE_FILESYSTEM_ROOT:-.data/receipt-images}
       STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-http://minio:9000}
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-vietreceipt_local}
@@ -134,13 +134,26 @@ services:
       dockerfile: infra/docker/worker.Dockerfile
     restart: unless-stopped
     environment:
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://vietreceipt:local_dev_only_change_me@postgres:5432/vietreceipt}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
+      STORAGE_FILESYSTEM_ROOT: ${STORAGE_FILESYSTEM_ROOT:-.data/receipt-images}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-http://minio:9000}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-vietreceipt_local}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:-local_dev_only_change_me}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-vietreceipt}
+      STORAGE_REGION: ${STORAGE_REGION:-us-east-1}
+      STORAGE_SECURE: ${STORAGE_SECURE:-false}
     depends_on:
+      postgres:
+        condition: service_healthy
       redis:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "celery -A celery_app inspect ping -d celery@$$HOSTNAME"]
+      test: ["CMD-SHELL", "celery -A backend.app.worker.celery_app:celery_app inspect ping -d celery@$$HOSTNAME"]
       interval: 10s
       timeout: 10s
       retries: 12
