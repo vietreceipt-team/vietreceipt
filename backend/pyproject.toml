@@ -30,7 +30,7 @@ test = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = []
+addopts = ["-p", "pytest_asyncio.plugin"]
 
 [tool.setuptools.packages.find]
 include = ["app*"]

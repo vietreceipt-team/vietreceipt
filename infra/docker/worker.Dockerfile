@@ -10,11 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2
 
 COPY backend/requirements.txt /app/backend-requirements.txt
 COPY requirements.txt /app/ocr-requirements.txt
-COPY requirements-contracts.txt /app/contract-requirements.txt
 COPY infra/docker/worker/requirements.txt /app/worker-requirements.txt
 RUN pip install --no-cache-dir \
     -r /app/backend-requirements.txt \
-    -r /app/contract-requirements.txt \
     -r /app/worker-requirements.txt \
     -r /app/ocr-requirements.txt
 
