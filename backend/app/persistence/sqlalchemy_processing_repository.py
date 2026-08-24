@@ -109,7 +109,12 @@ class SQLAlchemyProcessingRepository:
             raise PersistenceFailure("Could not claim receipt processing.") from exc
 
     async def get_ocr_output(self, ocr_run_id: UUID) -> dict | None:
-        record = self._session.get(OCRRunRecord, ocr_run_id)
+        try:
+            record = self._session.get(OCRRunRecord, ocr_run_id)
+        except SQLAlchemyError as exc:
+            raise PersistenceFailure(
+                "Could not load OCR run output."
+            ) from exc
         return dict(record.payload) if record else None
 
     async def append_ocr_output(
@@ -184,7 +189,12 @@ class SQLAlchemyProcessingRepository:
             ) from exc
 
     async def get_kie_output(self, kie_run_id: UUID) -> dict | None:
-        record = self._session.get(KIERunRecord, kie_run_id)
+        try:
+            record = self._session.get(KIERunRecord, kie_run_id)
+        except SQLAlchemyError as exc:
+            raise PersistenceFailure(
+                "Could not load KIE run output."
+            ) from exc
         return dict(record.payload) if record else None
 
     async def append_kie_output_and_complete(

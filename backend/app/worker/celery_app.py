@@ -8,6 +8,7 @@ from celery import Celery
 
 from backend.app.adapters.celery_scheduler import PROCESS_RECEIPT_TASK
 from backend.app.bootstrap import build_processing_orchestrator
+from backend.app.domain.errors import PersistenceFailure
 from backend.app.services.processing_orchestrator import ProcessingOutcome
 
 
@@ -42,14 +43,26 @@ def _get_orchestrator():
     reject_on_worker_lost=True,
 )
 def process_receipt(self, receipt_id: str) -> dict[str, str | bool | None]:
-    result = asyncio.run(
-        _get_orchestrator().process(
-            UUID(receipt_id),
-            delivery_id=str(self.request.id),
+    receipt_uuid = UUID(receipt_id)
+    delivery_id = str(self.request.id)
+    countdown = min(60, 2 ** (self.request.retries + 1))
+
+    try:
+        result = asyncio.run(
+            _get_orchestrator().process(
+                receipt_uuid,
+                delivery_id=delivery_id,
+            )
         )
-    )
+    except PersistenceFailure:
+        raise self.retry(
+            exc=RuntimeError(
+                "transient processing persistence failure"
+            ),
+            countdown=countdown,
+        ) from None
+
     if result.outcome is ProcessingOutcome.FAILED and result.retryable:
-        countdown = min(60, 2 ** (self.request.retries + 1))
         raise self.retry(
             exc=RuntimeError("retryable receipt processing failure"),
             countdown=countdown,
