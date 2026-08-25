@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import math
 import os
+import threading
 import time
 from collections.abc import Callable, Sequence
 from importlib.metadata import version
@@ -224,6 +225,20 @@ class OCRPipeline:
         return document
 
 
+_worker_pipeline: OCRPipeline | None = None
+_worker_pipeline_lock = threading.Lock()
+
+
+def get_worker_ocr_pipeline() -> OCRPipeline:
+    """Return the process-long-lived pipeline used by worker integrations."""
+    global _worker_pipeline
+    if _worker_pipeline is None:
+        with _worker_pipeline_lock:
+            if _worker_pipeline is None:
+                _worker_pipeline = OCRPipeline()
+    return _worker_pipeline
+
+
 def run_ocr(
     image: ImageInput,
     receipt_id: UUID | str,
@@ -231,7 +246,8 @@ def run_ocr(
     *,
     pipeline: OCRPipeline | None = None,
 ) -> dict[str, Any]:
-    """Convenience integration entry point used by a worker/backend adapter."""
-    return (pipeline or OCRPipeline()).run_ocr(
+    """Run through an injected pipeline or the process-long-lived worker default."""
+    selected_pipeline = pipeline if pipeline is not None else get_worker_ocr_pipeline()
+    return selected_pipeline.run_ocr(
         image, receipt_id=receipt_id, ocr_run_id=ocr_run_id
     )

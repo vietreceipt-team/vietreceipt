@@ -8,18 +8,24 @@ field-aware error-analysis harness without changing the frozen shared schema.
 
 ## Worker integration entry point
 
-Production orchestration imports the package instead of invoking the CLI:
+Production orchestration creates one lazy pipeline for each worker process and
+injects its bound method into the processing orchestrator:
 
 ```python
-from ai.ocr import OCRPipeline
+from ai.ocr import get_worker_ocr_pipeline
 
-pipeline = OCRPipeline()  # lazily creates the pinned PaddleOCR engine
-result = pipeline.run_ocr(
-    resolved_image,
-    receipt_id="31915ef1-6fb4-4e7d-b6f5-53be51c50e3d",
-    ocr_run_id="b3ac8bb4-6383-4b97-9911-5a6900054608",
+ocr_pipeline = get_worker_ocr_pipeline()
+orchestrator = ProcessingOrchestrator(
+    # Other Backend-owned dependencies omitted.
+    ocr_provider=ocr_pipeline.run_ocr,
+    ...,
 )
 ```
+
+The process singleton owns one lazily loaded PaddleOCR engine, so Celery task
+calls for multiple receipts do not reload model weights. The compatibility
+function `ai.ocr.run_ocr` delegates to the same process-long-lived pipeline;
+callers may still pass an explicit pipeline for tests or isolated jobs.
 
 `resolved_image` may be a local `Path`, bytes, or an already-decoded PIL image.
 The worker/application layer supplies both UUIDs. Benchmark identifiers such as
@@ -218,7 +224,8 @@ results for the 40 committed artifacts. The regression suite validates every
 artifact against `OCRResult v1.3`, checks mapping UUIDs, unique block IDs,
 sequential reading order, and normalized four-point polygons.
 
-Week-2 regression tests also cover Backend UUIDs, reprocess run identity,
+Week-2 regression tests also cover Backend UUIDs, process-long-lived engine
+reuse across multiple worker receipts, reprocess run identity,
 immutable artifact writes, semantic contract failures, benchmark-ID isolation,
 all six field-error categories, five-field coverage, quality slices,
 Oracle/Real availability and reproducibility metadata.

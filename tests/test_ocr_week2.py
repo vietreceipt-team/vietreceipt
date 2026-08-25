@@ -2,20 +2,23 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 from uuid import UUID, uuid4
 
 from PIL import Image
 
 from ai.ocr.artifacts import ImmutableOCRArtifactStore
 from ai.ocr.contract import validate_ocr_result
-from ai.ocr.pipeline import OCRPipeline, build_ocr_result
+from ai.ocr.pipeline import OCRPipeline, build_ocr_result, run_ocr
 
 
 class FakeOCREngine:
     def __init__(self, *, polygon=None) -> None:
         self.polygon = polygon or [[0, 0], [80, 0], [80, 20], [0, 20]]
+        self.predict_calls = 0
 
     def predict(self, _image):
+        self.predict_calls += 1
         return [
             {
                 "rec_texts": ["MINIMART"],
@@ -72,6 +75,38 @@ class OCRWeek2PipelineTests(unittest.TestCase):
         )
         self.assertEqual(first["receipt_id"], second["receipt_id"])
         self.assertNotEqual(first["ocr_run_id"], second["ocr_run_id"])
+
+    def test_worker_provider_reuses_one_engine_across_receipts(self) -> None:
+        created_engines = []
+
+        def engine_factory():
+            engine = FakeOCREngine()
+            created_engines.append(engine)
+            return engine
+
+        worker_pipeline = OCRPipeline(engine_factory=engine_factory)
+        second_receipt_id = uuid4()
+        first_run_id = uuid4()
+        second_run_id = uuid4()
+
+        with patch("ai.ocr.pipeline._worker_pipeline", worker_pipeline):
+            first = run_ocr(
+                self.image,
+                receipt_id=self.receipt_id,
+                ocr_run_id=first_run_id,
+            )
+            second = run_ocr(
+                self.image,
+                receipt_id=second_receipt_id,
+                ocr_run_id=second_run_id,
+            )
+
+        self.assertEqual(len(created_engines), 1)
+        self.assertEqual(created_engines[0].predict_calls, 2)
+        self.assertEqual(first["receipt_id"], str(self.receipt_id))
+        self.assertEqual(first["ocr_run_id"], str(first_run_id))
+        self.assertEqual(second["receipt_id"], str(second_receipt_id))
+        self.assertEqual(second["ocr_run_id"], str(second_run_id))
 
     def test_immutable_store_preserves_previous_run_and_rejects_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
