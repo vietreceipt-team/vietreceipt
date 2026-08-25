@@ -49,3 +49,14 @@ def test_task_redelivers_after_worker_loss():
     assert worker_module.process_receipt.acks_late is True
     assert worker_module.process_receipt.reject_on_worker_lost is True
     assert worker_module.process_receipt.max_retries == 3
+
+
+def test_stale_processing_reaper_is_scheduled():
+    schedule = worker_module.celery_app.conf.beat_schedule[
+        "reap-stale-processing-attempts"
+    ]
+    assert (
+        schedule["task"]
+        == worker_module.REAP_STALE_PROCESSING_TASK
+    )
+    assert schedule["schedule"] > 0

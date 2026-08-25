@@ -329,3 +329,89 @@ class SQLAlchemyProcessingRepository:
             raise PersistenceFailure(
                 "Could not persist processing failure."
             ) from exc
+
+    async def reap_stale_attempts(
+        self,
+        *,
+        stale_before: datetime,
+        failed_at: datetime,
+        error: ProcessingError,
+    ) -> int:
+        try:
+            candidates = self._session.scalars(
+                select(ProcessingAttemptRecord)
+                .join(
+                    ReceiptRecord,
+                    ReceiptRecord.receipt_id
+                    == ProcessingAttemptRecord.receipt_id,
+                )
+                .where(
+                    ProcessingAttemptRecord.status == "ACTIVE",
+                    ProcessingAttemptRecord.started_at <= stale_before,
+                    ReceiptRecord.status
+                    == ReceiptStatus.PROCESSING.value,
+                )
+                .with_for_update(skip_locked=True)
+            ).all()
+
+            recovered = 0
+            error_payload = error.model_dump(mode="json")
+
+            for record in candidates:
+                attempt_result = self._session.execute(
+                    update(ProcessingAttemptRecord)
+                    .where(
+                        ProcessingAttemptRecord.attempt_id
+                        == record.attempt_id,
+                        ProcessingAttemptRecord.status == "ACTIVE",
+                        ProcessingAttemptRecord.started_at
+                        <= stale_before,
+                    )
+                    .values(
+                        status="FAILED",
+                        stage=error.stage.value,
+                        active_receipt_id=None,
+                        finished_at=failed_at,
+                        error=error_payload,
+                    )
+                    .execution_options(
+                        synchronize_session=False
+                    )
+                )
+                if attempt_result.rowcount != 1:
+                    continue
+
+                receipt_result = self._session.execute(
+                    update(ReceiptRecord)
+                    .where(
+                        ReceiptRecord.receipt_id
+                        == record.receipt_id,
+                        ReceiptRecord.status
+                        == ReceiptStatus.PROCESSING.value,
+                    )
+                    .values(
+                        status=ReceiptStatus.FAILED.value,
+                        processing_stage=None,
+                        last_error=error_payload,
+                        updated_at=failed_at,
+                    )
+                    .execution_options(
+                        synchronize_session=False
+                    )
+                )
+                if receipt_result.rowcount != 1:
+                    raise StaleUpdate(
+                        "Receipt changed while recovering stale "
+                        "processing attempt."
+                    )
+
+                recovered += 1
+
+            self._session.flush()
+            return recovered
+        except StaleUpdate:
+            raise
+        except SQLAlchemyError as exc:
+            raise PersistenceFailure(
+                "Could not recover stale processing attempts."
+            ) from exc

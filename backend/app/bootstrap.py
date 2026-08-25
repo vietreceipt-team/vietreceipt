@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 import boto3
 import os
 from celery import Celery
@@ -60,6 +61,31 @@ def build_processing_orchestrator() -> ProcessingOrchestrator:
         clock=SystemClock(),
     )
 
+
+
+def build_processing_recovery_service():
+    from backend.app.services.processing_recovery import (
+        ProcessingRecoveryService,
+    )
+
+    stale_after_seconds = int(
+        os.getenv("PROCESSING_STALE_AFTER_SECONDS", "900")
+    )
+    if stale_after_seconds <= 0:
+        raise ValueError(
+            "PROCESSING_STALE_AFTER_SECONDS must be positive."
+        )
+
+    engine = create_database_engine()
+    session_factory = create_session_factory(engine)
+
+    return ProcessingRecoveryService(
+        unit_of_work_factory=SQLAlchemyUnitOfWorkFactory(
+            session_factory
+        ),
+        clock=SystemClock(),
+        stale_after=timedelta(seconds=stale_after_seconds),
+    )
 
 def build_receipt_service() -> ReceiptService:
     """Build the upload/retry service with the same DB and storage adapters as worker."""

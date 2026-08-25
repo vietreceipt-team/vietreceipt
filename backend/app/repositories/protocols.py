@@ -91,6 +91,15 @@ class ProcessingRepository(Protocol):
     ) -> None:
         ...
 
+    async def reap_stale_attempts(
+        self,
+        *,
+        stale_before: datetime,
+        failed_at: datetime,
+        error: "ProcessingError",
+    ) -> int:
+        ...
+
 @runtime_checkable
 class FieldRepository(Protocol):
     async def get(
