@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { createServer as createHttpServer } from "node:http";
+import { createConnection } from "node:net";
 import { dirname, extname, join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -21,6 +22,47 @@ function walk(directory) {
     return entry.isDirectory() ? walk(fullPath) : [fullPath];
   });
 }
+
+test("Backend proxy khóa configured origin với raw absolute-form và protocol-relative targets", async () => {
+  const configuredRequests = [];
+  let attackerRequests = 0;
+  const configuredUpstream = createHttpServer((request, response) => {
+    configuredRequests.push({ url: request.url, host: request.headers.host });
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end('{"proxied":true}');
+  });
+  const attackerUpstream = createHttpServer((_request, response) => {
+    attackerRequests += 1;
+    response.writeHead(418, { "content-type": "application/json" });
+    response.end('{"proxied":false}');
+  });
+  await Promise.all([listenOnLoopback(configuredUpstream), listenOnLoopback(attackerUpstream)]);
+  const configuredAddress = configuredUpstream.address();
+  const attackerAddress = attackerUpstream.address();
+  const frontend = createStaticServer(root, {
+    backendOrigin: `http://127.0.0.1:${configuredAddress.port}`,
+    runtimeConfig: { dataMode: "api" },
+  });
+  await listenOnLoopback(frontend);
+  const frontendAddress = frontend.address();
+  const requestTargets = [
+    `http://127.0.0.1:${attackerAddress.port}/api/v1/receipts?form=absolute`,
+    `//127.0.0.1:${attackerAddress.port}/api/v1/receipts?form=protocol-relative`,
+  ];
+  try {
+    for (const requestTarget of requestTargets) {
+      const rawResponse = await sendRawHttpRequest(frontendAddress.port, requestTarget);
+      assert.match(rawResponse, /^HTTP\/1\.1 200/);
+    }
+    assert.equal(attackerRequests, 0);
+    assert.deepEqual(configuredRequests, [
+      { url: "/api/v1/receipts?form=absolute", host: `127.0.0.1:${configuredAddress.port}` },
+      { url: "/api/v1/receipts?form=protocol-relative", host: `127.0.0.1:${configuredAddress.port}` },
+    ]);
+  } finally {
+    await Promise.all([closeServer(frontend), closeServer(configuredUpstream), closeServer(attackerUpstream)]);
+  }
+});
 
 test("site chỉ chứa source HTML/CSS/JavaScript, không còn TypeScript", () => {
   const sourceFiles = walk(root).filter((file) => !file.includes(`${join(root, ".git")}`));
@@ -74,6 +116,27 @@ test("mọi app shell nạp runtime config trước ES module", () => {
   assert.match(createRuntimeConfigScript({ dataMode: "api" }), /"dataMode":"api"/);
   assert.throws(() => createRuntimeConfigScript({ dataMode: "invalid" }));
 });
+
+function listenOnLoopback(server) {
+  return new Promise((resolvePromise) => server.listen(0, "127.0.0.1", resolvePromise));
+}
+
+function closeServer(server) {
+  return new Promise((resolvePromise, rejectPromise) => server.close((error) => error ? rejectPromise(error) : resolvePromise()));
+}
+
+function sendRawHttpRequest(port, requestTarget) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const chunks = [];
+    const socket = createConnection({ host: "127.0.0.1", port }, () => {
+      socket.write(`GET ${requestTarget} HTTP/1.1\r\nHost: frontend.test\r\nConnection: close\r\n\r\n`);
+    });
+    socket.setEncoding("utf8");
+    socket.on("data", (chunk) => chunks.push(chunk));
+    socket.on("end", () => resolvePromise(chunks.join("")));
+    socket.on("error", rejectPromise);
+  });
+}
 
 test("API mode runtime chuyển request frontend qua Backend proxy", async () => {
   let upstreamPath = null;

@@ -30,10 +30,14 @@ export function resolveRequestPath(pathname) {
   return decoded.endsWith("/") ? `${clean}index.html` : clean;
 }
 
-export function proxyApiRequest(request, response, backendOrigin) {
+export function proxyApiRequest(request, response, backendOrigin, requestUrl = new URL(request.url ?? "/", "http://frontend.invalid")) {
   let target;
-  try { target = new URL(request.url ?? "/", backendOrigin.endsWith("/") ? backendOrigin : `${backendOrigin}/`); }
-  catch { response.writeHead(502, { "content-type": "application/json" }); response.end('{"error":{"code":"PROXY_CONFIG_ERROR","message":"Backend proxy is not configured correctly."}}'); return; }
+  try {
+    const configuredOrigin = new URL(backendOrigin);
+    if (!["http:", "https:"].includes(configuredOrigin.protocol)) throw new Error("Unsupported Backend protocol.");
+    target = new URL(`${requestUrl.pathname}${requestUrl.search}`, configuredOrigin.origin);
+    if (target.origin !== configuredOrigin.origin) throw new Error("Backend proxy origin drifted from configuration.");
+  } catch { response.writeHead(502, { "content-type": "application/json" }); response.end('{"error":{"code":"PROXY_CONFIG_ERROR","message":"Backend proxy is not configured correctly."}}'); return; }
   const transport = target.protocol === "https:" ? httpsRequest : httpRequest;
   const headers = { ...request.headers, host: target.host, "x-forwarded-host": request.headers.host ?? "", "x-forwarded-proto": "http" };
   const upstream = transport(target, { method: request.method, headers }, (upstreamResponse) => {
@@ -62,7 +66,7 @@ export function createStaticServer(root = projectRoot, {
         response.end(runtimeConfigScript);
         return;
       }
-      if (backendOrigin && requestUrl.pathname.startsWith("/api/v1/")) return proxyApiRequest(request, response, backendOrigin);
+      if (backendOrigin && requestUrl.pathname.startsWith("/api/v1/")) return proxyApiRequest(request, response, backendOrigin, requestUrl);
       const relativePath = normalize(resolveRequestPath(requestUrl.pathname));
       const filePath = resolve(join(absoluteRoot, relativePath));
       const pathFromRoot = relative(absoluteRoot, filePath);

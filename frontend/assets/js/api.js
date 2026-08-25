@@ -81,7 +81,7 @@ export function createClearCorrectionRequest(field) {
   return { operation: "CLEAR", expected_updated_at: field.updated_at };
 }
 
-export function projectApiExtractedField(field, expectedFieldName = field?.field_name) {
+export function projectApiExtractedField(field, expectedFieldName = field?.field_name, validSourceBlockIds = null) {
   if (!field || typeof field !== "object") throw new Error("Backend field response phải là object.");
   if (!CORE_FIELD_TYPES.includes(field.field_name)) throw new Error(`Backend field_name không canonical: ${field.field_name}`);
   if (field.field_name !== expectedFieldName) throw new Error(`Field key/URL ${expectedFieldName} không khớp field_name ${field.field_name}.`);
@@ -115,6 +115,13 @@ export function projectApiExtractedField(field, expectedFieldName = field?.field
     throw new Error("Machine field PRESENT phải có source evidence.");
   }
 
+  if (validSourceBlockIds !== null) {
+    if (!(validSourceBlockIds instanceof Set)) throw new Error("Evidence context phải là Set OCR block IDs.");
+    for (const sourceId of field.source_block_ids) {
+      if (!validSourceBlockIds.has(sourceId)) throw new Error(`Thiếu OCR block ${sourceId} được field ${field.field_name} tham chiếu.`);
+    }
+  }
+
   return deepClone(field);
 }
 
@@ -125,14 +132,11 @@ export function projectApiReceiptDetail(receipt) {
   const projected = deepClone(receipt);
   if (keys.length) {
     if (keys.length !== 5 || CORE_FIELD_TYPES.some((key) => !keys.includes(key))) throw new Error("Backend fields phải rỗng hoặc chứa đúng năm canonical keys.");
-    const projectedFields = Object.fromEntries(CORE_FIELD_TYPES.map((fieldName) => [fieldName, projectApiExtractedField(receipt.fields[fieldName], fieldName)]));
     const blockIds = new Set((receipt.ocr_blocks ?? []).map((block) => block.block_id));
-    for (const fieldName of CORE_FIELD_TYPES) {
-      for (const sourceId of projectedFields[fieldName].source_block_ids) {
-        if (!blockIds.has(sourceId)) throw new Error(`Thiếu OCR block ${sourceId} được field ${fieldName} tham chiếu.`);
-      }
-    }
-    projected.fields = projectedFields;
+    projected.fields = Object.fromEntries(CORE_FIELD_TYPES.map((fieldName) => [
+      fieldName,
+      projectApiExtractedField(receipt.fields[fieldName], fieldName, blockIds),
+    ]));
   }
   return projected;
 }
@@ -158,7 +162,9 @@ export class HttpApi {
   async updateCorrection(receiptId, fieldName, request, options = {}) {
     const response = await fetch(createUrl(apiPaths.fieldCorrection(receiptId, fieldName)), requestDefaults({ method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(request), signal: options.signal }));
     const field = await parseResponse(response);
-    return projectApiExtractedField(field, fieldName);
+    if (!Array.isArray(options.ocrBlocks)) throw new Error("Correction response thiếu receipt OCR evidence context.");
+    const validSourceBlockIds = new Set(options.ocrBlocks.map((block) => block.block_id));
+    return projectApiExtractedField(field, fieldName, validSourceBlockIds);
   }
 
   async verifyReceipt(receiptId, expectedUpdatedAt, options = {}) {

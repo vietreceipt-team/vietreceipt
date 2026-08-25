@@ -8,7 +8,7 @@ import { reconcileStatesAfterCorrection } from "./review-state.js";
 export async function saveCorrectionAndRefresh({ api, receipt, fieldStates, fieldName, request }) {
   let savedField;
   try {
-    savedField = await api.updateCorrection(receipt.receipt_id, fieldName, request);
+    savedField = await api.updateCorrection(receipt.receipt_id, fieldName, request, { ocrBlocks: receipt.ocr_blocks });
   } catch (error) {
     return { outcome: "MUTATION_ERROR", error, receipt, fieldStates };
   }
