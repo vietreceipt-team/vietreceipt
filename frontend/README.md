@@ -2,7 +2,7 @@
 
 Frontend Human-in-the-Loop của VietReceipt được chuyển từ Next.js/React/TypeScript sang HTML, CSS và JavaScript ES modules. Việc đổi runtime không thay đổi product contract W1/W2: upload → processing → review → APPLY/CLEAR correction → verify, cùng FAILED/retry.
 
-Phạm vi này giữ toàn bộ yêu cầu đã chốt ở Frontend W1 Issue #7 và W2 Issue #13. Không bao gồm pilot mode hoặc yêu cầu W3.
+Frontend giữ các yêu cầu W1/W2 và bổ sung pilot research-safe W3 Issue #27 cho C1 manual và C2 verify-all. C3 selective review không được triển khai hoặc bật.
 
 ## Chạy local
 
@@ -41,6 +41,8 @@ Không cần sửa source để bật Backend thật. Server sinh `/runtime-conf
 ```dotenv
 FRONTEND_DATA_MODE=api
 BACKEND_API_ORIGIN=http://localhost:8000
+FRONTEND_STUDY_MODE=C1_MANUAL
+FRONTEND_STUDY_ORDER=C1_MANUAL,C2_VERIFY_ALL
 ```
 
 Giữ API base cùng origin để browser gọi `/api/v1`; server reverse proxy tới `BACKEND_API_ORIGIN`. Docker Compose mặc định đặt `FRONTEND_DATA_MODE=api` và `BACKEND_API_ORIGIN=http://backend:8000`, vì vậy container dùng Backend thật qua internal network. Không đặt token, mật khẩu hoặc secret trong runtime config public.
@@ -71,7 +73,17 @@ Giữ API base cùng origin để browser gọi `/api/v1`; server reverse proxy 
 - APPLY/CLEAR correction;
 - verify, chuyển receipt và retry.
 
-Payload chỉ có event name, timestamp, receipt ID, field/operation khi cần và `PREFILL_FULL_REVIEW`. Không chứa ảnh, OCR text, field value, token hoặc credential. Frontend không auto-verify, không selective-skip và không claim confidence đã calibration.
+Payload event không chứa ảnh, OCR text, field value, phím đã gõ, token hoặc credential. Summary chỉ có processing/waiting time, active review time, correction count, keystroke count và completion timestamp. Frontend không auto-verify, không selective-skip và không tuyên bố tiết kiệm thời gian khi chưa chạy study.
+
+## W3 pilot modes
+
+- `C1_MANUAL`: form trống đủ năm canonical fields; DOM không render prediction, confidence, review reason, OCR text hoặc evidence overlay.
+- `C2_VERIFY_ALL`: hiển thị prediction/evidence nhưng cả năm field khởi tạo ở trạng thái cần xác nhận; confidence không được dùng để skip.
+- `FRONTEND_STUDY_ORDER` phải là một permutation của C1/C2 và bắt đầu bằng `FRONTEND_STUDY_MODE`; đổi thứ tự để counterbalance hai nhóm.
+- Nút **Reset phiên nghiên cứu** xóa tiến trình condition trong `sessionStorage`; không lưu field data hoặc participant identifier.
+- Sau verify, session chuyển sang condition kế tiếp trong order cho receipt tiếp theo.
+- Dry-run synthetic/headless E2E bao phủ five-field C1/C2, stale 409, retryable failure và keyboard mapping.
+- Không có C3 selective review và không có claim về hiệu quả thời gian.
 
 ## Cấu trúc
 
@@ -83,7 +95,8 @@ assets/
     api.js              Backend DTO validation + mock/HTTP boundary
     review-state.js     per-field state và reconcile logic
     review-workflow.js  mutation/refresh outcome tách biệt
-    review-telemetry.js privacy-safe measurement hooks
+    review-telemetry.js privacy-safe timing/count measurement hooks
+    study-mode.js       C1/C2 state, renderer, counterbalancing session
     common.js           navigation/constants/formatters
     config.js           mock/API configuration
     mock-data.js        canonical W1/W2 fixtures

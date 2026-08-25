@@ -25,7 +25,7 @@ if (process.argv.includes("--lint")) {
   const directFetch = files.filter((file) => file.startsWith(uiRoot) && extname(file) === ".js" && !file.endsWith(join("assets", "js", "api.js"))).filter((file) => /\bfetch\s*\(/.test(readFileSync(file, "utf8")));
   if (directFetch.length) throw new Error(`fetch() phải nằm trong API boundary: ${directFetch.map((file) => relative(root, file)).join(", ")}`);
   const telemetrySource = readFileSync(join(uiRoot, "review-telemetry.js"), "utf8");
-  if (/raw_text|predicted_value|effective_value|credential/.test(telemetrySource)) throw new Error("Telemetry hook không được chứa field value, OCR text hoặc credential.");
+  if (/raw_text|predicted_value|effective_value|field_value|ocr_text|image_data|credential|access_token/.test(telemetrySource)) throw new Error("Telemetry hook không được chứa ảnh, field value, OCR text, token hoặc credential.");
 }
 
 console.log(`${process.argv.includes("--lint") ? "Lint" : "Typecheck"}: ${files.length} files OK`);

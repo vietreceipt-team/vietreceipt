@@ -218,9 +218,10 @@ test("một OCR block có thể highlight nhiều canonical fields", () => {
 test("keyboard mapping hỗ trợ save, reset và chuyển field", () => {
   assert.equal(getAdjacentField("receipt_date", 1), "total_amount");
   assert.equal(getAdjacentField("receipt_date", -1), "merchant_name");
-  assert.match(detailSource, /event\.ctrlKey \|\| event\.metaKey/);
-  assert.match(detailSource, /event\.key === "Escape"/);
-  assert.match(detailSource, /event\.altKey/);
+  assert.match(detailSource, /getReviewKeyboardAction\(event\)/);
+  assert.match(detailSource, /action === "SAVE"/);
+  assert.match(detailSource, /action === "RESET"/);
+  assert.match(detailSource, /"PREVIOUS_FIELD", "NEXT_FIELD"/);
 });
 
 test("telemetry chỉ bắt đầu ở interaction và không chứa dữ liệu nhạy cảm", () => {

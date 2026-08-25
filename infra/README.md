@@ -62,7 +62,10 @@ thuộc về Backend-1/Backend-2. `Frontend` build từ
 `infra/docker/frontend.Dockerfile`, chạy static server cho môi trường local.
 Compose đặt `FRONTEND_DATA_MODE=api`; server inject cấu hình này qua
 `/runtime-config.js` trước ES modules và reverse proxy `/api/v1/*` tới
-`BACKEND_API_ORIGIN=http://backend:8000`. Đây không phải production image.
+`BACKEND_API_ORIGIN=http://backend:8000`. W3 có thể bật pilot bằng
+`FRONTEND_STUDY_MODE` và đổi thứ tự counterbalance bằng
+`FRONTEND_STUDY_ORDER`; mode để trống nghĩa là pilot tắt. Đây không phải
+production image.
 
 Backend, Worker và Frontend chạy trong cùng Compose network phải dùng service
 name, không dùng `localhost`:
@@ -72,6 +75,8 @@ DATABASE_URL=postgresql+psycopg://vietreceipt:...@postgres:5432/vietreceipt
 REDIS_URL=redis://redis:6379/0
 STORAGE_ENDPOINT=http://minio:9000
 FRONTEND_DATA_MODE=api
+FRONTEND_STUDY_MODE=C1_MANUAL
+FRONTEND_STUDY_ORDER=C1_MANUAL,C2_VERIFY_ALL
 BACKEND_API_ORIGIN=http://backend:8000
 ```
 

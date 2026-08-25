@@ -11,14 +11,35 @@ const contentTypes = {
   ".json": "application/json; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2",
 };
 const DATA_MODES = new Set(["mock", "api"]);
+const STUDY_MODES = new Set(["C1_MANUAL", "C2_VERIFY_ALL"]);
+
+function parseStudyOrder(value) {
+  const order = Array.isArray(value) ? value : String(value).split(",");
+  const normalized = order.map((mode) => String(mode).trim()).filter(Boolean);
+  if (normalized.length !== 2 || new Set(normalized).size !== 2 || normalized.some((mode) => !STUDY_MODES.has(mode))) {
+    throw new Error("FRONTEND_STUDY_ORDER phải chứa đúng C1_MANUAL và C2_VERIFY_ALL, mỗi mode một lần.");
+  }
+  return normalized;
+}
 
 export function createRuntimeConfigScript({
   dataMode = process.env.FRONTEND_DATA_MODE ?? "mock",
   apiBaseUrl = process.env.FRONTEND_API_BASE_URL ?? "",
   requestCredentials = process.env.FRONTEND_REQUEST_CREDENTIALS ?? "include",
+  studyMode = process.env.FRONTEND_STUDY_MODE ?? "",
+  studyOrder = process.env.FRONTEND_STUDY_ORDER ?? "C1_MANUAL,C2_VERIFY_ALL",
 } = {}) {
   if (!DATA_MODES.has(dataMode)) throw new Error(`FRONTEND_DATA_MODE không hợp lệ: ${dataMode}`);
-  const config = { dataMode, apiBaseUrl: apiBaseUrl.replace(/\/$/, ""), requestCredentials };
+  if (studyMode !== "" && !STUDY_MODES.has(studyMode)) throw new Error(`FRONTEND_STUDY_MODE không hợp lệ: ${studyMode}`);
+  const normalizedOrder = parseStudyOrder(studyOrder);
+  if (studyMode && normalizedOrder[0] !== studyMode) throw new Error("FRONTEND_STUDY_MODE phải đứng đầu FRONTEND_STUDY_ORDER.");
+  const config = {
+    dataMode,
+    apiBaseUrl: apiBaseUrl.replace(/\/$/, ""),
+    requestCredentials,
+    studyMode: studyMode || null,
+    studyOrder: normalizedOrder,
+  };
   return `globalThis.VIETRECEIPT_CONFIG = Object.freeze(${JSON.stringify(config)});\n`;
 }
 

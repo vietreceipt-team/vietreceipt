@@ -1,26 +1,57 @@
 export const REVIEW_EVENT_NAME = "vietreceipt:review-event";
 
-export function createReviewTelemetry(receiptId, publish = defaultPublish) {
+export function createReviewTelemetry(receiptId, publish = defaultPublish, options = {}) {
+  const reviewMode = options.reviewMode ?? "PREFILL_FULL_REVIEW";
+  const monotonicNow = options.monotonicNow ?? (() => globalThis.performance?.now?.() ?? Date.now());
+  const wallNow = options.wallNow ?? (() => new Date().toISOString());
+  const createdAt = monotonicNow();
+  let processingStartedAt = null;
+  let readyAt = null;
   let reviewStarted = false;
+  let activeStartedAt = null;
+  let activeElapsed = 0;
+  let correctionCount = 0;
+  let keystrokeCount = 0;
   let lastFocusedField = null;
+  let completed = false;
+
+  function duration(from, to) { return from === null || to === null ? 0 : Math.max(0, Math.round(to - from)); }
 
   function emit(event, extra = {}) {
-    const payload = {
-      event,
-      occurred_at: new Date().toISOString(),
-      receipt_id: receiptId,
-      review_mode: "PREFILL_FULL_REVIEW",
-      ...extra,
-    };
+    const payload = { event, occurred_at: wallNow(), receipt_id: receiptId, review_mode: reviewMode, ...extra };
     publish(payload);
     return payload;
   }
 
+  function pauseActive() {
+    if (activeStartedAt === null) return;
+    activeElapsed += Math.max(0, monotonicNow() - activeStartedAt);
+    activeStartedAt = null;
+  }
+
   return {
+    observeReceipt(status, hasFields = false) {
+      const now = monotonicNow();
+      if (processingStartedAt === null && ["UPLOADED", "PROCESSING"].includes(status)) processingStartedAt = now;
+      if (hasFields && readyAt === null) {
+        readyAt = now;
+        return emit("REVIEW_READY", {
+          waiting_time_ms: duration(createdAt, readyAt),
+          processing_time_ms: duration(processingStartedAt, readyAt),
+        });
+      }
+      return null;
+    },
     startReview() {
       if (reviewStarted) return null;
       reviewStarted = true;
+      activeStartedAt = monotonicNow();
       return emit("REVIEW_STARTED");
+    },
+    pauseActive,
+    resumeActive() {
+      if (!reviewStarted || completed || activeStartedAt !== null) return;
+      activeStartedAt = monotonicNow();
     },
     focusField(fieldName) {
       this.startReview();
@@ -32,11 +63,32 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish) {
       this.startReview();
       return emit("FIELD_EDITED", { field_name: fieldName });
     },
+    recordKeystroke() {
+      this.startReview();
+      keystrokeCount += 1;
+      return keystrokeCount;
+    },
     correction(fieldName, operation) {
+      correctionCount += 1;
       return emit(operation === "CLEAR" ? "CORRECTION_CLEARED" : "CORRECTION_APPLIED", { field_name: fieldName, operation });
     },
     verify() { return emit("RECEIPT_VERIFIED"); },
-    changeReceipt() { return emit("RECEIPT_CHANGED"); },
+    complete() {
+      if (completed) return null;
+      pauseActive();
+      completed = true;
+      const completedAt = monotonicNow();
+      return emit("REVIEW_COMPLETED", {
+        waiting_time_ms: duration(createdAt, readyAt ?? completedAt),
+        processing_time_ms: duration(processingStartedAt, readyAt ?? completedAt),
+        active_review_time_ms: Math.max(0, Math.round(activeElapsed)),
+        correction_count: correctionCount,
+        keystroke_count: keystrokeCount,
+        completed_at: wallNow(),
+      });
+    },
+    resetSession() { return emit("STUDY_SESSION_RESET"); },
+    changeReceipt() { pauseActive(); return emit("RECEIPT_CHANGED"); },
     retry() { return emit("RETRY_REQUESTED"); },
   };
 }

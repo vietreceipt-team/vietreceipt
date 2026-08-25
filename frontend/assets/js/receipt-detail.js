@@ -4,7 +4,24 @@ import { CORE_FIELD_TYPES, FIELD_LABELS, announce, escapeHtml, formatVnd, getRec
 import { canVerifyReceipt, createFieldState, createFieldStates, DIRTY_FIELD_PHASES, editFieldStatus, editFieldValue, findFieldsForSourceBlock, getAdjacentField } from "./review-state.js";
 import { saveCorrectionAndRefresh } from "./review-workflow.js";
 import { createReviewTelemetry } from "./review-telemetry.js";
+import {
+  C1_MANUAL,
+  C2_VERIFY_ALL,
+  canVerifyStudyReceipt,
+  createC1ManualFieldState,
+  createStudyFieldStates,
+  createStudySession,
+  getReviewKeyboardAction,
+  isStudyDraftValid,
+  rearmStudyFieldAfterUnknown,
+  renderC1ManualForm,
+  shouldRenderEvidence,
+  studyModeCopy,
+  studyPendingCount,
+} from "./study-mode.js";
 
+const studySession = createStudySession(APP_CONFIG);
+const studyMode = studySession.currentMode;
 renderNavigation();
 
 const statusStyles = {
@@ -43,14 +60,9 @@ let telemetry = null;
 function orderedFields() { return receipt?.fields ? CORE_FIELD_TYPES.map((name) => receipt.fields[name]).filter(Boolean) : []; }
 function field(name) { return receipt?.fields?.[name]; }
 function reviewPendingCount() {
-  return CORE_FIELD_TYPES.filter((name) => field(name)?.effective_needs_review || DIRTY_FIELD_PHASES.has(fieldStates[name]?.phase)).length;
+  return studyPendingCount(receipt?.fields, fieldStates, studyMode);
 }
-function draftIsValid(name) {
-  const state = fieldStates[name];
-  if (!state) return false;
-  if (state.value_status === "PRESENT") return state.value !== null && (name !== "total_amount" || Number.isInteger(state.value) && state.value >= 0);
-  return ["NOT_PRESENT", "UNREADABLE"].includes(state.value_status) && state.value === null;
-}
+function draftIsValid(name) { return isStudyDraftValid(name, fieldStates[name]); }
 function valueLabel(value) { return value === null ? "—" : typeof value === "number" ? formatVnd(value) : String(value); }
 
 function polygonStyle(block) {
@@ -62,7 +74,7 @@ function polygonStyle(block) {
 }
 
 function receiptPreview() {
-  const overlays = (receipt.ocr_blocks ?? []).map((block) => `<button type="button" data-block-id="${escapeHtml(block.block_id)}" class="absolute border border-cyan-500/70 bg-cyan-300/10 transition ${activeBlockIds.has(block.block_id) ? "ocr-block-active" : ""}" style="${polygonStyle(block)}" aria-label="OCR: ${escapeHtml(block.text)}"></button>`).join("");
+  const overlays = shouldRenderEvidence(studyMode) ? (receipt.ocr_blocks ?? []).map((block) => `<button type="button" data-block-id="${escapeHtml(block.block_id)}" class="absolute border border-cyan-500/70 bg-cyan-300/10 transition ${activeBlockIds.has(block.block_id) ? "ocr-block-active" : ""}" style="${polygonStyle(block)}" aria-label="OCR: ${escapeHtml(block.text)}"></button>`).join("") : "";
   if (receipt.image_url) {
     return `<div id="receipt-paper" class="receipt-shadow relative w-[340px] shrink-0 origin-top transition-transform duration-200 sm:w-[390px]" style="transform:scale(${zoom / 100}) rotate(${rotation}deg)"><img src="${escapeHtml(receipt.image_url)}" alt="Ảnh hóa đơn gốc ${escapeHtml(receipt.original_filename)}" class="block h-auto w-full bg-white"><div class="absolute inset-0">${overlays}</div></div>`;
   }
@@ -92,15 +104,28 @@ function renderReview() {
       <div class="paper-texture relative min-h-0 flex-1 overflow-auto p-6 sm:p-10"><div id="receipt-preview" class="flex min-h-full min-w-full items-start justify-center">${receiptPreview()}</div></div>
       <div class="flex h-14 shrink-0 items-center justify-center gap-2 border-t border-white/10 bg-slate-900 px-3 text-white"><button id="zoom-out" type="button" class="grid size-8 place-items-center rounded-lg bg-white/5 text-lg hover:bg-white/10" aria-label="Thu nhỏ">−</button><input id="zoom-range" type="range" min="65" max="145" step="5" value="${zoom}" class="w-24 accent-teal-400 sm:w-36" aria-label="Mức thu phóng"><button id="zoom-in" type="button" class="grid size-8 place-items-center rounded-lg bg-white/5 text-lg hover:bg-white/10" aria-label="Phóng to">+</button><span id="zoom-label" class="w-10 text-center text-[11px] font-bold tabular-nums text-slate-300">${zoom}%</span><span class="mx-1 h-6 w-px bg-white/10"></span><button id="rotate-left" type="button" class="grid h-8 place-items-center rounded-lg bg-white/5 px-2.5 text-xs font-bold hover:bg-white/10" aria-label="Xoay trái">↶</button><button id="rotate-right" type="button" class="grid h-8 place-items-center rounded-lg bg-white/5 px-2.5 text-xs font-bold hover:bg-white/10" aria-label="Xoay phải">↷</button></div>
     </section>
-    <section class="flex min-h-0 flex-1 flex-col bg-white lg:h-full lg:w-[42%]" aria-label="Biểu mẫu kiểm chứng"><header class="shrink-0 border-b border-slate-200 px-5 py-4 sm:px-6"><p class="text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700">Bước 2 · Kiểm chứng</p><div class="mt-1.5 flex items-start justify-between gap-4"><h1 class="text-xl font-bold tracking-[-0.025em] text-slate-950">Đối chiếu thông tin</h1><span id="review-count" class="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">${count}/5 cần xử lý</span></div><p class="mt-2 text-xs leading-5 text-slate-500">Warning dùng effective_needs_review; confidence chỉ là provenance, không tự skip hoặc verify.</p></header>
+    <section class="flex min-h-0 flex-1 flex-col bg-white lg:h-full lg:w-[42%]" aria-label="Biểu mẫu kiểm chứng"><header class="shrink-0 border-b border-slate-200 px-5 py-4 sm:px-6"><p id="review-mode-badge" class="text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700">Bước 2 · Kiểm chứng</p><div class="mt-1.5 flex items-start justify-between gap-4"><h1 id="review-mode-title" class="text-xl font-bold tracking-[-0.025em] text-slate-950">Đối chiếu thông tin</h1><span id="review-count" class="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">${count}/5 cần xử lý</span></div><p id="review-mode-description" class="mt-2 text-xs leading-5 text-slate-500">Warning dùng effective_needs_review; confidence chỉ là provenance, không tự skip hoặc verify.</p></header>
       <form id="review-form" class="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6"><div id="stale-banner"></div><div id="field-list" class="space-y-5"></div></form>
       <footer class="shrink-0 border-t border-slate-200 bg-white p-4 sm:px-6"><p class="mb-2 text-[10px] text-slate-400">Ctrl/⌘+Enter: lưu field · Esc: bỏ draft · Alt+↑/↓: chuyển field</p><div class="flex gap-3"><button id="back-button" type="button" class="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50">Quay lại</button><button id="verify-button" type="button" class="h-11 flex-[1.8] rounded-xl bg-teal-800 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-teal-900 disabled:cursor-not-allowed disabled:opacity-45"></button></div></footer>
     </section>
   </div>`;
+  applyStudyChrome();
   renderStaleBanner();
   renderFields();
   bindReviewEvents();
   updateControls();
+}
+
+function applyStudyChrome() {
+  const copy = studyModeCopy(studyMode);
+  main.firstElementChild?.setAttribute("data-study-mode", studyMode ?? "STANDARD_REVIEW");
+  const badge = document.querySelector("#review-mode-badge");
+  const title = document.querySelector("#review-mode-title");
+  const description = document.querySelector("#review-mode-description");
+  if (badge) badge.textContent = copy.badge;
+  if (title) title.textContent = copy.title;
+  if (description) description.textContent = copy.description;
+  if (studySession.enabled && description) description.insertAdjacentHTML("afterend", '<button id="reset-study-session" type="button" class="mt-3 rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-bold text-slate-600 hover:bg-slate-50">Reset phiên nghiên cứu</button>');
 }
 
 function renderStaleBanner() {
@@ -112,7 +137,9 @@ function renderStaleBanner() {
 
 function renderFields() {
   const canEdit = receipt.status === "NEEDS_REVIEW" && !staleMessage;
-  document.querySelector("#field-list").innerHTML = orderedFields().map((item) => {
+  const host = document.querySelector("#field-list");
+  if (studyMode === C1_MANUAL) { host.innerHTML = renderC1ManualForm(fieldStates, canEdit); return; }
+  host.innerHTML = orderedFields().map((item) => {
     const state = fieldStates[item.field_name];
     const style = statusStyles[state.value_status];
     const active = activeFields.includes(item.field_name);
@@ -136,7 +163,7 @@ function updateControls() {
   const count = reviewPendingCount();
   const button = document.querySelector("#verify-button");
   if (!button) return;
-  const allowed = canVerifyReceipt(receipt, fieldStates) && !staleMessage;
+  const allowed = canVerifyStudyReceipt(receipt, fieldStates, studyMode) && !staleMessage;
   button.disabled = verifying || !allowed;
   button.textContent = verifying ? "Đang xác minh..." : receipt.status === "VERIFIED" ? "Đã xác minh" : allowed ? "Xác nhận hóa đơn" : count ? `Còn ${count} field cần lưu` : "Chưa thể xác minh";
   document.querySelector("#review-count").textContent = `${count}/5 cần xử lý`;
@@ -166,10 +193,24 @@ function focusField(name) {
   card?.querySelector("[data-field-input]:not(:disabled),[data-field-status]")?.focus();
 }
 
+function resetReviewField(name) {
+  if (studyMode === C1_MANUAL) return createC1ManualFieldState();
+  if (studyMode === C2_VERIFY_ALL) return createFieldState(field(name), "EDITING");
+  return createFieldState(field(name));
+}
+
+function resetStudySession() {
+  if (!studySession.enabled || !globalThis.confirm?.("Reset toàn bộ tiến trình condition của phiên nghiên cứu?")) return;
+  telemetry?.resetSession();
+  studySession.reset();
+  globalThis.location.reload();
+}
+
 function bindReviewEvents() {
   document.querySelector("#back-button").addEventListener("click", () => { telemetry?.changeReceipt(); window.location.assign("/receipts/"); });
   document.querySelector("[data-change-receipt]")?.addEventListener("click", () => telemetry?.changeReceipt());
   document.querySelector("#verify-button").addEventListener("click", verifyReceipt);
+  document.querySelector("#reset-study-session")?.addEventListener("click", resetStudySession);
   document.querySelector("#zoom-out").addEventListener("click", () => { zoom = Math.max(65, zoom - 10); updatePreviewTransform(); });
   document.querySelector("#zoom-in").addEventListener("click", () => { zoom = Math.min(145, zoom + 10); updatePreviewTransform(); });
   document.querySelector("#zoom-range").addEventListener("input", (event) => { zoom = Number(event.target.value); updatePreviewTransform(); });
@@ -198,16 +239,18 @@ function bindReviewEvents() {
     const reset = event.target.closest("[data-reset-field]");
     if (save) saveField(save.dataset.saveField, "APPLY");
     if (clear) saveField(clear.dataset.clearField, "CLEAR");
-    if (reset) { fieldStates[reset.dataset.resetField] = createFieldState(field(reset.dataset.resetField)); renderFields(); updateControls(); }
+    if (reset) { fieldStates[reset.dataset.resetField] = resetReviewField(reset.dataset.resetField); renderFields(); updateControls(); }
   });
   form.addEventListener("keydown", (event) => {
     const target = event.target.closest("[data-field-input],[data-field-status]");
     const name = target?.dataset.fieldInput ?? target?.dataset.fieldStatus ?? activeFields[0];
     if (!name) return;
     telemetry?.startReview();
-    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); saveField(name, "APPLY"); }
-    if (event.key === "Escape") { event.preventDefault(); fieldStates[name] = createFieldState(field(name)); renderFields(); updateControls(); focusField(name); }
-    if (event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) { event.preventDefault(); focusField(getAdjacentField(name, event.key === "ArrowDown" ? 1 : -1)); }
+    if (target && (event.key.length === 1 || ["Backspace", "Delete"].includes(event.key))) telemetry?.recordKeystroke();
+    const action = getReviewKeyboardAction(event);
+    if (action === "SAVE") { event.preventDefault(); saveField(name, "APPLY"); }
+    if (action === "RESET") { event.preventDefault(); fieldStates[name] = resetReviewField(name); renderFields(); updateControls(); focusField(name); }
+    if (["PREVIOUS_FIELD", "NEXT_FIELD"].includes(action)) { event.preventDefault(); focusField(getAdjacentField(name, action === "NEXT_FIELD" ? 1 : -1)); }
   });
   document.querySelector("#receipt-preview").addEventListener("click", (event) => {
     const block = event.target.closest("[data-block-id]");
@@ -254,6 +297,7 @@ async function saveField(name, operation) {
   } else {
     receipt = result.receipt;
     fieldStates = result.fieldStates;
+    if (result.outcome === "REFRESHED_AFTER_UNKNOWN_MUTATION") fieldStates = rearmStudyFieldAfterUnknown(studyMode, receipt, fieldStates, name);
     if (result.outcome === "MUTATION_OUTCOME_UNKNOWN") {
       staleMessage = "Backend đã trả HTTP 2xx nhưng correction response không hợp lệ và GET reload thất bại. Verify và mutation bị khóa để tránh dùng token cũ.";
       announce("Kết quả correction chưa xác định. Hãy tải phiên bản mới trước khi tiếp tục.", "error");
@@ -275,7 +319,7 @@ async function saveField(name, operation) {
 async function reloadLatest() {
   try {
     receipt = await vietReceiptApi.getReceipt(receipt.receipt_id);
-    fieldStates = createFieldStates(receipt.fields);
+    fieldStates = createStudyFieldStates(receipt.fields, studyMode);
     staleMessage = null;
     announce("Đã tải phiên bản mới nhất từ Backend.");
     renderReview();
@@ -283,12 +327,14 @@ async function reloadLatest() {
 }
 
 async function verifyReceipt() {
-  if (verifying || !canVerifyReceipt(receipt, fieldStates) || staleMessage) return;
+  if (verifying || !canVerifyStudyReceipt(receipt, fieldStates, studyMode) || staleMessage) return;
   verifying = true; updateControls();
   try {
     receipt = await vietReceiptApi.verifyReceipt(receipt.receipt_id, receipt.updated_at);
-    fieldStates = createFieldStates(receipt.fields);
+    if (!studySession.enabled) fieldStates = createFieldStates(receipt.fields);
     telemetry?.verify();
+    telemetry?.complete();
+    studySession.completeCondition();
     announce("Hóa đơn đã được Backend xác minh.");
     renderReview();
   } catch (error) {
@@ -314,11 +360,13 @@ async function retryReceipt() {
 
 function renderReceipt() {
   globalThis.clearTimeout(pollingTimer);
-  if (!receipt.fields || !Object.keys(receipt.fields).length) {
+  const hasFields = Boolean(receipt.fields && Object.keys(receipt.fields).length);
+  telemetry?.observeReceipt(receipt.status, hasFields);
+  if (!hasFields) {
     renderNoFields();
     if (APP_CONFIG.dataMode === "api" && ["UPLOADED", "PROCESSING"].includes(receipt.status)) schedulePoll();
   } else {
-    fieldStates = createFieldStates(receipt.fields);
+    fieldStates = createStudyFieldStates(receipt.fields, studyMode);
     renderReview();
   }
 }
@@ -333,15 +381,16 @@ function schedulePoll() {
   }, delay);
 }
 
-globalThis.addEventListener?.("pagehide", () => globalThis.clearTimeout(pollingTimer), { once: true });
+globalThis.addEventListener?.("pagehide", () => { globalThis.clearTimeout(pollingTimer); telemetry?.pauseActive(); }, { once: true });
+globalThis.document?.addEventListener?.("visibilitychange", () => document.hidden ? telemetry?.pauseActive() : telemetry?.resumeActive());
 
 if (!receiptId) {
   main.innerHTML = `<div class="grid min-h-[calc(100dvh-56px)] place-items-center px-4 text-center"><div><p class="text-5xl">404</p><h1 class="mt-4 text-2xl font-bold text-slate-900">Không tìm thấy mã hóa đơn</h1><a href="/receipts/" class="mt-5 inline-flex rounded-xl bg-teal-800 px-5 py-3 text-sm font-bold text-white">Quay lại danh sách</a></div></div>`;
 } else {
   main.innerHTML = `<div class="grid min-h-[calc(100dvh-56px)] place-items-center"><div class="text-center"><div class="mx-auto size-8 animate-spin rounded-full border-4 border-slate-200 border-t-teal-700"></div><p class="mt-4 text-sm font-semibold text-slate-500">Đang tải hóa đơn…</p></div></div>`;
+  telemetry = createReviewTelemetry(receiptId, undefined, { reviewMode: studyMode ?? "PREFILL_FULL_REVIEW" });
   try {
     receipt = await vietReceiptApi.getReceipt(receiptId);
-    telemetry = createReviewTelemetry(receipt.receipt_id);
     renderReceipt();
   } catch (error) {
     main.innerHTML = `<div class="grid min-h-[calc(100dvh-56px)] place-items-center px-4 text-center"><div><p class="text-5xl">404</p><h1 class="mt-4 text-2xl font-bold text-slate-900">Không tìm thấy hóa đơn</h1><p class="mt-2 text-sm text-slate-500">${escapeHtml(getApiErrorMessage(error))}</p><a href="/receipts/" class="mt-5 inline-flex rounded-xl bg-teal-800 px-5 py-3 text-sm font-bold text-white">Quay lại danh sách</a></div></div>`;

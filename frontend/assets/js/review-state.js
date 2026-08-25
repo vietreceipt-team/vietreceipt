@@ -46,7 +46,14 @@ export function editFieldStatus(state, valueStatus) {
 export function reconcileStatesAfterCorrection(current, latestFields, savedFieldName) {
   return Object.fromEntries(CORE_FIELD_TYPES.map((fieldName) => {
     const local = current[fieldName];
-    if (fieldName !== savedFieldName && local && DIRTY_FIELD_PHASES.has(local.phase)) return [fieldName, local];
+    if (fieldName !== savedFieldName && local) {
+      if (DIRTY_FIELD_PHASES.has(local.phase)) return [fieldName, local];
+      const latest = latestFields[fieldName];
+      const savedStillAuthoritative = local.phase === "SAVED"
+        && Object.is(local.value, latest.effective_value)
+        && local.value_status === latest.effective_status;
+      if (savedStillAuthoritative) return [fieldName, local];
+    }
     return [fieldName, createFieldState(latestFields[fieldName], fieldName === savedFieldName ? "SAVED" : "VIEW")];
   }));
 }
