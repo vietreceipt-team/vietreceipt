@@ -116,9 +116,9 @@
   "quality_stratum_summaries": [],
   "field_error_rows": [],
   "provenance": {
-    "git_commit_sha": "78c8ac88d8f6feec12313ae363a9fc384de1e4e3",
+    "git_commit_sha": "b82cbcb870eb285fd6f711845de56b9af8f14497",
     "git_worktree_dirty": false,
-    "generated_at": "2026-08-17T05:49:21.500500+00:00",
+    "generated_at": "2026-08-25T14:09:56.751613+00:00",
     "python_version": "3.12.13",
     "ocr_engine": "paddleocr",
     "paddleocr_package_version": "3.0.3",
@@ -129,7 +129,7 @@
     "dataset_version": "vietreceipt-week1-frozen-40-v1",
     "manifest_sha256": "51109f8016f5d2f9556a436fa7f0da8d231ab9d18bd92c405d884bffe60801d3",
     "annotation_qa_state": "pending independent transcription review and KIE/Data five-field gold annotation",
-    "run_command": "python scripts/evaluate_field_aware.py",
+    "run_command": "python 'scripts\\evaluate_field_aware.py'",
     "generated_report": "results/field_aware_error_report.json"
   },
   "dependency_note": "KIE/Data must provide verified five-field annotations and oracle OCR evidence; OCR does not fabricate semantic gold labels."

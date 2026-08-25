@@ -73,8 +73,8 @@ independent reviewer completes annotation QA.
 
 Week-2 integration and field-aware verification
 ------------------------------------------------
-Canonical main SHA: 7b1a40eef791af81f320fdc47fdf1393ae822ddf
-Evaluator source revision: 78c8ac88d8f6feec12313ae363a9fc384de1e4e3
+Canonical main SHA: 7809d363ed0230d8ae6a18437f51fc28e88bcd26
+Evaluator source revision: b82cbcb870eb285fd6f711845de56b9af8f14497
 Issue: https://github.com/vietreceipt-team/vietreceipt/issues/18
 
 The field-aware report was generated from the clean committed evaluator source
@@ -92,11 +92,12 @@ The report covers all five canonical fields and records the exact missing
 KIE/Data dependency instead of fabricating field labels.
 
 python -m unittest discover -s tests -v
-PASS: 23 tests. Week-1 artifact regression remains green. Week-2 tests cover
-the callable pipeline, Backend-style UUIDs, reprocess identity, immutable
-artifacts, schema and semantic invariants, benchmark ID separation, six-way
-field error taxonomy, annotation-integrity fail-fast behavior, verified
-Oracle/Real evidence, quality slices and reproducibility provenance.
+PASS: 65 tests. Week-1 artifact regression and the canonical KIE suite remain
+green. Week-2 tests cover the callable pipeline, process-long-lived engine
+reuse across worker receipts, Backend-style UUIDs, reprocess identity,
+immutable artifacts, schema and semantic invariants, benchmark ID separation,
+six-way field error taxonomy, annotation-integrity fail-fast behavior,
+verified Oracle/Real evidence, quality slices and reproducibility provenance.
 
 python tests/contracts/run_contract_tests.py
 PASS: canonical JSON Schemas/OpenAPI, 9 positive and 23 negative cases,
