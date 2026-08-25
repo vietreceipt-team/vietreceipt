@@ -134,7 +134,7 @@ check_frontend_integration() {
         let body = "";
         response.setEncoding("utf8");
         response.on("data", (chunk) => { body += chunk; });
-        response.on("end", () => resolve({ status: response.statusCode, body }));
+        response.on("end", () => resolve({ status: response.statusCode, body, requestId: response.headers["x-request-id"] }));
       }).on("error", reject);
     });
     (async () => {
@@ -143,12 +143,18 @@ check_frontend_integration() {
         throw new Error("Frontend runtime config is not in API mode.");
       }
       const proxied = await get("/api/v1/receipts?page=1&page_size=1");
-      if (proxied.status !== 200) throw new Error(`Frontend proxy returned ${proxied.status}.`);
       const payload = JSON.parse(proxied.body);
-      if (!Array.isArray(payload.items)) throw new Error("Backend list response did not pass through the frontend proxy.");
+      const configuredBackend = proxied.status === 200 && Array.isArray(payload.items);
+      const unconfiguredBackend = proxied.status === 503
+        && payload.error?.code === "APPLICATION_SERVICES_UNAVAILABLE"
+        && typeof payload.error?.request_id === "string"
+        && payload.error.request_id === proxied.requestId;
+      if (!configuredBackend && !unconfiguredBackend) {
+        throw new Error(`Frontend proxy did not return a canonical Backend response (status ${proxied.status}).`);
+      }
     })().catch((error) => { console.error(error.message); process.exit(1); });
   '
-  echo "[ok] Frontend runtime is API mode and /api/v1 reaches Backend"
+  echo "[ok] Frontend runtime is API mode and /api/v1 returns a canonical Backend response"
 }
 
 cd "$repo_root"

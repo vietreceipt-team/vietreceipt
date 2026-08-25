@@ -79,7 +79,7 @@ test("API mode runtime chuyển request frontend qua Backend proxy", async () =>
   let upstreamPath = null;
   const upstream = createHttpServer((request, response) => {
     upstreamPath = request.url;
-    response.writeHead(200, { "content-type": "application/json" });
+    response.writeHead(200, { "content-type": "application/json", "x-request-id": "proxy-smoke-request" });
     response.end('{"items":[],"page":1,"page_size":1,"total_items":0,"total_pages":0}');
   });
   await new Promise((resolvePromise) => upstream.listen(0, "127.0.0.1", resolvePromise));
@@ -96,6 +96,7 @@ test("API mode runtime chuyển request frontend qua Backend proxy", async () =>
     assert.match(await configResponse.text(), /"dataMode":"api"/);
     const apiResponse = await fetch(`http://127.0.0.1:${frontendAddress.port}/api/v1/receipts?page=1&page_size=1`);
     assert.equal(apiResponse.status, 200);
+    assert.equal(apiResponse.headers.get("x-request-id"), "proxy-smoke-request");
     assert.equal(upstreamPath, "/api/v1/receipts?page=1&page_size=1");
   } finally {
     await Promise.all([
