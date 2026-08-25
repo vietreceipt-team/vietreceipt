@@ -12,6 +12,7 @@ import {
   MockApi,
   OptimisticConcurrencyError,
   parseResponse,
+  projectApiExtractedField,
 } from "../assets/js/api.js";
 import { CORE_FIELD_TYPES } from "../assets/js/common.js";
 import { MOCK_RECEIPTS, RECEIPT_IDS } from "../assets/js/mock-data.js";
@@ -25,6 +26,7 @@ import {
   reconcileStatesAfterCorrection,
 } from "../assets/js/review-state.js";
 import { createReviewTelemetry } from "../assets/js/review-telemetry.js";
+import { saveCorrectionAndRefresh } from "../assets/js/review-workflow.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const detailSource = readFileSync(join(root, "assets/js/receipt-detail.js"), "utf8");
@@ -168,4 +170,71 @@ test("telemetry chỉ bắt đầu ở interaction và không chứa dữ liệu
 
 test("canonical five-field model không bị giảm", () => {
   assert.deepEqual(CORE_FIELD_TYPES, ["merchant_name", "receipt_date", "total_amount", "invoice_id", "merchant_address"]);
+});
+
+
+test("PATCH đã lưu nhưng GET refresh lỗi giữ authoritative field và yêu cầu reload", async () => {
+  const receipt = structuredClone(MOCK_RECEIPTS[0]);
+  const states = createFieldStates(receipt.fields);
+  states.total_amount = { ...states.total_amount, phase: "SAVING" };
+  states.merchant_name = { ...states.merchant_name, phase: "EDITING", value: "Draft chưa lưu" };
+  const savedField = {
+    ...receipt.fields.total_amount,
+    has_correction: true,
+    corrected_value: 325000,
+    corrected_status: "PRESENT",
+    effective_value: 325000,
+    effective_status: "PRESENT",
+    effective_needs_review: false,
+    updated_at: "2026-08-25T01:00:00Z",
+  };
+  let mutationCalls = 0;
+  let refreshCalls = 0;
+  const api = {
+    async updateCorrection() { mutationCalls += 1; return savedField; },
+    async getReceipt() { refreshCalls += 1; throw new ApiRequestError("refresh failed", 503, "UPSTREAM_ERROR"); },
+  };
+
+  const result = await saveCorrectionAndRefresh({ api, receipt, fieldStates: states, fieldName: "total_amount", request: {} });
+  assert.equal(result.outcome, "REFRESH_REQUIRED");
+  assert.equal(mutationCalls, 1);
+  assert.equal(refreshCalls, 1);
+  assert.equal(result.receipt.fields.total_amount.effective_value, 325000);
+  assert.equal(result.fieldStates.total_amount.phase, "SAVED");
+  assert.equal(result.fieldStates.merchant_name.value, "Draft chưa lưu");
+  assert.equal(result.fieldStates.merchant_name.phase, "EDITING");
+});
+
+test("mutation correction thất bại vẫn trả MUTATION_ERROR và không refresh", async () => {
+  const receipt = structuredClone(MOCK_RECEIPTS[0]);
+  const states = createFieldStates(receipt.fields);
+  const marker = new ApiRequestError("mutation failed", 500, "MUTATION_FAILED");
+  const api = {
+    async updateCorrection() { throw marker; },
+    async getReceipt() { assert.fail("Không được refresh khi mutation thất bại"); },
+  };
+  const result = await saveCorrectionAndRefresh({ api, receipt, fieldStates: states, fieldName: "invoice_id", request: {} });
+  assert.equal(result.outcome, "MUTATION_ERROR");
+  assert.equal(result.error, marker);
+  assert.equal(result.receipt, receipt);
+});
+
+test("projector từ chối malformed field 2xx theo invariant W2", () => {
+  const valid = structuredClone(MOCK_RECEIPTS[0].fields.merchant_name);
+  assert.doesNotThrow(() => projectApiExtractedField(valid, "merchant_name"));
+  for (const malformed of [
+    { ...valid, effective_value: "giá trị lệch" },
+    { ...valid, corrected_value: "không hợp lệ khi has_correction=false" },
+    { ...valid, review_reasons: ["LOW_CONFIDENCE"] },
+    { ...valid, source_block_ids: [] },
+  ]) assert.throws(() => projectApiExtractedField(malformed, "merchant_name"));
+});
+
+test("correction response 2xx luôn đi qua shared field projector", async () => {
+  const originalFetch = globalThis.fetch;
+  const malformed = { ...structuredClone(MOCK_RECEIPTS[0].fields.merchant_name), effective_value: "drift" };
+  globalThis.fetch = async () => new Response(JSON.stringify(malformed), { status: 200, headers: { "content-type": "application/json" } });
+  try {
+    await assert.rejects(() => new HttpApi().updateCorrection(RECEIPT_IDS.review, "merchant_name", {}), /effective_value\/effective_status/);
+  } finally { globalThis.fetch = originalFetch; }
 });

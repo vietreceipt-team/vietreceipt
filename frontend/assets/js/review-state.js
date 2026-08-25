@@ -1,3 +1,4 @@
+// @ts-check
 import { CORE_FIELD_TYPES } from "./common.js";
 
 export const DIRTY_FIELD_PHASES = new Set(["EDITING", "SAVING", "SAVE_ERROR", "STALE"]);

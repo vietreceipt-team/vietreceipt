@@ -59,10 +59,10 @@ sửa domain/API code. `Worker` build từ `infra/docker/worker.Dockerfile`, ch�
 một Celery app rỗng (`infra/docker/worker/celery_app.py`) chỉ để chứng minh
 worker kết nối được Redis broker — **chưa có task xử lý hóa đơn nào**; task đó
 thuộc về Backend-1/Backend-2. `Frontend` build từ
-`infra/docker/frontend.Dockerfile`, chạy static server không dependency cho môi
-trường local. Server giữ route `/receipts/{receipt_id}/` và reverse proxy
-`/api/v1/*` tới `BACKEND_API_ORIGIN=http://backend:8000`; đây không phải
-production image.
+`infra/docker/frontend.Dockerfile`, chạy static server cho môi trường local.
+Compose đặt `FRONTEND_DATA_MODE=api`; server inject cấu hình này qua
+`/runtime-config.js` trước ES modules và reverse proxy `/api/v1/*` tới
+`BACKEND_API_ORIGIN=http://backend:8000`. Đây không phải production image.
 
 Backend, Worker và Frontend chạy trong cùng Compose network phải dùng service
 name, không dùng `localhost`:
@@ -71,6 +71,7 @@ name, không dùng `localhost`:
 DATABASE_URL=postgresql+psycopg://vietreceipt:...@postgres:5432/vietreceipt
 REDIS_URL=redis://redis:6379/0
 STORAGE_ENDPOINT=http://minio:9000
+FRONTEND_DATA_MODE=api
 BACKEND_API_ORIGIN=http://backend:8000
 ```
 

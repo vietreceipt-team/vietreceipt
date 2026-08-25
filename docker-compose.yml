@@ -156,6 +156,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:
+      FRONTEND_DATA_MODE: ${FRONTEND_DATA_MODE:-api}
       BACKEND_API_ORIGIN: http://backend:8000
     depends_on:
       - backend

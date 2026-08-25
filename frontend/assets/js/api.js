@@ -1,3 +1,4 @@
+// @ts-check
 import { APP_CONFIG, API_BASE_PATH } from "./config.js";
 import { CORE_FIELD_TYPES, deepClone } from "./common.js";
 import { MOCK_RECEIPTS, summarizeReceipt } from "./mock-data.js";
@@ -80,23 +81,60 @@ export function createClearCorrectionRequest(field) {
   return { operation: "CLEAR", expected_updated_at: field.updated_at };
 }
 
+export function projectApiExtractedField(field, expectedFieldName = field?.field_name) {
+  if (!field || typeof field !== "object") throw new Error("Backend field response phải là object.");
+  if (!CORE_FIELD_TYPES.includes(field.field_name)) throw new Error(`Backend field_name không canonical: ${field.field_name}`);
+  if (field.field_name !== expectedFieldName) throw new Error(`Field key/URL ${expectedFieldName} không khớp field_name ${field.field_name}.`);
+  if (!Array.isArray(field.review_reasons) || !Array.isArray(field.source_block_ids)) throw new Error(`${field.field_name} thiếu review/evidence arrays.`);
+  if (typeof field.has_correction !== "boolean" || typeof field.machine_needs_review !== "boolean") throw new Error(`${field.field_name} thiếu correction/review flags.`);
+
+  validateCorrectionValue(field.field_name, field.normalized_value, field.value_status);
+  validateCorrectionValue(field.field_name, field.effective_value, field.effective_status);
+
+  if (field.has_correction) {
+    if (field.corrected_status === null) throw new Error("Field có correction phải có corrected_status.");
+    validateCorrectionValue(field.field_name, field.corrected_value, field.corrected_status);
+  } else if (field.corrected_status !== null || field.corrected_value !== null) {
+    throw new Error("Field không có correction không được mang corrected data.");
+  }
+
+  const expectedEffectiveValue = field.has_correction ? field.corrected_value : field.normalized_value;
+  const expectedEffectiveStatus = field.has_correction ? field.corrected_status : field.value_status;
+  if (!Object.is(field.effective_value, expectedEffectiveValue) || field.effective_status !== expectedEffectiveStatus) {
+    throw new Error("effective_value/effective_status phải suy ra từ correction hoặc normalization.");
+  }
+
+  const hasPolicy = typeof field.review_policy_version === "string" && field.review_policy_version.trim() !== "";
+  if (field.machine_needs_review) {
+    if (!field.review_reasons.length || !hasPolicy) throw new Error("machine_needs_review yêu cầu review_reasons và review_policy_version.");
+  } else if (field.review_reasons.length) {
+    throw new Error("review_reasons phải rỗng khi machine_needs_review=false.");
+  }
+
+  if (field.value_status === "PRESENT" && !field.source_block_ids.length) {
+    throw new Error("Machine field PRESENT phải có source evidence.");
+  }
+
+  return deepClone(field);
+}
+
 export function projectApiReceiptDetail(receipt) {
+  if (!receipt || typeof receipt !== "object") throw new Error("Backend receipt response phải là object.");
   if (!["UPLOADED", "PROCESSING", "NEEDS_REVIEW", "VERIFIED", "FAILED"].includes(receipt.status)) throw new Error(`Backend trả public status không hợp lệ: ${receipt.status}`);
   const keys = Object.keys(receipt.fields ?? {});
+  const projected = deepClone(receipt);
   if (keys.length) {
     if (keys.length !== 5 || CORE_FIELD_TYPES.some((key) => !keys.includes(key))) throw new Error("Backend fields phải rỗng hoặc chứa đúng năm canonical keys.");
+    const projectedFields = Object.fromEntries(CORE_FIELD_TYPES.map((fieldName) => [fieldName, projectApiExtractedField(receipt.fields[fieldName], fieldName)]));
     const blockIds = new Set((receipt.ocr_blocks ?? []).map((block) => block.block_id));
     for (const fieldName of CORE_FIELD_TYPES) {
-      const field = receipt.fields[fieldName];
-      if (field.field_name !== fieldName) throw new Error(`Field key ${fieldName} không khớp field_name.`);
-      validateCorrectionValue(fieldName, field.normalized_value, field.value_status);
-      validateCorrectionValue(fieldName, field.effective_value, field.effective_status);
-      if (field.has_correction) validateCorrectionValue(fieldName, field.corrected_value, field.corrected_status);
-      if (field.machine_needs_review && (!field.review_reasons.length || !field.review_policy_version)) throw new Error(`${fieldName} thiếu review provenance.`);
-      for (const sourceId of field.source_block_ids) if (!blockIds.has(sourceId)) throw new Error(`Thiếu OCR block ${sourceId} được field ${fieldName} tham chiếu.`);
+      for (const sourceId of projectedFields[fieldName].source_block_ids) {
+        if (!blockIds.has(sourceId)) throw new Error(`Thiếu OCR block ${sourceId} được field ${fieldName} tham chiếu.`);
+      }
     }
+    projected.fields = projectedFields;
   }
-  return deepClone(receipt);
+  return projected;
 }
 
 export class HttpApi {
@@ -120,8 +158,7 @@ export class HttpApi {
   async updateCorrection(receiptId, fieldName, request, options = {}) {
     const response = await fetch(createUrl(apiPaths.fieldCorrection(receiptId, fieldName)), requestDefaults({ method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(request), signal: options.signal }));
     const field = await parseResponse(response);
-    if (field.field_name !== fieldName) throw new Error("Backend correction response không khớp field_name trên URL.");
-    return field;
+    return projectApiExtractedField(field, fieldName);
   }
 
   async verifyReceipt(receiptId, expectedUpdatedAt, options = {}) {
@@ -149,6 +186,7 @@ function loadStoredMockReceipts() {
 }
 
 export class MockApi {
+  /** @param {{ receipts?: object[], delay?: number, persist?: boolean }} [options] */
   constructor({ receipts, delay = 180, persist = true } = {}) {
     this.receipts = deepClone(receipts ?? loadStoredMockReceipts());
     this.delay = delay;

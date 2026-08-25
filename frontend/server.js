@@ -1,3 +1,4 @@
+// @ts-check
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer, request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
@@ -9,6 +10,17 @@ const contentTypes = {
   ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2",
 };
+const DATA_MODES = new Set(["mock", "api"]);
+
+export function createRuntimeConfigScript({
+  dataMode = process.env.FRONTEND_DATA_MODE ?? "mock",
+  apiBaseUrl = process.env.FRONTEND_API_BASE_URL ?? "",
+  requestCredentials = process.env.FRONTEND_REQUEST_CREDENTIALS ?? "include",
+} = {}) {
+  if (!DATA_MODES.has(dataMode)) throw new Error(`FRONTEND_DATA_MODE không hợp lệ: ${dataMode}`);
+  const config = { dataMode, apiBaseUrl: apiBaseUrl.replace(/\/$/, ""), requestCredentials };
+  return `globalThis.VIETRECEIPT_CONFIG = Object.freeze(${JSON.stringify(config)});\n`;
+}
 
 export function resolveRequestPath(pathname) {
   const decoded = decodeURIComponent(pathname).replaceAll("\\", "/");
@@ -36,11 +48,20 @@ export function proxyApiRequest(request, response, backendOrigin) {
   request.pipe(upstream);
 }
 
-export function createStaticServer(root = projectRoot, { backendOrigin = process.env.BACKEND_API_ORIGIN ?? "" } = {}) {
+export function createStaticServer(root = projectRoot, {
+  backendOrigin = process.env.BACKEND_API_ORIGIN ?? "",
+  runtimeConfig = {},
+} = {}) {
   const absoluteRoot = resolve(root);
+  const runtimeConfigScript = createRuntimeConfigScript(runtimeConfig);
   return createServer((request, response) => {
     try {
       const requestUrl = new URL(request.url ?? "/", "http://localhost");
+      if (requestUrl.pathname === "/runtime-config.js") {
+        response.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" });
+        response.end(runtimeConfigScript);
+        return;
+      }
       if (backendOrigin && requestUrl.pathname.startsWith("/api/v1/")) return proxyApiRequest(request, response, backendOrigin);
       const relativePath = normalize(resolveRequestPath(requestUrl.pathname));
       const filePath = resolve(join(absoluteRoot, relativePath));

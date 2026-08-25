@@ -1,9 +1,10 @@
+// @ts-check
 /**
- * Chuyển dataMode thành "api" khi Backend đã sẵn sàng.
- * apiBaseUrl để trống sẽ gọi cùng origin tại /api/v1 (khuyến nghị).
- * Không đặt token, mật khẩu hoặc secret trong file public này.
+ * server.js inject cấu hình triển khai qua /runtime-config.js trước ES modules.
+ * Local mặc định mock; Docker đặt FRONTEND_DATA_MODE=api và gọi cùng origin /api/v1.
+ * Không đặt token, mật khẩu hoặc secret trong runtime config public.
  */
-const runtimeConfig = globalThis.VIETRECEIPT_CONFIG ?? {};
+const runtimeConfig = /** @type {{ dataMode?: "mock" | "api", apiBaseUrl?: string, requestCredentials?: RequestCredentials }} */ (globalThis["VIETRECEIPT_CONFIG"] ?? {});
 
 export const APP_CONFIG = Object.freeze({
   dataMode: runtimeConfig.dataMode ?? "mock",

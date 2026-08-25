@@ -1,7 +1,8 @@
 import { APP_CONFIG } from "./config.js";
 import { createApplyCorrectionRequest, createClearCorrectionRequest, getApiErrorMessage, OptimisticConcurrencyError, vietReceiptApi } from "./api.js";
 import { CORE_FIELD_TYPES, FIELD_LABELS, announce, escapeHtml, formatVnd, getReceiptIdFromLocation, renderNavigation } from "./common.js";
-import { canVerifyReceipt, createFieldState, createFieldStates, DIRTY_FIELD_PHASES, editFieldStatus, editFieldValue, findFieldsForSourceBlock, getAdjacentField, reconcileStatesAfterCorrection } from "./review-state.js";
+import { canVerifyReceipt, createFieldState, createFieldStates, DIRTY_FIELD_PHASES, editFieldStatus, editFieldValue, findFieldsForSourceBlock, getAdjacentField } from "./review-state.js";
+import { saveCorrectionAndRefresh } from "./review-workflow.js";
 import { createReviewTelemetry } from "./review-telemetry.js";
 
 renderNavigation();
@@ -105,7 +106,7 @@ function renderReview() {
 function renderStaleBanner() {
   const host = document.querySelector("#stale-banner");
   if (!host) return;
-  host.innerHTML = staleMessage ? `<div role="alert" class="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><p class="font-bold">Dữ liệu hóa đơn đã được cập nhật ở nơi khác.</p><p class="mt-1 text-xs">Mutation không được tự retry bằng token cũ.</p><button id="reload-latest" type="button" class="mt-3 rounded-lg bg-amber-900 px-3 py-2 text-xs font-bold text-white">Tải phiên bản mới</button></div>` : "";
+  host.innerHTML = staleMessage ? `<div role="alert" class="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"><p class="font-bold">Cần tải phiên bản hóa đơn mới.</p><p class="mt-1 text-xs">${escapeHtml(staleMessage)}</p><p class="mt-1 text-xs">Mutation không được tự retry bằng token cũ.</p><button id="reload-latest" type="button" class="mt-3 rounded-lg bg-amber-900 px-3 py-2 text-xs font-bold text-white">Tải phiên bản mới</button></div>` : "";
   document.querySelector("#reload-latest")?.addEventListener("click", reloadLatest);
 }
 
@@ -221,29 +222,49 @@ async function saveField(name, operation) {
   const current = fieldStates[name];
   if (!current || current.phase === "SAVING" || staleMessage) return;
   if (operation === "APPLY" && !draftIsValid(name)) { announce("Giá trị field chưa hợp lệ để APPLY.", "error"); return; }
-  fieldStates[name] = { ...current, phase: "SAVING", error: null };
-  renderFields(); updateControls(); highlightFields([name]);
+
+  let request;
   try {
     const item = field(name);
-    const request = operation === "CLEAR" ? createClearCorrectionRequest(item) : createApplyCorrectionRequest(item, current.value, current.value_status);
-    const savedField = await vietReceiptApi.updateCorrection(receipt.receipt_id, name, request);
-    receipt.fields[name] = savedField;
-    const latest = await vietReceiptApi.getReceipt(receipt.receipt_id);
-    receipt = latest;
-    fieldStates = reconcileStatesAfterCorrection(fieldStates, latest.fields, name);
-    telemetry?.correction(name, operation);
-    announce(operation === "CLEAR" ? `Đã CLEAR correction của ${FIELD_LABELS[name]}.` : `Đã lưu ${FIELD_LABELS[name]}.`);
+    request = operation === "CLEAR" ? createClearCorrectionRequest(item) : createApplyCorrectionRequest(item, current.value, current.value_status);
   } catch (error) {
-    if (error instanceof OptimisticConcurrencyError) {
-      staleMessage = getApiErrorMessage(error);
+    fieldStates[name] = { ...current, phase: "SAVE_ERROR", error: getApiErrorMessage(error) };
+    renderFields(); updateControls(); highlightFields([name]);
+    return;
+  }
+
+  fieldStates[name] = { ...current, phase: "SAVING", error: null };
+  renderFields(); updateControls(); highlightFields([name]);
+
+  const result = await saveCorrectionAndRefresh({
+    api: vietReceiptApi,
+    receipt,
+    fieldStates,
+    fieldName: name,
+    request,
+  });
+
+  if (result.outcome === "MUTATION_ERROR") {
+    if (result.error instanceof OptimisticConcurrencyError) {
+      staleMessage = getApiErrorMessage(result.error);
       fieldStates[name] = { ...current, phase: "STALE", error: staleMessage };
     } else {
-      fieldStates[name] = { ...current, phase: "SAVE_ERROR", error: getApiErrorMessage(error) };
+      fieldStates[name] = { ...current, phase: "SAVE_ERROR", error: getApiErrorMessage(result.error) };
+    }
+  } else {
+    receipt = result.receipt;
+    fieldStates = result.fieldStates;
+    telemetry?.correction(name, operation);
+    if (result.outcome === "REFRESH_REQUIRED") {
+      staleMessage = "Correction đã được Backend lưu, nhưng frontend chưa lấy được receipt token mới. Verify bị khóa để tránh gửi token cũ.";
+      announce("Correction đã được lưu. Hãy tải phiên bản mới trước khi tiếp tục.", "error");
+    } else {
+      announce(operation === "CLEAR" ? "Đã CLEAR correction của " + FIELD_LABELS[name] + "." : "Đã lưu " + FIELD_LABELS[name] + ".");
     }
   }
+
   renderStaleBanner(); renderFields(); updateControls(); highlightFields([name]);
 }
-
 async function reloadLatest() {
   try {
     receipt = await vietReceiptApi.getReceipt(receipt.receipt_id);

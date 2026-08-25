@@ -30,25 +30,20 @@ npm run build
 npm audit --audit-level=high
 ```
 
-`typecheck` trong codebase JavaScript nghĩa là kiểm tra syntax của toàn bộ ES modules và xác nhận không còn `.ts/.tsx`. `lint` bổ sung enforcement rằng UI modules không gọi `fetch()` ngoài API boundary và telemetry không chứa dữ liệu nhạy cảm.
+`typecheck` dùng TypeScript `checkJs`/JSDoc để kiểm tra kiểu thật cho API boundary, review state/workflow và runtime server; source vẫn chỉ là JavaScript. `lint` kiểm tra syntax toàn bộ ES modules, xác nhận không còn `.ts/.tsx`, enforcement rằng UI modules không gọi `fetch()` ngoài API boundary và telemetry không chứa dữ liệu nhạy cảm.
 
 ## Mock và Backend thật
 
-Mặc định `assets/js/config.js` đặt `dataMode: "mock"`. Mock HTTP adapter dùng cùng interface với API thật và lưu fixture trong `sessionStorage`, nên upload thành công vẫn điều hướng được sang `/receipts/{receipt_id}/`.
+Local mặc định chạy `dataMode: "mock"`. Mock HTTP adapter dùng cùng interface với API thật và lưu fixture trong `sessionStorage`, nên upload thành công vẫn điều hướng được sang `/receipts/{receipt_id}/`.
 
-Khi Backend đã wire service registry/persistence, đổi:
-
-```js
-dataMode: "api"
-```
-
-Giữ `apiBaseUrl: ""` để gọi cùng origin tại `/api/v1`. Server hỗ trợ reverse proxy khi có:
+Không cần sửa source để bật Backend thật. Server sinh `/runtime-config.js`; đặt các biến lúc khởi động:
 
 ```dotenv
+FRONTEND_DATA_MODE=api
 BACKEND_API_ORIGIN=http://localhost:8000
 ```
 
-Trong Docker Compose dùng `http://backend:8000`. Chỉ đặt API origin public khác origin nếu Backend đã cấu hình CORS/cookie phù hợp. Không đặt token, mật khẩu hoặc secret trong file public.
+Giữ API base cùng origin để browser gọi `/api/v1`; server reverse proxy tới `BACKEND_API_ORIGIN`. Docker Compose mặc định đặt `FRONTEND_DATA_MODE=api` và `BACKEND_API_ORIGIN=http://backend:8000`, vì vậy container dùng Backend thật qua internal network. Không đặt token, mật khẩu hoặc secret trong runtime config public.
 
 ## W1/W2 workflow được giữ
 
@@ -87,6 +82,7 @@ assets/
   js/
     api.js              Backend DTO validation + mock/HTTP boundary
     review-state.js     per-field state và reconcile logic
+    review-workflow.js  mutation/refresh outcome tách biệt
     review-telemetry.js privacy-safe measurement hooks
     common.js           navigation/constants/formatters
     config.js           mock/API configuration
@@ -101,7 +97,7 @@ receipts/index.html
 receipts/detail.html
 scripts/               typecheck/lint/build
 tests/                 contract + workflow + interaction tests
-server.js               static routes + Backend reverse proxy
+server.js               static routes + runtime config + Backend reverse proxy
 ```
 
 Mọi network request nằm trong `assets/js/api.js`; UI modules chỉ gọi `vietReceiptApi`. Frontend không gọi OCR/KIE, database hoặc storage trực tiếp và không tự tạo polygon.

@@ -9,9 +9,13 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "typecheck": "node scripts/check-source.js",
+    "typecheck": "tsc --project jsconfig.json",
     "lint": "node scripts/check-source.js --lint",
     "test": "node --test tests/*.test.js",
     "build": "node scripts/build.js"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.19",
+    "typescript": "5.9.3"
   }
 }

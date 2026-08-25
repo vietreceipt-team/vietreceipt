@@ -1,18 +1,22 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { createServer as createHttpServer } from "node:http";
 import { dirname, extname, join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { apiPaths, createApplyCorrectionRequest, validateCorrectionValue } from "../assets/js/api.js";
 import { CORE_FIELD_TYPES, PUBLIC_RECEIPT_STATUSES } from "../assets/js/common.js";
 import { MOCK_RECEIPTS } from "../assets/js/mock-data.js";
-import { resolveRequestPath } from "../server.js";
+import { createRuntimeConfigScript, createStaticServer, resolveRequestPath } from "../server.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
+const excludedDirectories = new Set([".git", "dist", "node_modules"]);
+
 function walk(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    if (entry.isDirectory() && excludedDirectories.has(entry.name)) return [];
     const fullPath = join(directory, entry.name);
     return entry.isDirectory() ? walk(fullPath) : [fullPath];
   });
@@ -58,4 +62,45 @@ test("HTML shell dùng shared stylesheet và ES modules", () => {
   const html = readFileSync(join(root, "receipts/index.html"), "utf8");
   assert.match(html, /assets\/css\/tailwind\.css/);
   assert.match(html, /type="module" src="\/assets\/js\/receipts\.js"/);
+});
+
+
+test("mọi app shell nạp runtime config trước ES module", () => {
+  for (const page of ["login/index.html", "upload/index.html", "receipts/index.html", "receipts/detail.html"]) {
+    const html = readFileSync(join(root, page), "utf8");
+    assert.ok(html.indexOf('/runtime-config.js') >= 0, `${page} thiếu runtime config`);
+    assert.ok(html.indexOf('/runtime-config.js') < html.indexOf('type="module"'), `${page} phải nạp config trước module`);
+  }
+  assert.match(createRuntimeConfigScript({ dataMode: "api" }), /"dataMode":"api"/);
+  assert.throws(() => createRuntimeConfigScript({ dataMode: "invalid" }));
+});
+
+test("API mode runtime chuyển request frontend qua Backend proxy", async () => {
+  let upstreamPath = null;
+  const upstream = createHttpServer((request, response) => {
+    upstreamPath = request.url;
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end('{"items":[],"page":1,"page_size":1,"total_items":0,"total_pages":0}');
+  });
+  await new Promise((resolvePromise) => upstream.listen(0, "127.0.0.1", resolvePromise));
+  const upstreamAddress = upstream.address();
+  const frontend = createStaticServer(root, {
+    backendOrigin: `http://127.0.0.1:${upstreamAddress.port}`,
+    runtimeConfig: { dataMode: "api" },
+  });
+  await new Promise((resolvePromise) => frontend.listen(0, "127.0.0.1", resolvePromise));
+  const frontendAddress = frontend.address();
+  try {
+    const configResponse = await fetch(`http://127.0.0.1:${frontendAddress.port}/runtime-config.js`);
+    assert.equal(configResponse.status, 200);
+    assert.match(await configResponse.text(), /"dataMode":"api"/);
+    const apiResponse = await fetch(`http://127.0.0.1:${frontendAddress.port}/api/v1/receipts?page=1&page_size=1`);
+    assert.equal(apiResponse.status, 200);
+    assert.equal(upstreamPath, "/api/v1/receipts?page=1&page_size=1");
+  } finally {
+    await Promise.all([
+      new Promise((resolvePromise, rejectPromise) => frontend.close((error) => error ? rejectPromise(error) : resolvePromise())),
+      new Promise((resolvePromise, rejectPromise) => upstream.close((error) => error ? rejectPromise(error) : resolvePromise())),
+    ]);
+  }
 });

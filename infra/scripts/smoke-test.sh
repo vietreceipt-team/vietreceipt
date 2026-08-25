@@ -126,19 +126,29 @@ check_backend_openapi() {
   echo "[ok] Backend serves /openapi.json"
 }
 
-check_frontend_responds() {
-  local status
-  status="$(compose exec -T frontend node -e '
+check_frontend_integration() {
+  compose exec -T frontend node -e '
     const http = require("http");
-    http.get("http://localhost:3000", (res) => {
-      console.log(res.statusCode);
-    }).on("error", () => { console.log("0"); });
-  ')"
-  if [[ "$status" != "200" && "$status" != "307" ]]; then
-    echo "Frontend returned unexpected status '$status'." >&2
-    return 1
-  fi
-  echo "[ok] Frontend responds on :3000"
+    const get = (path) => new Promise((resolve, reject) => {
+      http.get(`http://localhost:3000${path}`, (response) => {
+        let body = "";
+        response.setEncoding("utf8");
+        response.on("data", (chunk) => { body += chunk; });
+        response.on("end", () => resolve({ status: response.statusCode, body }));
+      }).on("error", reject);
+    });
+    (async () => {
+      const config = await get("/runtime-config.js");
+      if (config.status !== 200 || !config.body.includes("\"dataMode\":\"api\"")) {
+        throw new Error("Frontend runtime config is not in API mode.");
+      }
+      const proxied = await get("/api/v1/receipts?page=1&page_size=1");
+      if (proxied.status !== 200) throw new Error(`Frontend proxy returned ${proxied.status}.`);
+      const payload = JSON.parse(proxied.body);
+      if (!Array.isArray(payload.items)) throw new Error("Backend list response did not pass through the frontend proxy.");
+    })().catch((error) => { console.error(error.message); process.exit(1); });
+  '
+  echo "[ok] Frontend runtime is API mode and /api/v1 reaches Backend"
 }
 
 cd "$repo_root"
@@ -177,7 +187,7 @@ wait_for_healthy worker
 compose exec -T backend getent hosts postgres redis minio >/dev/null
 echo "[ok] backend resolves postgres, redis and minio by service name"
 check_backend_openapi
-check_frontend_responds
+check_frontend_integration
 
 echo "[8/10] Run Backend storage tests"
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 "$python_bin" -m pytest backend/tests
