@@ -111,7 +111,7 @@ function renderStaleBanner() {
 }
 
 function renderFields() {
-  const canEdit = receipt.status === "NEEDS_REVIEW";
+  const canEdit = receipt.status === "NEEDS_REVIEW" && !staleMessage;
   document.querySelector("#field-list").innerHTML = orderedFields().map((item) => {
     const state = fieldStates[item.field_name];
     const style = statusStyles[state.value_status];
@@ -254,11 +254,18 @@ async function saveField(name, operation) {
   } else {
     receipt = result.receipt;
     fieldStates = result.fieldStates;
-    telemetry?.correction(name, operation);
-    if (result.outcome === "REFRESH_REQUIRED") {
+    if (result.outcome === "MUTATION_OUTCOME_UNKNOWN") {
+      staleMessage = "Backend đã trả HTTP 2xx nhưng correction response không hợp lệ và GET reload thất bại. Verify và mutation bị khóa để tránh dùng token cũ.";
+      announce("Kết quả correction chưa xác định. Hãy tải phiên bản mới trước khi tiếp tục.", "error");
+    } else if (result.outcome === "REFRESH_REQUIRED") {
+      telemetry?.correction(name, operation);
       staleMessage = "Correction đã được Backend lưu, nhưng frontend chưa lấy được receipt token mới. Verify bị khóa để tránh gửi token cũ.";
       announce("Correction đã được lưu. Hãy tải phiên bản mới trước khi tiếp tục.", "error");
+    } else if (result.outcome === "REFRESHED_AFTER_UNKNOWN_MUTATION") {
+      staleMessage = null;
+      announce("Correction response không hợp lệ; đã tải receipt authoritative mới từ Backend.");
     } else {
+      telemetry?.correction(name, operation);
       announce(operation === "CLEAR" ? "Đã CLEAR correction của " + FIELD_LABELS[name] + "." : "Đã lưu " + FIELD_LABELS[name] + ".");
     }
   }

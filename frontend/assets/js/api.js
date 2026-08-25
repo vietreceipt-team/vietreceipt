@@ -29,6 +29,14 @@ export class OptimisticConcurrencyError extends ApiRequestError {
   }
 }
 
+export class MutationOutcomeUnknownError extends Error {
+  constructor(message, cause = null) {
+    super(message);
+    this.name = "MutationOutcomeUnknownError";
+    this.cause = cause;
+  }
+}
+
 function createUrl(path) {
   return `${APP_CONFIG.apiBaseUrl}${path}`;
 }
@@ -161,10 +169,15 @@ export class HttpApi {
 
   async updateCorrection(receiptId, fieldName, request, options = {}) {
     const response = await fetch(createUrl(apiPaths.fieldCorrection(receiptId, fieldName)), requestDefaults({ method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(request), signal: options.signal }));
-    const field = await parseResponse(response);
-    if (!Array.isArray(options.ocrBlocks)) throw new Error("Correction response thiếu receipt OCR evidence context.");
-    const validSourceBlockIds = new Set(options.ocrBlocks.map((block) => block.block_id));
-    return projectApiExtractedField(field, fieldName, validSourceBlockIds);
+    if (!response.ok) return parseResponse(response);
+    try {
+      const field = await parseResponse(response);
+      if (!Array.isArray(options.ocrBlocks)) throw new Error("Correction response thiếu receipt OCR evidence context.");
+      const validSourceBlockIds = new Set(options.ocrBlocks.map((block) => block.block_id));
+      return projectApiExtractedField(field, fieldName, validSourceBlockIds);
+    } catch (cause) {
+      throw new MutationOutcomeUnknownError("Backend đã trả HTTP 2xx nhưng correction response không hợp lệ; cần tải lại receipt.", cause);
+    }
   }
 
   async verifyReceipt(receiptId, expectedUpdatedAt, options = {}) {

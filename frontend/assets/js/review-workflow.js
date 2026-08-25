@@ -1,16 +1,45 @@
 // @ts-check
-import { reconcileStatesAfterCorrection } from "./review-state.js";
+import { MutationOutcomeUnknownError } from "./api.js";
+import { createFieldState, reconcileStatesAfterCorrection } from "./review-state.js";
 
 /**
- * PATCH thành công là authoritative ngay cả khi GET receipt kế tiếp thất bại.
- * Caller dùng outcome để phân biệt mutation failure và refresh-required.
+ * HTTP 2xx chỉ authoritative sau khi response projector chấp nhận payload.
+ * Nếu payload malformed, workflow reload receipt và không retry mutation bằng token cũ.
  */
 export async function saveCorrectionAndRefresh({ api, receipt, fieldStates, fieldName, request }) {
   let savedField;
   try {
     savedField = await api.updateCorrection(receipt.receipt_id, fieldName, request, { ocrBlocks: receipt.ocr_blocks });
   } catch (error) {
-    return { outcome: "MUTATION_ERROR", error, receipt, fieldStates };
+    if (!(error instanceof MutationOutcomeUnknownError)) {
+      return { outcome: "MUTATION_ERROR", error, receipt, fieldStates };
+    }
+    try {
+      const latestReceipt = await api.getReceipt(receipt.receipt_id);
+      const refreshedStates = reconcileStatesAfterCorrection(fieldStates, latestReceipt.fields, fieldName);
+      refreshedStates[fieldName] = createFieldState(latestReceipt.fields[fieldName]);
+      return {
+        outcome: "REFRESHED_AFTER_UNKNOWN_MUTATION",
+        error,
+        receipt: latestReceipt,
+        fieldStates: refreshedStates,
+      };
+    } catch (refreshError) {
+      return {
+        outcome: "MUTATION_OUTCOME_UNKNOWN",
+        error,
+        refreshError,
+        receipt,
+        fieldStates: {
+          ...fieldStates,
+          [fieldName]: {
+            ...fieldStates[fieldName],
+            phase: "STALE",
+            error: "Kết quả correction chưa xác định; phải tải lại receipt trước khi tiếp tục.",
+          },
+        },
+      };
+    }
   }
 
   const receiptWithSavedField = {

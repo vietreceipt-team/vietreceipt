@@ -10,6 +10,7 @@ import {
   getApiErrorMessage,
   HttpApi,
   MockApi,
+  MutationOutcomeUnknownError,
   OptimisticConcurrencyError,
   parseResponse,
   projectApiExtractedField,
@@ -35,14 +36,20 @@ function freshMock() {
   return new MockApi({ receipts: MOCK_RECEIPTS, delay: 0, persist: false });
 }
 
-test("correction response có source_block_id lạ bị từ chối trước GET refresh", async () => {
+test("2xx malformed correction chủ động GET reload authoritative receipt", async () => {
   const originalFetch = globalThis.fetch;
   const receipt = structuredClone(MOCK_RECEIPTS[0]);
+  const latestReceipt = structuredClone(receipt);
+  latestReceipt.updated_at = "2026-08-25T04:00:00Z";
   const malformed = { ...receipt.fields.merchant_name, source_block_ids: ["unknown-block"] };
-  globalThis.fetch = async () => new Response(JSON.stringify(malformed), { status: 200, headers: { "content-type": "application/json" } });
+  let patchCalls = 0;
+  globalThis.fetch = async () => {
+    patchCalls += 1;
+    return new Response(JSON.stringify(malformed), { status: 200, headers: { "content-type": "application/json" } });
+  };
   let refreshCalls = 0;
   const api = new HttpApi();
-  api.getReceipt = async () => { refreshCalls += 1; return receipt; };
+  api.getReceipt = async () => { refreshCalls += 1; return latestReceipt; };
   try {
     const result = await saveCorrectionAndRefresh({
       api,
@@ -51,9 +58,49 @@ test("correction response có source_block_id lạ bị từ chối trước GET
       fieldName: "merchant_name",
       request: {},
     });
-    assert.equal(result.outcome, "MUTATION_ERROR");
-    assert.match(result.error.message, /Thiếu OCR block unknown-block/);
-    assert.equal(refreshCalls, 0);
+    assert.equal(result.outcome, "REFRESHED_AFTER_UNKNOWN_MUTATION");
+    assert.ok(result.error instanceof MutationOutcomeUnknownError);
+    assert.equal(patchCalls, 1);
+    assert.equal(refreshCalls, 1);
+    assert.equal(result.receipt, latestReceipt);
+    assert.equal(result.receipt.fields.merchant_name.source_block_ids.includes("unknown-block"), false);
+    assert.equal(result.fieldStates.merchant_name.phase, "VIEW");
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+test("2xx malformed và GET reload lỗi khóa verify, không retry token cũ", async () => {
+  const originalFetch = globalThis.fetch;
+  const receipt = structuredClone(MOCK_RECEIPTS[0]);
+  for (const field of Object.values(receipt.fields)) field.effective_needs_review = false;
+  const malformed = { ...receipt.fields.merchant_name, source_block_ids: ["unknown-block"] };
+  let patchCalls = 0;
+  globalThis.fetch = async () => {
+    patchCalls += 1;
+    return new Response(JSON.stringify(malformed), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  let refreshCalls = 0;
+  const refreshError = new ApiRequestError("reload failed", 503, "UPSTREAM_ERROR");
+  const api = new HttpApi();
+  api.getReceipt = async () => { refreshCalls += 1; throw refreshError; };
+  try {
+    const result = await saveCorrectionAndRefresh({
+      api,
+      receipt,
+      fieldStates: createFieldStates(receipt.fields),
+      fieldName: "merchant_name",
+      request: {},
+    });
+    assert.equal(result.outcome, "MUTATION_OUTCOME_UNKNOWN");
+    assert.ok(result.error instanceof MutationOutcomeUnknownError);
+    assert.equal(result.refreshError, refreshError);
+    assert.equal(patchCalls, 1);
+    assert.equal(refreshCalls, 1);
+    assert.equal(result.receipt, receipt);
+    assert.equal(result.receipt.fields.merchant_name.source_block_ids.includes("unknown-block"), false);
+    assert.equal(result.fieldStates.merchant_name.phase, "STALE");
+    assert.equal(canVerifyReceipt(result.receipt, result.fieldStates), false);
+    assert.match(detailSource, /result.outcome === "MUTATION_OUTCOME_UNKNOWN"/);
+    assert.match(detailSource, /current.phase === "SAVING" || staleMessage/);
   } finally { globalThis.fetch = originalFetch; }
 });
 
@@ -257,6 +304,13 @@ test("correction response 2xx luôn đi qua shared field projector", async () =>
   const malformed = { ...structuredClone(MOCK_RECEIPTS[0].fields.merchant_name), effective_value: "drift" };
   globalThis.fetch = async () => new Response(JSON.stringify(malformed), { status: 200, headers: { "content-type": "application/json" } });
   try {
-    await assert.rejects(() => new HttpApi().updateCorrection(RECEIPT_IDS.review, "merchant_name", {}, { ocrBlocks: MOCK_RECEIPTS[0].ocr_blocks }), /effective_value\/effective_status/);
+    await assert.rejects(
+      () => new HttpApi().updateCorrection(RECEIPT_IDS.review, "merchant_name", {}, { ocrBlocks: MOCK_RECEIPTS[0].ocr_blocks }),
+      (error) => {
+        assert.ok(error instanceof MutationOutcomeUnknownError);
+        assert.match(error.cause.message, /effective_value\/effective_status/);
+        return true;
+      },
+    );
   } finally { globalThis.fetch = originalFetch; }
 });
