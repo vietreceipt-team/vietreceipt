@@ -10,6 +10,7 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
   let reviewStarted = false;
   let activeStartedAt = null;
   let activeElapsed = 0;
+  let confirmationCount = 0;
   let correctionCount = 0;
   let keystrokeCount = 0;
   let lastFocusedField = null;
@@ -68,7 +69,9 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
       keystrokeCount += 1;
       return keystrokeCount;
     },
-    correction(fieldName, operation) {
+    confirmField(fieldName, operation, changed = true) {
+      confirmationCount += 1;
+      if (!changed) return emit("FIELD_CONFIRMED", { field_name: fieldName, operation });
       correctionCount += 1;
       return emit(operation === "CLEAR" ? "CORRECTION_CLEARED" : "CORRECTION_APPLIED", { field_name: fieldName, operation });
     },
@@ -82,6 +85,7 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
         waiting_time_ms: duration(createdAt, readyAt ?? completedAt),
         processing_time_ms: duration(processingStartedAt, readyAt ?? completedAt),
         active_review_time_ms: Math.max(0, Math.round(activeElapsed)),
+        confirmation_count: confirmationCount,
         correction_count: correctionCount,
         keystroke_count: keystrokeCount,
         completed_at: wallNow(),

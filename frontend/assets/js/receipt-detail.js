@@ -64,6 +64,9 @@ function reviewPendingCount() {
 }
 function draftIsValid(name) { return isStudyDraftValid(name, fieldStates[name]); }
 function valueLabel(value) { return value === null ? "—" : typeof value === "number" ? formatVnd(value) : String(value); }
+function fieldValueChanged(before, after) {
+  return Boolean(before && after) && (!Object.is(before.effective_value, after.effective_value) || before.effective_status !== after.effective_status);
+}
 
 function polygonStyle(block) {
   const xs = block.polygon.map((point) => point.x);
@@ -267,8 +270,10 @@ async function saveField(name, operation) {
   if (operation === "APPLY" && !draftIsValid(name)) { announce("Giá trị field chưa hợp lệ để APPLY.", "error"); return; }
 
   let request;
+  let authoritativeBefore;
   try {
     const item = field(name);
+    authoritativeBefore = item;
     request = operation === "CLEAR" ? createClearCorrectionRequest(item) : createApplyCorrectionRequest(item, current.value, current.value_status);
   } catch (error) {
     fieldStates[name] = { ...current, phase: "SAVE_ERROR", error: getApiErrorMessage(error) };
@@ -279,13 +284,19 @@ async function saveField(name, operation) {
   fieldStates[name] = { ...current, phase: "SAVING", error: null };
   renderFields(); updateControls(); highlightFields([name]);
 
-  const result = await saveCorrectionAndRefresh({
-    api: vietReceiptApi,
-    receipt,
-    fieldStates,
-    fieldName: name,
-    request,
-  });
+  let result;
+  telemetry?.pauseActive();
+  try {
+    result = await saveCorrectionAndRefresh({
+      api: vietReceiptApi,
+      receipt,
+      fieldStates,
+      fieldName: name,
+      request,
+    });
+  } finally {
+    telemetry?.resumeActive();
+  }
 
   if (result.outcome === "MUTATION_ERROR") {
     if (result.error instanceof OptimisticConcurrencyError) {
@@ -302,14 +313,15 @@ async function saveField(name, operation) {
       staleMessage = "Backend đã trả HTTP 2xx nhưng correction response không hợp lệ và GET reload thất bại. Verify và mutation bị khóa để tránh dùng token cũ.";
       announce("Kết quả correction chưa xác định. Hãy tải phiên bản mới trước khi tiếp tục.", "error");
     } else if (result.outcome === "REFRESH_REQUIRED") {
-      telemetry?.correction(name, operation);
+      telemetry?.confirmField(name, operation, fieldValueChanged(authoritativeBefore, result.receipt.fields[name]));
       staleMessage = "Correction đã được Backend lưu, nhưng frontend chưa lấy được receipt token mới. Verify bị khóa để tránh gửi token cũ.";
       announce("Correction đã được lưu. Hãy tải phiên bản mới trước khi tiếp tục.", "error");
     } else if (result.outcome === "REFRESHED_AFTER_UNKNOWN_MUTATION") {
+      telemetry?.confirmField(name, operation, fieldValueChanged(authoritativeBefore, result.receipt.fields[name]));
       staleMessage = null;
       announce("Correction response không hợp lệ; đã tải receipt authoritative mới từ Backend.");
     } else {
-      telemetry?.correction(name, operation);
+      telemetry?.confirmField(name, operation, fieldValueChanged(authoritativeBefore, result.receipt.fields[name]));
       announce(operation === "CLEAR" ? "Đã CLEAR correction của " + FIELD_LABELS[name] + "." : "Đã lưu " + FIELD_LABELS[name] + ".");
     }
   }
@@ -329,6 +341,7 @@ async function reloadLatest() {
 async function verifyReceipt() {
   if (verifying || !canVerifyStudyReceipt(receipt, fieldStates, studyMode) || staleMessage) return;
   verifying = true; updateControls();
+  telemetry?.pauseActive();
   try {
     receipt = await vietReceiptApi.verifyReceipt(receipt.receipt_id, receipt.updated_at);
     if (!studySession.enabled) fieldStates = createFieldStates(receipt.fields);
@@ -340,7 +353,7 @@ async function verifyReceipt() {
   } catch (error) {
     if (error instanceof OptimisticConcurrencyError) { staleMessage = getApiErrorMessage(error); renderStaleBanner(); }
     announce(getApiErrorMessage(error), "error");
-  } finally { verifying = false; updateControls(); }
+  } finally { telemetry?.resumeActive(); verifying = false; updateControls(); }
 }
 
 async function retryReceipt() {

@@ -73,7 +73,7 @@ Giữ API base cùng origin để browser gọi `/api/v1`; server reverse proxy 
 - APPLY/CLEAR correction;
 - verify, chuyển receipt và retry.
 
-Payload event không chứa ảnh, OCR text, field value, phím đã gõ, token hoặc credential. Summary chỉ có processing/waiting time, active review time, correction count, keystroke count và completion timestamp. Frontend không auto-verify, không selective-skip và không tuyên bố tiết kiệm thời gian khi chưa chạy study.
+Payload event không chứa ảnh, OCR text, field value, phím đã gõ, token hoặc credential. Summary chỉ có processing/waiting time, active review time (đã loại trừ thời gian chờ API), confirmation count, correction count thực sự làm đổi giá trị/trạng thái, keystroke count và completion timestamp. Frontend không auto-verify, không selective-skip và không tuyên bố tiết kiệm thời gian khi chưa chạy study.
 
 ## W3 pilot modes
 
@@ -82,7 +82,7 @@ Payload event không chứa ảnh, OCR text, field value, phím đã gõ, token 
 - `FRONTEND_STUDY_ORDER` phải là một permutation của C1/C2 và bắt đầu bằng `FRONTEND_STUDY_MODE`; đổi thứ tự để counterbalance hai nhóm.
 - Nút **Reset phiên nghiên cứu** xóa tiến trình condition trong `sessionStorage`; không lưu field data hoặc participant identifier.
 - Sau verify, session chuyển sang condition kế tiếp trong order cho receipt tiếp theo.
-- Dry-run synthetic/headless E2E bao phủ five-field C1/C2, stale 409, retryable failure và keyboard mapping.
+- Unit/integration dry-run dùng dữ liệu synthetic; Playwright browser E2E render và thao tác DOM thật cho C1 no-leak, C2 five-field verify, keyboard, stale 409 và retryable failure.
 - Không có C3 selective review và không có claim về hiệu quả thời gian.
 
 ## Cấu trúc

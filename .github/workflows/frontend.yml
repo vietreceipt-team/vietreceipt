@@ -50,6 +50,12 @@ jobs:
       - name: Run frontend tests
         run: npm test
 
+      - name: Install Chromium for browser E2E
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser E2E
+        run: npm run test:e2e
+
       - name: Build production artifact
         run: npm run build
 

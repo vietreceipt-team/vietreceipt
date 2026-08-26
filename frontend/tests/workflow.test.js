@@ -230,7 +230,7 @@ test("telemetry chỉ bắt đầu ở interaction và không chứa dữ liệu
   assert.equal(events.length, 0);
   telemetry.focusField("merchant_name");
   telemetry.editField("merchant_name");
-  telemetry.correction("merchant_name", "APPLY");
+  telemetry.confirmField("merchant_name", "APPLY");
   assert.deepEqual(events.map((event) => event.event), ["REVIEW_STARTED", "FIELD_FOCUSED", "FIELD_EDITED", "CORRECTION_APPLIED"]);
   for (const event of events) {
     assert.deepEqual(Object.keys(event).sort(), event.event === "CORRECTION_APPLIED" ? ["event", "field_name", "occurred_at", "operation", "receipt_id", "review_mode"] : event.event.includes("FIELD") ? ["event", "field_name", "occurred_at", "receipt_id", "review_mode"] : ["event", "occurred_at", "receipt_id", "review_mode"]);

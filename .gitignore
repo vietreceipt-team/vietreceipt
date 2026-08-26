@@ -233,3 +233,8 @@ results/.DS_Store
 .DS_Store
 Thumbs.db
 *.code-workspace
+
+# Frontend browser E2E artifacts
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/

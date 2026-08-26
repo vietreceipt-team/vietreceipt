@@ -44,17 +44,17 @@ async function completeFiveFieldStudy(mode) {
   return { receipt: verified, states };
 }
 
-test("synthetic dry-run E2E hoàn tất đủ năm field ở C1 manual", async () => {
+test("synthetic integration dry-run hoàn tất đủ năm field ở C1 manual", async () => {
   const result = await completeFiveFieldStudy(C1_MANUAL);
   assert.equal(result.receipt.status, "VERIFIED");
 });
 
-test("synthetic dry-run E2E bắt buộc đủ năm field ở C2 verify-all", async () => {
+test("synthetic integration dry-run bắt buộc đủ năm field ở C2 verify-all", async () => {
   const result = await completeFiveFieldStudy(C2_VERIFY_ALL);
   assert.equal(result.receipt.status, "VERIFIED");
 });
 
-test("pilot E2E stale 409 không tự retry mutation", async () => {
+test("integration stale 409 không tự retry mutation", async () => {
   const api = freshMock();
   const receipt = await api.getReceipt(RECEIPT_IDS.review);
   const states = createStudyFieldStates(receipt.fields, C2_VERIFY_ALL);
@@ -68,7 +68,7 @@ test("pilot E2E stale 409 không tự retry mutation", async () => {
   assert.equal(states.invoice_id.phase, "EDITING");
 });
 
-test("pilot E2E retryable failure và keyboard contract vẫn hoạt động", async () => {
+test("integration retryable failure và keyboard contract vẫn hoạt động", async () => {
   const api = freshMock();
   const accepted = await api.retryReceipt(RECEIPT_IDS.failed);
   assert.deepEqual(accepted, { receipt_id: RECEIPT_IDS.failed, retry_accepted: true });

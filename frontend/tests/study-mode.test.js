@@ -103,18 +103,40 @@ test("telemetry tách waiting/processing/active time và chỉ xuất count", ()
   now = 300;
   telemetry.resumeActive();
   now = 340;
-  telemetry.correction("merchant_name", "APPLY");
+  telemetry.confirmField("merchant_name", "APPLY");
   now = 400;
   const summary = telemetry.complete();
   assert.equal(summary.review_mode, C1_MANUAL);
   assert.equal(summary.waiting_time_ms, 100);
   assert.equal(summary.processing_time_ms, 100);
   assert.equal(summary.active_review_time_ms, 200);
+  assert.equal(summary.confirmation_count, 1);
   assert.equal(summary.correction_count, 1);
   assert.equal(summary.keystroke_count, 1);
   assert.equal(events.filter((event) => event.event === "REVIEW_COMPLETED").length, 1);
   const serialized = JSON.stringify(events);
   for (const forbidden of ["raw_text", "predicted_value", "effective_value", "field_value", "ocr_text", "image_data", "access_token", "credential", "SENTINEL_PREDICTION"]) assert.equal(serialized.includes(forbidden), false);
+});
+
+test("API latency không được cộng vào active time và xác nhận không đổi không phải correction", () => {
+  let now = 0;
+  const telemetry = createReviewTelemetry("receipt-latency", () => {}, {
+    reviewMode: C2_VERIFY_ALL,
+    monotonicNow: () => now,
+    wallNow: () => "2026-08-26T00:00:00Z",
+  });
+  telemetry.observeReceipt("NEEDS_REVIEW", true);
+  telemetry.startReview();
+  now = 100;
+  telemetry.pauseActive();
+  now = 5100;
+  telemetry.resumeActive();
+  now = 5200;
+  for (const fieldName of CORE_FIELD_TYPES) telemetry.confirmField(fieldName, "APPLY", false);
+  const summary = telemetry.complete();
+  assert.equal(summary.active_review_time_ms, 200);
+  assert.equal(summary.confirmation_count, 5);
+  assert.equal(summary.correction_count, 0);
 });
 
 test("keyboard mapping giữ save/reset/navigation mà không ghi nội dung phím vào telemetry", () => {
