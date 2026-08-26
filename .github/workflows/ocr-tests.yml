@@ -1,0 +1,84 @@
+name: OCR tests
+
+on:
+  pull_request:
+    paths:
+      - "ai/ocr/**"
+      - "data/field_evaluation/**"
+      - "scripts/evaluate.py"
+      - "scripts/evaluate_field_aware.py"
+      - "scripts/run_baseline.py"
+      - "tests/test_evaluate.py"
+      - "tests/test_field_analysis.py"
+      - "tests/test_ocr_*.py"
+      - "schemas/**"
+      - "requirements.txt"
+      - "requirements-contracts.txt"
+      - ".github/workflows/ocr-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ai/ocr/**"
+      - "data/field_evaluation/**"
+      - "scripts/evaluate.py"
+      - "scripts/evaluate_field_aware.py"
+      - "scripts/run_baseline.py"
+      - "tests/test_evaluate.py"
+      - "tests/test_field_analysis.py"
+      - "tests/test_ocr_*.py"
+      - "schemas/**"
+      - "requirements.txt"
+      - "requirements-contracts.txt"
+      - ".github/workflows/ocr-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  ocr-unit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-contracts.txt
+
+      - name: Install pinned OCR and contract dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-contracts.txt
+
+      - name: Run persistent worker provider integration test
+        run: |
+          python -m unittest \
+            tests.test_ocr_week2.OCRWeek2PipelineTests.test_worker_provider_reuses_one_engine_across_receipts \
+            -v
+
+      - name: Run repository unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Run shared contract tests
+        run: python tests/contracts/run_contract_tests.py
+
+      - name: Check installed dependency consistency
+        run: python -m pip check
+
+      - name: Check patch whitespace
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --check "origin/${{ github.base_ref }}...HEAD"
+          else
+            git diff --check HEAD^
+          fi
