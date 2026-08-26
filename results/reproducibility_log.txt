@@ -70,3 +70,53 @@ This verification validates the committed artifacts; it does not rerun model
 inference. The set contains 1,970 OCR blocks in total (12 minimum and 163
 maximum per artifact). Ground-truth metrics remain provisional until an
 independent reviewer completes annotation QA.
+
+Week-2 integration and field-aware verification
+------------------------------------------------
+Canonical main SHA: 7809d363ed0230d8ae6a18437f51fc28e88bcd26
+Evaluator source revision: b82cbcb870eb285fd6f711845de56b9af8f14497
+Issue: https://github.com/vietreceipt-team/vietreceipt/issues/18
+
+The field-aware report was generated from the clean committed evaluator source
+revision above. Its provenance records the same full SHA and
+`git_worktree_dirty=false`. To reproduce that exact source state, check out the
+revision, install `requirements.txt` and `requirements-contracts.txt`, then run
+the commands below. The report remains dependency-blocked on verified KIE/Data
+field annotations and Oracle evidence; no semantic labels were fabricated.
+
+Commands:
+
+python scripts/evaluate_field_aware.py
+PASS: report generated with status WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS.
+The report covers all five canonical fields and records the exact missing
+KIE/Data dependency instead of fabricating field labels.
+
+python -m unittest discover -s tests -v
+PASS: 65 tests. Week-1 artifact regression and the canonical KIE suite remain
+green. Week-2 tests cover the callable pipeline, process-long-lived engine
+reuse across worker receipts, Backend-style UUIDs, reprocess identity,
+immutable artifacts, schema and semantic invariants, benchmark ID separation,
+six-way field error taxonomy, annotation-integrity fail-fast behavior,
+verified Oracle/Real evidence, quality slices and reproducibility provenance.
+
+python tests/contracts/run_contract_tests.py
+PASS: canonical JSON Schemas/OpenAPI, 9 positive and 23 negative cases,
+cross-record linkage, block-ID uniqueness and zero-based reading order.
+
+python scripts/evaluate.py --require-complete
+PASS: provisional frozen baseline remains COMPLETE at 40/40 samples with
+macro-average CER 30.79% and WER 74.18%.
+
+python scripts/run_baseline.py --image data/test_set/images/R001.jpg \
+  --receipt-id 31915ef1-6fb4-4e7d-b6f5-53be51c50e3d \
+  --ocr-run-id b3ac8bb4-6383-4b97-9911-5a6900054608 \
+  --output-dir <temporary-directory> --mapping-out <temporary-mapping>
+PASS: real pinned PaddleOCR inference produced a validated artifact at the
+immutable <receipt_id>/<ocr_run_id>.json path. Temporary outputs were not
+added to the repository.
+
+python -m pip check
+PASS: No broken requirements found in the pinned OCR environment.
+
+No Week-2 model or preprocessing change was selected. A controlled experiment
+requires verified field annotations so its field impact can be measured.

@@ -1,0 +1,6 @@
+{
+  "dataset_version": "vietreceipt-week1-frozen-40-v1",
+  "annotation_qa_state": "pending independent transcription review and KIE/Data five-field gold annotation",
+  "example_only": false,
+  "records": []
+}
