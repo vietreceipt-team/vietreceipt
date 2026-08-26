@@ -94,4 +94,9 @@ jobs:
 
       - name: Check patch whitespace
         shell: bash
-        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff --check "origin/${{ github.base_ref }}...HEAD"
+          else
+            git diff --check "${{ github.event.before }}..${{ github.sha }}"
+          fi
