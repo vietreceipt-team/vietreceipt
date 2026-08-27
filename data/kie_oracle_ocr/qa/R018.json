@@ -1,0 +1,21 @@
+{
+  "independent_review_confirmed": false,
+  "oracle_ocr_run_id": "126389b7-0249-5d94-8171-9d9574306de1",
+  "oracle_sha256": "",
+  "prepared_at": null,
+  "prepared_by": "",
+  "provenance": "",
+  "qa_state": "PENDING",
+  "real_ocr_run_id": "27460b45-8e9a-45f8-ba50-1e26000a16b7",
+  "real_vs_oracle_findings": {
+    "omissions": [],
+    "other": [],
+    "substitutions": []
+  },
+  "receipt_id": "50a6a2f4-5dc1-541e-8337-557444f517fa",
+  "record_type": "oracle-ocr-independent-qa",
+  "reviewed_at": null,
+  "reviewer_id": "",
+  "schema_version": "1.0",
+  "test_id": "R018"
+}

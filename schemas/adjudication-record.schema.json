@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vietreceipt.local/schemas/adjudication-record.schema.json",
+  "title": "Five-field annotation adjudication record v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_type",
+    "schema_version",
+    "test_id",
+    "receipt_id",
+    "source_ocr_run_id",
+    "annotation_a_id",
+    "annotation_b_id",
+    "adjudicator_id",
+    "adjudicated_at",
+    "independent_review_confirmed",
+    "disagreements"
+  ],
+  "properties": {
+    "record_type": {"const": "five-field-annotation-adjudication"},
+    "schema_version": {"const": "1.0"},
+    "test_id": {"type": "string", "pattern": "^R(?:00[1-9]|0[1-3][0-9]|040)$"},
+    "receipt_id": {"type": "string", "format": "uuid"},
+    "source_ocr_run_id": {"type": "string", "format": "uuid"},
+    "annotation_a_id": {"type": "string", "format": "uuid"},
+    "annotation_b_id": {"type": "string", "format": "uuid"},
+    "adjudicator_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "adjudicated_at": {"type": "string", "format": "date-time"},
+    "independent_review_confirmed": {"const": true},
+    "disagreements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "merchant_name": {"$ref": "#/$defs/decision"},
+        "receipt_date": {"$ref": "#/$defs/decision"},
+        "total_amount": {"$ref": "#/$defs/decision"},
+        "invoice_id": {"$ref": "#/$defs/decision"},
+        "merchant_address": {"$ref": "#/$defs/decision"}
+      }
+    }
+  },
+  "$defs": {
+    "semanticLabel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "annotation_status",
+        "normalized_value",
+        "candidate_values",
+        "source_block_ids"
+      ],
+      "properties": {
+        "annotation_status": {
+          "enum": ["PRESENT", "NOT_PRESENT", "UNREADABLE", "AMBIGUOUS", "UNKNOWN"]
+        },
+        "normalized_value": {"type": ["string", "integer", "null"]},
+        "candidate_values": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": ["string", "integer"]}
+        },
+        "source_block_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "annotation_a",
+        "annotation_b",
+        "final",
+        "decision_reason",
+        "rule_reference"
+      ],
+      "properties": {
+        "annotation_a": {"$ref": "#/$defs/semanticLabel"},
+        "annotation_b": {"$ref": "#/$defs/semanticLabel"},
+        "final": {"$ref": "#/$defs/semanticLabel"},
+        "decision_reason": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "rule_reference": {"type": "string", "minLength": 1, "maxLength": 300}
+      }
+    }
+  }
+}

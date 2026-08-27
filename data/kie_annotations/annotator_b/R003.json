@@ -1,0 +1,62 @@
+{
+  "annotated_at": null,
+  "annotation_id": "2a018af1-661b-5d78-a3e0-29935ab5c721",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "",
+  "batch_id": "w3-gold-annotator-b",
+  "data_provenance": "",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": null,
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": null,
+      "source_block_ids": [],
+      "transcribed_value": null
+    },
+    "merchant_address": {
+      "annotation_status": null,
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": null,
+      "source_block_ids": [],
+      "transcribed_value": null
+    },
+    "merchant_name": {
+      "annotation_status": null,
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": null,
+      "source_block_ids": [],
+      "transcribed_value": null
+    },
+    "receipt_date": {
+      "annotation_status": null,
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": null,
+      "source_block_ids": [],
+      "transcribed_value": null
+    },
+    "total_amount": {
+      "annotation_status": null,
+      "annotator_note": null,
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": null,
+      "source_block_ids": [],
+      "transcribed_value": null
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "adefd63c-e17a-56ab-a0e0-f4646e00518d",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "b51aaf0d-32b1-4b60-9f85-db188087daa5"
+}

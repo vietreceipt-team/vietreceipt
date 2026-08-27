@@ -1,8 +1,10 @@
 # KIE field-level evaluation manifest
 
 `manifest.json` is the QA gate for the frozen 40-receipt KIE split.
-It intentionally contains no records until independent five-field
-annotation, adjudication and Oracle OCR verification are complete.
+It contains exactly the pending `R001`-`R040` work records so progress and
+missing evidence are explicit. Pending records are not evaluation-ready:
+their final annotation paths do not exist yet, their Oracle state is not
+`VERIFIED`, and top-level provenance remains null until named human review.
 
 Official evaluation must not use OCR transcription files from
 `data/ground_truth/` as semantic KIE labels.
@@ -18,6 +20,13 @@ Each verified manifest record has this shape:
   "oracle_qa_state": "VERIFIED",
   "oracle_provenance": "non-empty description of how Oracle OCR was produced and reviewed"
 }
+```
+
+The W3 work record also keeps paths for annotation A, annotation B,
+adjudication and independent Oracle QA. See `W3_INPUT_GUIDE.vi.md` and run:
+
+```bash
+python scripts/w3_gold_workflow.py status
 ```
 
 Before metrics are computed, the evaluator requires:

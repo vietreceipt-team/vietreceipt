@@ -5,8 +5,13 @@ on:
     paths:
       - "ai/kie/**"
       - "data/kie_evaluation/**"
+      - "data/kie_annotations/**"
+      - "data/kie_oracle_ocr/**"
       - "scripts/evaluate_kie.py"
+      - "scripts/annotate_kie.py"
+      - "scripts/w3_gold_workflow.py"
       - "tests/test_kie_*.py"
+      - "tests/test_w3_gold_workflow.py"
       - "schemas/**"
       - "openapi/**"
       - "requirements-contracts.txt"
@@ -16,8 +21,13 @@ on:
     paths:
       - "ai/kie/**"
       - "data/kie_evaluation/**"
+      - "data/kie_annotations/**"
+      - "data/kie_oracle_ocr/**"
       - "scripts/evaluate_kie.py"
+      - "scripts/annotate_kie.py"
+      - "scripts/w3_gold_workflow.py"
       - "tests/test_kie_*.py"
+      - "tests/test_w3_gold_workflow.py"
       - "schemas/**"
       - "openapi/**"
       - "requirements-contracts.txt"
@@ -53,6 +63,7 @@ jobs:
             tests.test_kie_baseline \
             tests.test_kie_evaluation \
             tests.test_kie_artifacts \
+            tests.test_w3_gold_workflow \
             -v
 
       - name: Run shared contract tests
@@ -81,7 +92,8 @@ jobs:
 
           assert report["status"] == "WAITING_FOR_VERIFIED_FIELD_ANNOTATIONS"
           assert report["sample_counts"]["required"] == 40
-          assert report["sample_counts"]["manifest_records"] == 0
+          assert report["sample_counts"]["manifest_records"] == 40
+          assert report["sample_counts"]["ready_test_ids"] == 40
           assert report["sample_counts"]["evaluated"] == 0
           assert report["metrics"] is None
           assert report["modes"] is None

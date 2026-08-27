@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vietreceipt.local/schemas/oracle-qa-record.schema.json",
+  "title": "Oracle OCR independent QA record v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_type",
+    "schema_version",
+    "test_id",
+    "receipt_id",
+    "real_ocr_run_id",
+    "oracle_ocr_run_id",
+    "oracle_sha256",
+    "prepared_by",
+    "prepared_at",
+    "reviewer_id",
+    "reviewed_at",
+    "independent_review_confirmed",
+    "qa_state",
+    "provenance",
+    "real_vs_oracle_findings"
+  ],
+  "properties": {
+    "record_type": {"const": "oracle-ocr-independent-qa"},
+    "schema_version": {"const": "1.0"},
+    "test_id": {"type": "string", "pattern": "^R(?:00[1-9]|0[1-3][0-9]|040)$"},
+    "receipt_id": {"type": "string", "format": "uuid"},
+    "real_ocr_run_id": {"type": "string", "format": "uuid"},
+    "oracle_ocr_run_id": {"type": "string", "format": "uuid"},
+    "oracle_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prepared_by": {"type": "string", "minLength": 1, "maxLength": 128},
+    "prepared_at": {"type": "string", "format": "date-time"},
+    "reviewer_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "reviewed_at": {"type": "string", "format": "date-time"},
+    "independent_review_confirmed": {"const": true},
+    "qa_state": {"const": "VERIFIED"},
+    "provenance": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "real_vs_oracle_findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["omissions", "substitutions", "other"],
+      "properties": {
+        "omissions": {"$ref": "#/$defs/findings"},
+        "substitutions": {"$ref": "#/$defs/findings"},
+        "other": {"$ref": "#/$defs/findings"}
+      }
+    }
+  },
+  "$defs": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["description", "real_block_ids", "oracle_block_ids"],
+        "properties": {
+          "description": {"type": "string", "minLength": 1, "maxLength": 1000},
+          "real_block_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "oracle_block_ids": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}
