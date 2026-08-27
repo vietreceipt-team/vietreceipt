@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:47:57+07:00",
+  "annotation_id": "3fc9ee88-6b9b-5641-8406-3eba1b9b2b26",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The invoice number was extracted from the combined transaction-number and date OCR block.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "000AB2212008002618",
+      "source_block_ids": ["block_20"],
+      "transcribed_value": "000AB2212008002618"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant address was transcribed directly from the receipt image. Real OCR contains missing diacritics and character substitutions.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "Chợ Sủi Phú Thị Gia Lâm",
+      "source_block_ids": ["block_1"],
+      "transcribed_value": "Chợ Sủi Phú Thị Gia Lâm"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "MINIMART ANAN",
+      "source_block_ids": ["block_0"],
+      "transcribed_value": "MINIMART ANAN"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The date was extracted from the combined transaction-number and date OCR block.",
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-08-10",
+      "source_block_ids": ["block_20"],
+      "transcribed_value": "10/08/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final total amount. Customer payment shows the same amount.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 96000,
+      "source_block_ids": ["block_15", "block_16"],
+      "transcribed_value": "96,000"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "4f1b77cb-2d76-5561-98c6-603f69f8b7ba",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "16a7fdfe-003c-4ecb-92f7-542ccdcad017"
+}

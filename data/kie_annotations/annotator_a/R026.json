@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:47:12+07:00",
+  "annotation_id": "42ee80de-7406-5376-b03f-f2190f0b1e35",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the printed invoice number following Số HĐ.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "HD537794",
+      "source_block_ids": ["block_5"],
+      "transcribed_value": "HD537794"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant address spans two OCR blocks and was transcribed directly from the receipt image.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "207 Tô Hiệu, Cầu Giấy, Hà Nội",
+      "source_block_ids": ["block_1", "block_2"],
+      "transcribed_value": "207 Tô Hiệu, Cầu Giấy, Hà Nội"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "LAMASON10K",
+      "source_block_ids": ["block_0"],
+      "transcribed_value": "LAMASON10K"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-08-20",
+      "source_block_ids": ["block_6"],
+      "transcribed_value": "20/08/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled Tổng thanh toán. The discount is zero.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 45000,
+      "source_block_ids": ["block_23"],
+      "transcribed_value": "45.000"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "8bb64966-0a4e-5510-8b7f-ad50d1be9593",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "864c4ac8-496a-4116-bdc1-e7853626f344"
+}

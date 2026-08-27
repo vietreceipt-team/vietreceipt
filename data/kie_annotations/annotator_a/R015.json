@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:45:01+07:00",
+  "annotation_id": "eeaf2133-6e23-5f65-8243-b3a1bbaa7cec",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the ticket number printed before the transaction date.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "005000258",
+      "source_block_ids": ["block_42"],
+      "transcribed_value": "005000258"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "OCR_OMISSION: Real OCR did not create a block for the printed branch address.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "01, Cantavil An Phú, KP.5, An Phú, Q.2",
+      "source_block_ids": [],
+      "transcribed_value": "01, Cantavil An Phú, KP.5, An Phú, Q.2"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant name was transcribed directly from the receipt image. Real OCR contains missing diacritics.",
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "BIG C AN PHÚ",
+      "source_block_ids": ["block_0"],
+      "transcribed_value": "BIG C AN PHÚ"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Real OCR captured only part of the printed ticket and date line.",
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2019-02-17",
+      "source_block_ids": ["block_42"],
+      "transcribed_value": "17/02/2019"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled TỔNG CỘNG. Cash received and change lines were excluded.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 86100,
+      "source_block_ids": ["block_20", "block_21"],
+      "transcribed_value": "86.100đ"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "0d2c5ce4-a182-5ec4-97c8-645826b09275",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "fb45e945-b8aa-4730-aa37-83149689b42a"
+}

@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:46:16+07:00",
+  "annotation_id": "c2effaff-60fa-52b4-a717-cf07103adb68",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the printed invoice number following Số HĐ. Real OCR omitted the final digit.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "09322",
+      "source_block_ids": ["block_14"],
+      "transcribed_value": "09322"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The multi-line merchant address was transcribed directly from the receipt image. Real OCR contains missing diacritics and character substitutions.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "Tầng 1, SH42 - Tòa K3, Công trình chung cư kết hợp dịch vụ trên ô đất H-CT2 thuộc Dự án Đầu tư xây dựng Khu nhà ở Hi Brand tại Khu đô thị mới Văn Phú, P. Phú La, Q. Hà Đông, TP Hà Nội",
+      "source_block_ids": ["block_3", "block_4", "block_5", "block_6", "block_7"],
+      "transcribed_value": "Tầng 1, SH42 - Tòa K3, Công trình chung cư kết hợp dịch vụ trên ô đất H-CT2 thuộc Dự án Đầu tư xây dựng Khu nhà ở Hi Brand tại Khu đô thị mới Văn Phú, P. Phú La, Q. Hà Đông, TP Hà Nội"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the Co.op Food branch name printed below the Saigon Co.op parent brand.",
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "Co.op Food HN THE K-PARK",
+      "source_block_ids": ["block_1"],
+      "transcribed_value": "Co.op Food HN THE K-PARK"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The date was extracted from the combined date and time OCR block.",
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2019-09-23",
+      "source_block_ids": ["block_13"],
+      "transcribed_value": "23/09/2019"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled Tổng số tiền thanh toán.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 24500,
+      "source_block_ids": ["block_30", "block_31"],
+      "transcribed_value": "24,500.00"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "0cb0b970-e5ea-5820-a0f7-f3d39b599ff9",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "9cd3349a-e6f6-4a7e-959d-93e88b3df600"
+}

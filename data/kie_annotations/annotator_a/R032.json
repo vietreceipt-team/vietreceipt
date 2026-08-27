@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:48:34+07:00",
+  "annotation_id": "1dc09b7b-b92c-5409-9626-b4a24430489e",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the printed invoice number following Số HĐ.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "07414",
+      "source_block_ids": ["block_19", "block_20"],
+      "transcribed_value": "07414"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant address was transcribed directly from the receipt image. Real OCR contains missing diacritics and spacing errors.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "188 Hậu Giang, P.6, Q.6, TP.HCM",
+      "source_block_ids": ["block_2"],
+      "transcribed_value": "188 Hậu Giang, P.6, Q.6, TP.HCM"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant name was transcribed directly from the receipt image. Real OCR contains missing diacritics.",
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "Co.opMart HẬU GIANG",
+      "source_block_ids": ["block_0"],
+      "transcribed_value": "Co.opMart HẬU GIANG"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-05-21",
+      "source_block_ids": ["block_16"],
+      "transcribed_value": "21/05/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the printed total amount. The fractional VND component was rounded to the nearest integer VND for normalization.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 3564200,
+      "source_block_ids": ["block_40", "block_41"],
+      "transcribed_value": "3,564,200.40"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "e79811e2-57e3-501e-af31-e66ae4b31868",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "3c87c3eb-7371-4690-9387-67bad505c859"
+}

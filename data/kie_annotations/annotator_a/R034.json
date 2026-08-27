@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:48:55+07:00",
+  "annotation_id": "5d1782d0-5b7a-5e1e-9b26-4e7712e60698",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the printed invoice number following Số HĐ.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "05781",
+      "source_block_ids": ["block_10"],
+      "transcribed_value": "05781"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "OCR_OMISSION: Real OCR did not create a block for the printed merchant address 168 Nguyễn Đình Chiểu, Q.3.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "168 Nguyễn Đình Chiểu, Q.3",
+      "source_block_ids": [],
+      "transcribed_value": "168 Nguyễn Đình Chiểu, Q.3"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "OCR_OMISSION: Real OCR did not create a block for the printed merchant name Co.opMart NGUYỄN ĐÌNH CHIỂU.",
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "Co.opMart NGUYỄN ĐÌNH CHIỂU",
+      "source_block_ids": [],
+      "transcribed_value": "Co.opMart NGUYỄN ĐÌNH CHIỂU"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-05-21",
+      "source_block_ids": ["block_8"],
+      "transcribed_value": "21/05/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled Tổng số tiền thanh toán.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 880400,
+      "source_block_ids": ["block_70", "block_72"],
+      "transcribed_value": "880,400.00"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "93c307b6-f30b-5995-bad8-8114366aaeb7",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "ba56f067-413e-4a8b-9136-d199b2aec60e"
+}

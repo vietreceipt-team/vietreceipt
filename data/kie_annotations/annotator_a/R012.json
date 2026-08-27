@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:44:23+07:00",
+  "annotation_id": "60da7979-c144-531d-8c67-e058f63a8a61",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the printed invoice number following HĐ.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "00197593",
+      "source_block_ids": ["block_7"],
+      "transcribed_value": "00197593"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The multi-line merchant address was transcribed directly from the receipt image. Real OCR contains missing diacritics and character substitutions.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "TTTM Vincom Số 2 Phạm Ngọc Thạch, P. Trung Tự, Q. Đống Đa, TP Hà Nội",
+      "source_block_ids": ["block_1", "block_3"],
+      "transcribed_value": "TTTM Vincom Số 2 Phạm Ngọc Thạch, P. Trung Tự, Q. Đống Đa, TP Hà Nội"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "VinCommerce",
+      "source_block_ids": ["block_2"],
+      "transcribed_value": "VinCommerce"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-08-14",
+      "source_block_ids": ["block_6"],
+      "transcribed_value": "14/08/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled TỔNG TIỀN PHẢI T.TOÁN. Customer payment and change lines were excluded.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 184500,
+      "source_block_ids": ["block_18", "block_19"],
+      "transcribed_value": "184.500"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "5d0487eb-b9e9-512b-981c-49752d30faa4",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "ff1c267a-b1d6-4b73-8223-9e3c6f261c04"
+}

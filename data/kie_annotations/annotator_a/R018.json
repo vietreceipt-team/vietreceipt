@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:45:42+07:00",
+  "annotation_id": "b488995b-0bda-5999-8b31-07b09be05e1d",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the receipt number printed after Số.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "2003000491",
+      "source_block_ids": ["block_7"],
+      "transcribed_value": "2003000491"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The multi-line merchant address was transcribed directly from the receipt image. Real OCR contains missing diacritics and character substitutions.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "104 Trần Phú - phường Cẩm Tây - Thành phố Cẩm Phả - Quảng Ninh",
+      "source_block_ids": ["block_2", "block_3"],
+      "transcribed_value": "104 Trần Phú - phường Cẩm Tây - Thành phố Cẩm Phả - Quảng Ninh"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant name spans two OCR blocks and was transcribed directly from the receipt image.",
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "SCTC CÔ THƠ 104 TRẦN PHÚ - CẨM PHẢ",
+      "source_block_ids": ["block_0", "block_1"],
+      "transcribed_value": "SCTC CÔ THƠ 104 TRẦN PHÚ - CẨM PHẢ"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-08-08",
+      "source_block_ids": ["block_9"],
+      "transcribed_value": "08/08/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled Tổng thanh toán. Cash received and change lines were excluded.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 75000,
+      "source_block_ids": ["block_23", "block_24"],
+      "transcribed_value": "75.000đ"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "50a6a2f4-5dc1-541e-8337-557444f517fa",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "27460b45-8e9a-45f8-ba50-1e26000a16b7"
+}

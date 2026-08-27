@@ -1,0 +1,73 @@
+{
+  "annotated_at": "2026-08-26T15:53:53.0800627+07:00",
+  "annotation_id": "71ecbd39-df9a-524c-92c9-187bbc991bca",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotation A read directly from data/test_set/images/R001.jpg and aligned to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Transaction ID is used as the fallback identifier because no separate invoice or receipt number is printed.",
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": "000AC2212008001576",
+      "source_block_ids": [
+        "block_28"
+      ],
+      "transcribed_value": "000AC2212008001576"
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Real OCR contains substitutions; the value was transcribed directly from the receipt image.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "Chợ Sủi Phú Thị Gia Lâm",
+      "source_block_ids": [
+        "block_1"
+      ],
+      "transcribed_value": "Chợ Sủi Phú Thị Gia Lâm"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "MINIMART ANAN",
+      "source_block_ids": [
+        "block_0"
+      ],
+      "transcribed_value": "MINIMART ANAN"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-08-12",
+      "source_block_ids": [
+        "block_28"
+      ],
+      "transcribed_value": "12/08/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled Tổng tiền and excluded the separate customer-payment line.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 113000,
+      "source_block_ids": [
+        "block_23",
+        "block_24"
+      ],
+      "transcribed_value": "113,000"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "68c0ccd5-069f-5ab4-9df8-783c6a96fa56",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "b5bbb179-ed58-4a10-ac2c-a80f1a6b0da4"
+}

@@ -1,0 +1,62 @@
+{
+  "annotated_at": "2026-08-26T23:44:50+07:00",
+  "annotation_id": "5750974b-0f08-5c5f-b741-293a73f2bc6a",
+  "annotation_schema_version": "1.0",
+  "annotator_id": "ngbinhminhdev-blip",
+  "batch_id": "w3-gold-annotator-a",
+  "data_provenance": "Human annotator A verified all five fields directly against the source image and aligned source block IDs to the committed Real OCR run; KIE predictions were not consulted.",
+  "dataset_snapshot": "vietreceipt-week1-frozen-40-v1",
+  "example_only": false,
+  "fields": {
+    "invoice_id": {
+      "annotation_status": "NOT_PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "invoice_id",
+      "normalized_value": null,
+      "source_block_ids": [],
+      "transcribed_value": null
+    },
+    "merchant_address": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant address was transcribed directly from the receipt image. Real OCR contains missing diacritics and character substitutions.",
+      "candidate_values": [],
+      "field_name": "merchant_address",
+      "normalized_value": "212 Đường Trần Phú-Cẩm Phả",
+      "source_block_ids": ["block_1"],
+      "transcribed_value": "212 Đường Trần Phú-Cẩm Phả"
+    },
+    "merchant_name": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "The merchant name was transcribed directly from the receipt image. Real OCR contains missing diacritics.",
+      "candidate_values": [],
+      "field_name": "merchant_name",
+      "normalized_value": "NHÀ SÁCH GD-TC CẨM PHẢ",
+      "source_block_ids": ["block_0"],
+      "transcribed_value": "NHÀ SÁCH GD-TC CẨM PHẢ"
+    },
+    "receipt_date": {
+      "annotation_status": "PRESENT",
+      "annotator_note": null,
+      "candidate_values": [],
+      "field_name": "receipt_date",
+      "normalized_value": "2020-08-09",
+      "source_block_ids": ["block_4"],
+      "transcribed_value": "09/08/2020"
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "annotator_note": "Selected the final amount labeled Tổng số thanh toán.",
+      "candidate_values": [],
+      "currency": "VND",
+      "field_name": "total_amount",
+      "normalized_value": 12000,
+      "source_block_ids": ["block_20", "block_21"],
+      "transcribed_value": "12.000đ"
+    }
+  },
+  "guideline_version": "1.1",
+  "receipt_id": "d6013286-972f-5157-8449-c61b8588504f",
+  "record_type": "five-field-ground-truth-annotation",
+  "source_ocr_run_id": "1ee8eb92-9dda-4af2-a1e3-b4887e589c65"
+}
