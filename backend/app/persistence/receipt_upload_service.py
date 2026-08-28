@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from uuid import UUID
 
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from backend.app.domain.enums import ReceiptStatus
@@ -17,9 +17,7 @@ from backend.app.storage.keys import generate_receipt_object_key
 from backend.app.storage.protocol import ReceiptImageStorage
 from backend.app.storage.validator import ReceiptImageValidator
 
-from .sqlalchemy_receipt_repository import (
-    SQLAlchemyReceiptRepository,
-)
+from .sqlalchemy_receipt_repository import SQLAlchemyReceiptRepository
 
 logger = logging.getLogger(__name__)
 
@@ -42,25 +40,14 @@ class SQLAlchemyReceiptPersistenceService:
         self._id_generator = id_generator
         self._clock = clock
 
-    async def persist_upload(
-        self,
-        upload: ReceiptUpload,
-    ) -> Receipt:
+    async def persist_upload(self, upload: ReceiptUpload) -> Receipt:
         raw_bytes = upload.file.read()
         validated = self._validator.validate(raw_bytes)
 
         receipt_id = self._id_generator.new_id()
-        storage_key = generate_receipt_object_key(
-            validated.format,
-            receipt_id,
-        )
+        storage_key = generate_receipt_object_key(validated.format, receipt_id)
 
-        # Client supplied content_type is intentionally ignored.
-        self._storage.put(
-            storage_key,
-            validated.data,
-            validated.content_type,
-        )
+        self._storage.put(storage_key, validated.data, validated.content_type)
 
         now = self._clock.now()
         receipt = Receipt(
@@ -110,9 +97,7 @@ class SQLAlchemyReceiptPersistenceService:
 
             if isinstance(db_exc, PersistenceFailure):
                 raise
-            raise PersistenceFailure(
-                "Receipt persistence failed."
-            ) from db_exc
+            raise PersistenceFailure("Receipt persistence failed.") from db_exc
         finally:
             session.close()
 
@@ -144,8 +129,32 @@ class SQLAlchemyReceiptPersistenceService:
                 return False
             session.commit()
             return True
-        except Exception:
+        except PersistenceFailure:
             session.rollback()
             raise
+        except SQLAlchemyError as exc:
+            session.rollback()
+            logger.error(
+                "Receipt delete database failure",
+                extra={
+                    "receipt_id": str(receipt_id),
+                    "operation": "delete_receipt",
+                    "error_category": type(exc).__name__,
+                },
+                exc_info=exc,
+            )
+            raise PersistenceFailure("Receipt deletion failed.") from exc
+        except Exception as exc:
+            session.rollback()
+            logger.error(
+                "Receipt delete unexpected persistence failure",
+                extra={
+                    "receipt_id": str(receipt_id),
+                    "operation": "delete_receipt",
+                    "error_category": type(exc).__name__,
+                },
+                exc_info=exc,
+            )
+            raise PersistenceFailure("Receipt deletion failed.") from exc
         finally:
             session.close()
