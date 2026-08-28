@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import select, update
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -99,21 +99,52 @@ class SQLAlchemyReceiptRepository:
         *,
         expected_updated_at: datetime,
     ) -> Receipt:
+        expected = (
+            expected_updated_at.replace(tzinfo=timezone.utc)
+            if expected_updated_at.tzinfo is None
+            else expected_updated_at
+        )
+        values = {
+            ReceiptRecord.original_filename: receipt.original_filename,
+            ReceiptRecord.status: receipt.status.value,
+            ReceiptRecord.processing_stage: (
+                receipt.processing_stage.value
+                if receipt.processing_stage is not None
+                else None
+            ),
+            ReceiptRecord.image_width_px: receipt.image_width_px,
+            ReceiptRecord.image_height_px: receipt.image_height_px,
+            ReceiptRecord.latest_ocr_run_id: receipt.latest_ocr_run_id,
+            ReceiptRecord.latest_kie_run_id: receipt.latest_kie_run_id,
+            ReceiptRecord.last_error: (
+                receipt.last_error.model_dump(mode="json")
+                if receipt.last_error is not None
+                else None
+            ),
+            ReceiptRecord.updated_at: receipt.updated_at,
+            ReceiptRecord.review_started_at: receipt.review_started_at,
+            ReceiptRecord.processed_at: receipt.processed_at,
+            ReceiptRecord.verified_at: receipt.verified_at,
+        }
         try:
-            record = self._session.get(ReceiptRecord, receipt.receipt_id)
-            if record is None:
-                raise PersistenceFailure(
-                    f"Receipt {receipt.receipt_id} was not found for update."
+            result = self._session.execute(
+                update(ReceiptRecord)
+                .where(
+                    ReceiptRecord.receipt_id == receipt.receipt_id,
+                    ReceiptRecord.updated_at == expected,
                 )
-            record_updated_at = record.updated_at
-            if record_updated_at.tzinfo is None:
-                record_updated_at = record_updated_at.replace(tzinfo=timezone.utc)
-            if record_updated_at != expected_updated_at:
+                .values(values)
+            )
+            if result.rowcount != 1:
                 raise StaleUpdate(
                     "Receipt was updated by another request."
                 )
-            record.apply_domain(receipt)
             self._session.flush()
+            record = self._session.get(ReceiptRecord, receipt.receipt_id)
+            if record is None:
+                raise PersistenceFailure(
+                    f"Receipt {receipt.receipt_id} disappeared after update."
+                )
             return record.to_domain()
         except (PersistenceFailure, StaleUpdate):
             raise
