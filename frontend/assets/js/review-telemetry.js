@@ -10,6 +10,8 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
   let reviewStarted = false;
   let activeStartedAt = null;
   let activeElapsed = 0;
+  const activePauses = new Map();
+  let pauseSequence = 0;
   let confirmationCount = 0;
   let correctionCount = 0;
   let keystrokeCount = 0;
@@ -24,10 +26,14 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
     return payload;
   }
 
-  function pauseActive() {
-    if (activeStartedAt === null) return;
-    activeElapsed += Math.max(0, monotonicNow() - activeStartedAt);
-    activeStartedAt = null;
+  function pauseActive(reason = "unspecified") {
+    const token = Symbol(reason + ":" + (pauseSequence += 1));
+    activePauses.set(token, reason);
+    if (activeStartedAt !== null) {
+      activeElapsed += Math.max(0, monotonicNow() - activeStartedAt);
+      activeStartedAt = null;
+    }
+    return token;
   }
 
   return {
@@ -46,12 +52,13 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
     startReview() {
       if (reviewStarted) return null;
       reviewStarted = true;
-      activeStartedAt = monotonicNow();
+      if (activePauses.size === 0) activeStartedAt = monotonicNow();
       return emit("REVIEW_STARTED");
     },
     pauseActive,
-    resumeActive() {
-      if (!reviewStarted || completed || activeStartedAt !== null) return;
+    resumeActive(token) {
+      if (!activePauses.delete(token)) return;
+      if (!reviewStarted || completed || activeStartedAt !== null || activePauses.size > 0) return;
       activeStartedAt = monotonicNow();
     },
     focusField(fieldName) {
@@ -78,7 +85,7 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
     verify() { return emit("RECEIPT_VERIFIED"); },
     complete() {
       if (completed) return null;
-      pauseActive();
+      pauseActive("review-complete");
       completed = true;
       const completedAt = monotonicNow();
       return emit("REVIEW_COMPLETED", {
@@ -92,9 +99,18 @@ export function createReviewTelemetry(receiptId, publish = defaultPublish, optio
       });
     },
     resetSession() { return emit("STUDY_SESSION_RESET"); },
-    changeReceipt() { pauseActive(); return emit("RECEIPT_CHANGED"); },
+    changeReceipt() { pauseActive("receipt-change"); return emit("RECEIPT_CHANGED"); },
     retry() { return emit("RETRY_REQUESTED"); },
   };
+}
+
+export async function withReviewActivityPaused(telemetry, reason, task) {
+  const token = telemetry?.pauseActive(reason);
+  try {
+    return await task();
+  } finally {
+    telemetry?.resumeActive(token);
+  }
 }
 
 function defaultPublish(payload) {

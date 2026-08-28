@@ -3,7 +3,7 @@ import { createApplyCorrectionRequest, createClearCorrectionRequest, getApiError
 import { CORE_FIELD_TYPES, FIELD_LABELS, announce, escapeHtml, formatVnd, getReceiptIdFromLocation, renderNavigation } from "./common.js";
 import { canVerifyReceipt, createFieldState, createFieldStates, DIRTY_FIELD_PHASES, editFieldStatus, editFieldValue, findFieldsForSourceBlock, getAdjacentField } from "./review-state.js";
 import { saveCorrectionAndRefresh } from "./review-workflow.js";
-import { createReviewTelemetry } from "./review-telemetry.js";
+import { createReviewTelemetry, withReviewActivityPaused } from "./review-telemetry.js";
 import {
   C1_MANUAL,
   C2_VERIFY_ALL,
@@ -56,6 +56,7 @@ let staleMessage = null;
 let pollingTimer = null;
 let pollAttempt = 0;
 let telemetry = null;
+let visibilityPauseToken = null;
 
 function orderedFields() { return receipt?.fields ? CORE_FIELD_TYPES.map((name) => receipt.fields[name]).filter(Boolean) : []; }
 function field(name) { return receipt?.fields?.[name]; }
@@ -284,19 +285,13 @@ async function saveField(name, operation) {
   fieldStates[name] = { ...current, phase: "SAVING", error: null };
   renderFields(); updateControls(); highlightFields([name]);
 
-  let result;
-  telemetry?.pauseActive();
-  try {
-    result = await saveCorrectionAndRefresh({
-      api: vietReceiptApi,
-      receipt,
-      fieldStates,
-      fieldName: name,
-      request,
-    });
-  } finally {
-    telemetry?.resumeActive();
-  }
+  const result = await withReviewActivityPaused(telemetry, "correction-api", () => saveCorrectionAndRefresh({
+    api: vietReceiptApi,
+    receipt,
+    fieldStates,
+    fieldName: name,
+    request,
+  }));
 
   if (result.outcome === "MUTATION_ERROR") {
     if (result.error instanceof OptimisticConcurrencyError) {
@@ -330,7 +325,7 @@ async function saveField(name, operation) {
 }
 async function reloadLatest() {
   try {
-    receipt = await vietReceiptApi.getReceipt(receipt.receipt_id);
+    receipt = await withReviewActivityPaused(telemetry, "reload-latest", () => vietReceiptApi.getReceipt(receipt.receipt_id));
     fieldStates = createStudyFieldStates(receipt.fields, studyMode);
     staleMessage = null;
     announce("Đã tải phiên bản mới nhất từ Backend.");
@@ -341,9 +336,8 @@ async function reloadLatest() {
 async function verifyReceipt() {
   if (verifying || !canVerifyStudyReceipt(receipt, fieldStates, studyMode) || staleMessage) return;
   verifying = true; updateControls();
-  telemetry?.pauseActive();
   try {
-    receipt = await vietReceiptApi.verifyReceipt(receipt.receipt_id, receipt.updated_at);
+    receipt = await withReviewActivityPaused(telemetry, "verify-api", () => vietReceiptApi.verifyReceipt(receipt.receipt_id, receipt.updated_at));
     if (!studySession.enabled) fieldStates = createFieldStates(receipt.fields);
     telemetry?.verify();
     telemetry?.complete();
@@ -353,16 +347,18 @@ async function verifyReceipt() {
   } catch (error) {
     if (error instanceof OptimisticConcurrencyError) { staleMessage = getApiErrorMessage(error); renderStaleBanner(); }
     announce(getApiErrorMessage(error), "error");
-  } finally { telemetry?.resumeActive(); verifying = false; updateControls(); }
+  } finally { verifying = false; updateControls(); }
 }
 
 async function retryReceipt() {
   const button = document.querySelector("#retry-receipt");
   if (button) { button.disabled = true; button.textContent = "Đang gửi yêu cầu..."; }
   try {
-    await vietReceiptApi.retryReceipt(receipt.receipt_id);
-    telemetry?.retry();
-    receipt = await vietReceiptApi.getReceipt(receipt.receipt_id);
+    await withReviewActivityPaused(telemetry, "retry-api", async () => {
+      await vietReceiptApi.retryReceipt(receipt.receipt_id);
+      telemetry?.retry();
+      receipt = await vietReceiptApi.getReceipt(receipt.receipt_id);
+    });
     announce("Backend đã chấp nhận lên lịch thử lại.");
     renderReceipt();
   } catch (error) {
@@ -389,21 +385,29 @@ function schedulePoll() {
   const delay = Math.min(10000, 2500 + pollAttempt * 250);
   pollingTimer = globalThis.setTimeout(async () => {
     pollAttempt += 1;
-    try { receipt = await vietReceiptApi.getReceipt(receipt.receipt_id); renderReceipt(); }
+    try { receipt = await withReviewActivityPaused(telemetry, "poll-api", () => vietReceiptApi.getReceipt(receipt.receipt_id)); renderReceipt(); }
     catch { schedulePoll(); }
   }, delay);
 }
 
-globalThis.addEventListener?.("pagehide", () => { globalThis.clearTimeout(pollingTimer); telemetry?.pauseActive(); }, { once: true });
-globalThis.document?.addEventListener?.("visibilitychange", () => document.hidden ? telemetry?.pauseActive() : telemetry?.resumeActive());
+globalThis.addEventListener?.("pagehide", () => { globalThis.clearTimeout(pollingTimer); telemetry?.pauseActive("pagehide"); }, { once: true });
+globalThis.document?.addEventListener?.("visibilitychange", () => {
+  if (document.hidden) {
+    if (visibilityPauseToken === null) visibilityPauseToken = telemetry?.pauseActive("document-hidden") ?? null;
+    return;
+  }
+  if (visibilityPauseToken !== null) telemetry?.resumeActive(visibilityPauseToken);
+  visibilityPauseToken = null;
+});
 
 if (!receiptId) {
   main.innerHTML = `<div class="grid min-h-[calc(100dvh-56px)] place-items-center px-4 text-center"><div><p class="text-5xl">404</p><h1 class="mt-4 text-2xl font-bold text-slate-900">Không tìm thấy mã hóa đơn</h1><a href="/receipts/" class="mt-5 inline-flex rounded-xl bg-teal-800 px-5 py-3 text-sm font-bold text-white">Quay lại danh sách</a></div></div>`;
 } else {
   main.innerHTML = `<div class="grid min-h-[calc(100dvh-56px)] place-items-center"><div class="text-center"><div class="mx-auto size-8 animate-spin rounded-full border-4 border-slate-200 border-t-teal-700"></div><p class="mt-4 text-sm font-semibold text-slate-500">Đang tải hóa đơn…</p></div></div>`;
   telemetry = createReviewTelemetry(receiptId, undefined, { reviewMode: studyMode ?? "PREFILL_FULL_REVIEW" });
+  if (document.hidden && visibilityPauseToken === null) visibilityPauseToken = telemetry.pauseActive("document-hidden");
   try {
-    receipt = await vietReceiptApi.getReceipt(receiptId);
+    receipt = await withReviewActivityPaused(telemetry, "initial-receipt-load", () => vietReceiptApi.getReceipt(receiptId));
     renderReceipt();
   } catch (error) {
     main.innerHTML = `<div class="grid min-h-[calc(100dvh-56px)] place-items-center px-4 text-center"><div><p class="text-5xl">404</p><h1 class="mt-4 text-2xl font-bold text-slate-900">Không tìm thấy hóa đơn</h1><p class="mt-2 text-sm text-slate-500">${escapeHtml(getApiErrorMessage(error))}</p><a href="/receipts/" class="mt-5 inline-flex rounded-xl bg-teal-800 px-5 py-3 text-sm font-bold text-white">Quay lại danh sách</a></div></div>`;

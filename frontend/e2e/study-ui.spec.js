@@ -106,17 +106,29 @@ test("keyboard UI hỗ trợ chuyển field, xác nhận và bỏ draft", async 
   await expect(receiptDate).toHaveValue("2026-08-10");
 });
 
-test("stale 409 hiển thị banner, khóa verify và không tự retry mutation", async ({ page }) => {
+test("stale 409 reload GET chậm năm giây không bị tính vào active review time", async ({ page }) => {
   await prepareStudyPage(page, allPresentReceipts());
   await page.goto(receiptUrl(C2_ORIGIN, RECEIPT_IDS.review));
 
   await page.evaluate(async () => {
     const { OptimisticConcurrencyError, vietReceiptApi } = await import("/assets/js/api.js");
+    const originalUpdate = vietReceiptApi.updateCorrection.bind(vietReceiptApi);
+    const originalGet = vietReceiptApi.getReceipt.bind(vietReceiptApi);
     globalThis.__staleMutationCalls = 0;
-    vietReceiptApi.updateCorrection = async () => {
+    globalThis.__delayReload = false;
+    vietReceiptApi.updateCorrection = async (...args) => {
       globalThis.__staleMutationCalls += 1;
-      throw new OptimisticConcurrencyError("Field đã thay đổi ở nơi khác.");
+      if (globalThis.__staleMutationCalls === 1) throw new OptimisticConcurrencyError("Field đã thay đổi ở nơi khác.");
+      return originalUpdate(...args);
     };
+    vietReceiptApi.getReceipt = async (...args) => {
+      if (globalThis.__delayReload) {
+        globalThis.__delayReload = false;
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+      return originalGet(...args);
+    };
+    globalThis.__reviewWallStart = performance.now();
   });
 
   await page.locator('[data-save-field="merchant_name"]').click();
@@ -124,6 +136,26 @@ test("stale 409 hiển thị banner, khóa verify và không tự retry mutation
   await expect(page.getByText("Mutation không được tự retry bằng token cũ.", { exact: true })).toBeVisible();
   await expect(page.locator("#verify-button")).toBeDisabled();
   expect(await page.evaluate(() => globalThis.__staleMutationCalls)).toBe(1);
+
+  await page.evaluate(() => { globalThis.__delayReload = true; });
+  await page.locator("#reload-latest").click();
+  await expect(page.getByText("Cần tải phiên bản hóa đơn mới.", { exact: true })).toHaveCount(0, { timeout: 7500 });
+
+  for (const [index, fieldName] of CORE_FIELD_TYPES.entries()) {
+    await page.locator(`[data-save-field="${fieldName}"]`).click();
+    await expect(page.locator("#review-count")).toHaveText(`${4 - index}/5 cần xử lý`);
+  }
+  await page.locator("#verify-button").click();
+  await expect(page.locator("#verify-button")).toHaveText("Đã xác minh");
+
+  const timing = await page.evaluate(() => {
+    const summary = globalThis.__vietreceiptReviewEvents.find((event) => event.event === "REVIEW_COMPLETED");
+    return {
+      active: summary.active_review_time_ms,
+      wall: performance.now() - globalThis.__reviewWallStart,
+    };
+  });
+  expect(timing.wall - timing.active).toBeGreaterThanOrEqual(4800);
 });
 
 test("FAILED retryable thực hiện retry qua UI và chuyển về trạng thái UPLOADED", async ({ page }) => {

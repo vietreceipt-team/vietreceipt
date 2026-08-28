@@ -5,7 +5,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { CORE_FIELD_TYPES } from "../assets/js/common.js";
 import { MOCK_RECEIPTS } from "../assets/js/mock-data.js";
-import { createReviewTelemetry } from "../assets/js/review-telemetry.js";
+import { createReviewTelemetry, withReviewActivityPaused } from "../assets/js/review-telemetry.js";
 import {
   C1_MANUAL,
   C2_VERIFY_ALL,
@@ -99,9 +99,9 @@ test("telemetry tách waiting/processing/active time và chỉ xuất count", ()
   now = 200;
   telemetry.recordKeystroke();
   now = 250;
-  telemetry.pauseActive();
+  const manualPause = telemetry.pauseActive("test-manual-pause");
   now = 300;
-  telemetry.resumeActive();
+  telemetry.resumeActive(manualPause);
   now = 340;
   telemetry.confirmField("merchant_name", "APPLY");
   now = 400;
@@ -128,15 +128,63 @@ test("API latency không được cộng vào active time và xác nhận không
   telemetry.observeReceipt("NEEDS_REVIEW", true);
   telemetry.startReview();
   now = 100;
-  telemetry.pauseActive();
+  const apiPause = telemetry.pauseActive("test-api");
   now = 5100;
-  telemetry.resumeActive();
+  telemetry.resumeActive(apiPause);
   now = 5200;
   for (const fieldName of CORE_FIELD_TYPES) telemetry.confirmField(fieldName, "APPLY", false);
   const summary = telemetry.complete();
   assert.equal(summary.active_review_time_ms, 200);
   assert.equal(summary.confirmation_count, 5);
   assert.equal(summary.correction_count, 0);
+});
+
+test("stale reload GET chậm năm giây không làm tăng active review time", async () => {
+  let now = 0;
+  const telemetry = createReviewTelemetry("receipt-stale-reload", () => {}, {
+    reviewMode: C2_VERIFY_ALL,
+    monotonicNow: () => now,
+    wallNow: () => "2026-08-28T00:00:00Z",
+  });
+  telemetry.observeReceipt("NEEDS_REVIEW", true);
+  telemetry.startReview();
+  now = 100;
+  await withReviewActivityPaused(telemetry, "reload-latest", async () => { now = 5100; });
+  now = 5200;
+  const summary = telemetry.complete();
+  assert.equal(summary.active_review_time_ms, 200);
+  assert.match(detailSource, /withReviewActivityPaused\(telemetry, "reload-latest"/);
+});
+
+test("API wait chồng nhau và visibility hidden chỉ resume sau pause token cuối", async () => {
+  let now = 0;
+  const telemetry = createReviewTelemetry("receipt-overlap", () => {}, {
+    reviewMode: C2_VERIFY_ALL,
+    monotonicNow: () => now,
+    wallNow: () => "2026-08-28T00:00:00Z",
+  });
+  telemetry.observeReceipt("NEEDS_REVIEW", true);
+  telemetry.startReview();
+  now = 100;
+
+  let finishFirst;
+  let finishSecond;
+  const firstWait = withReviewActivityPaused(telemetry, "correction-api", () => new Promise((resolve) => { finishFirst = resolve; }));
+  const secondWait = withReviewActivityPaused(telemetry, "correction-api", () => new Promise((resolve) => { finishSecond = resolve; }));
+  const hiddenPause = telemetry.pauseActive("document-hidden");
+
+  now = 5100;
+  finishFirst();
+  await firstWait;
+  now = 6100;
+  finishSecond();
+  await secondWait;
+  now = 7100;
+  telemetry.resumeActive(hiddenPause);
+  now = 7200;
+
+  const summary = telemetry.complete();
+  assert.equal(summary.active_review_time_ms, 200);
 });
 
 test("keyboard mapping giữ save/reset/navigation mà không ghi nội dung phím vào telemetry", () => {
