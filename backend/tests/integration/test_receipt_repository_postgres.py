@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+import asyncio
 import os
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, delete
 from sqlalchemy.orm import sessionmaker
 
 from backend.app.domain.enums import ReceiptStatus
 from backend.app.domain.errors import StaleUpdate
 from backend.app.domain.models import Receipt
-from backend.app.persistence.models import Base
+from backend.app.persistence.models import Base, ReceiptRecord
 from backend.app.persistence.sqlalchemy_receipt_repository import (
     SQLAlchemyReceiptRepository,
 )
@@ -34,7 +35,7 @@ def test_two_independent_sessions_use_atomic_receipt_cas():
     try:
         seed = factory()
         seed_repo = SQLAlchemyReceiptRepository(seed)
-        seed_repo_result = __import__("asyncio").run(
+        created = asyncio.run(
             seed_repo.create_with_storage(
                 Receipt(
                     receipt_id=receipt_id,
@@ -49,7 +50,7 @@ def test_two_independent_sessions_use_atomic_receipt_cas():
                 content_type="image/png",
             )
         )
-        assert seed_repo_result.receipt_id == receipt_id
+        assert created.receipt_id == receipt_id
         seed.commit()
         seed.close()
 
@@ -58,8 +59,8 @@ def test_two_independent_sessions_use_atomic_receipt_cas():
         try:
             first_repo = SQLAlchemyReceiptRepository(first_session)
             second_repo = SQLAlchemyReceiptRepository(second_session)
-            first_view = __import__("asyncio").run(first_repo.get(receipt_id))
-            second_view = __import__("asyncio").run(second_repo.get(receipt_id))
+            first_view = asyncio.run(first_repo.get(receipt_id))
+            second_view = asyncio.run(second_repo.get(receipt_id))
             assert first_view is not None
             assert second_view is not None
             assert first_view.updated_at == second_view.updated_at == initial
@@ -77,7 +78,7 @@ def test_two_independent_sessions_use_atomic_receipt_cas():
                 }
             )
 
-            __import__("asyncio").run(
+            asyncio.run(
                 first_repo.save(
                     first_changed,
                     expected_updated_at=initial,
@@ -86,7 +87,7 @@ def test_two_independent_sessions_use_atomic_receipt_cas():
             first_session.commit()
 
             with pytest.raises(StaleUpdate):
-                __import__("asyncio").run(
+                asyncio.run(
                     second_repo.save(
                         second_changed,
                         expected_updated_at=initial,
@@ -99,12 +100,7 @@ def test_two_independent_sessions_use_atomic_receipt_cas():
     finally:
         cleanup = factory()
         cleanup.execute(
-            __import__("sqlalchemy").delete(
-                __import__("backend.app.persistence.models", fromlist=["ReceiptRecord"]).ReceiptRecord
-            ).where(
-                __import__("backend.app.persistence.models", fromlist=["ReceiptRecord"]).ReceiptRecord.receipt_id
-                == receipt_id
-            )
+            delete(ReceiptRecord).where(ReceiptRecord.receipt_id == receipt_id)
         )
         cleanup.commit()
         cleanup.close()
