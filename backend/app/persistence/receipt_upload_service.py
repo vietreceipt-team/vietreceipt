@@ -144,17 +144,5 @@ class SQLAlchemyReceiptPersistenceService:
                 exc_info=exc,
             )
             raise PersistenceFailure("Receipt deletion failed.") from exc
-        except Exception as exc:
-            session.rollback()
-            logger.error(
-                "Receipt delete unexpected persistence failure",
-                extra={
-                    "receipt_id": str(receipt_id),
-                    "operation": "delete_receipt",
-                    "error_category": type(exc).__name__,
-                },
-                exc_info=exc,
-            )
-            raise PersistenceFailure("Receipt deletion failed.") from exc
         finally:
             session.close()
