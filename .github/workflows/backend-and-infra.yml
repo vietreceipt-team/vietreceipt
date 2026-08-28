@@ -75,6 +75,7 @@ jobs:
       - name: Run Alembic upgrade smoke
         env:
           DATABASE_URL: postgresql+psycopg://vietreceipt:vietreceipt@localhost:5432/vietreceipt_test
+          PYTHONPATH: ${{ github.workspace }}
         working-directory: backend
         run: alembic upgrade head
 
