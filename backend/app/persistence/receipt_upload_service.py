@@ -123,17 +123,13 @@ class SQLAlchemyReceiptPersistenceService:
                     },
                 )
 
-            try:
-                deleted = await repository.delete(receipt_id)
-                if not deleted:
-                    session.rollback()
-                    return False
-                session.commit()
-                return True
-            except PersistenceFailure:
+            deleted = await repository.delete(receipt_id)
+            if not deleted:
                 session.rollback()
-                raise
-            except Exception as exc:
+                return False
+            try:
+                session.commit()
+            except SQLAlchemyError as exc:
                 session.rollback()
                 logger.error(
                     "Receipt delete database failure after storage deletion",
@@ -146,6 +142,7 @@ class SQLAlchemyReceiptPersistenceService:
                     exc_info=exc,
                 )
                 raise PersistenceFailure("Receipt deletion failed.") from exc
+            return True
         except PersistenceFailure:
             session.rollback()
             raise
