@@ -8,8 +8,21 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from backend.app.domain.errors import PersistenceFailure
 
-from .sqlalchemy_receipt_repository import SQLAlchemyReceiptRepository
-from .sqlalchemy_processing_repository import SQLAlchemyProcessingRepository
+from .sqlalchemy_audit_event_repository import (
+    SQLAlchemyAuditEventRepository,
+)
+from .sqlalchemy_correction_history_repository import (
+    SQLAlchemyCorrectionHistoryRepository,
+)
+from .sqlalchemy_field_repository import (
+    SQLAlchemyFieldRepository,
+)
+from .sqlalchemy_processing_repository import (
+    SQLAlchemyProcessingRepository,
+)
+from .sqlalchemy_receipt_repository import (
+    SQLAlchemyReceiptRepository,
+)
 
 
 class SQLAlchemyUnitOfWork:
@@ -19,13 +32,36 @@ class SQLAlchemyUnitOfWork:
     ) -> None:
         self._session_factory = session_factory
         self._session: Session | None = None
+
         self.receipts: SQLAlchemyReceiptRepository
         self.processing: SQLAlchemyProcessingRepository
+        self.fields: SQLAlchemyFieldRepository
+        self.correction_history: (
+            SQLAlchemyCorrectionHistoryRepository
+        )
+        self.audit_events: SQLAlchemyAuditEventRepository
 
     async def __aenter__(self) -> Self:
         self._session = self._session_factory()
-        self.receipts = SQLAlchemyReceiptRepository(self._session)
-        self.processing = SQLAlchemyProcessingRepository(self._session)
+
+        self.receipts = SQLAlchemyReceiptRepository(
+            self._session
+        )
+        self.processing = SQLAlchemyProcessingRepository(
+            self._session
+        )
+        self.fields = SQLAlchemyFieldRepository(
+            self._session
+        )
+        self.correction_history = (
+            SQLAlchemyCorrectionHistoryRepository(
+                self._session
+            )
+        )
+        self.audit_events = SQLAlchemyAuditEventRepository(
+            self._session
+        )
+
         return self
 
     async def __aexit__(
@@ -36,6 +72,7 @@ class SQLAlchemyUnitOfWork:
     ) -> None:
         if self._session is None:
             return
+
         try:
             if exc_type is not None:
                 self._session.rollback()
@@ -45,7 +82,10 @@ class SQLAlchemyUnitOfWork:
 
     async def commit(self) -> None:
         if self._session is None:
-            raise RuntimeError("Unit of work has not been entered.")
+            raise RuntimeError(
+                "Unit of work has not been entered."
+            )
+
         try:
             self._session.commit()
         except SQLAlchemyError as exc:
@@ -67,4 +107,6 @@ class SQLAlchemyUnitOfWorkFactory:
         self._session_factory = session_factory
 
     def __call__(self) -> SQLAlchemyUnitOfWork:
-        return SQLAlchemyUnitOfWork(self._session_factory)
+        return SQLAlchemyUnitOfWork(
+            self._session_factory
+        )

@@ -4,7 +4,16 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    JSON,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from backend.app.domain.enums import ProcessingStage, ReceiptStatus
@@ -189,3 +198,184 @@ class KIERunRecord(Base):
     )
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class ExtractedFieldRecord(Base):
+    __tablename__ = "extracted_fields"
+
+    receipt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("receipts.receipt_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    field_name: Mapped[str] = mapped_column(
+        String(64),
+        primary_key=True,
+    )
+
+    ocr_run_id: Mapped[UUID] = mapped_column(
+        ForeignKey("ocr_runs.ocr_run_id"),
+        nullable=False,
+    )
+    kie_run_id: Mapped[UUID] = mapped_column(
+        ForeignKey("kie_runs.kie_run_id"),
+        nullable=False,
+    )
+
+    raw_text: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+    predicted_value: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+    )
+
+    normalized_value: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+    normalization: Mapped[dict[str, Any] | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+    value_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+    )
+
+    corrected_value: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+    corrected_status: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+    )
+    has_correction: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+    )
+
+    effective_value: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+    effective_status: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+    )
+
+    confidence: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+    )
+    machine_needs_review: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+    )
+    effective_needs_review: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+    )
+
+    review_reasons: Mapped[list[str]] = mapped_column(
+        JSON,
+        nullable=False,
+    )
+    review_policy_version: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    source_block_ids: Mapped[list[str]] = mapped_column(
+        JSON,
+        nullable=False,
+    )
+
+    verified: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+
+
+class CorrectionHistoryRecord(Base):
+    __tablename__ = "correction_history"
+
+    correction_id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+    )
+    receipt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("receipts.receipt_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    field_name: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+    )
+    operation: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+    )
+    kie_run_id: Mapped[UUID] = mapped_column(
+        ForeignKey("kie_runs.kie_run_id"),
+        nullable=False,
+    )
+
+    old_value: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+    new_value: Mapped[Any | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+    old_status: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+    )
+    new_status: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+    )
+
+    changed_by: Mapped[UUID] = mapped_column(
+        nullable=False,
+    )
+    changed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+
+
+class AuditEventRecord(Base):
+    __tablename__ = "audit_events"
+
+    event_id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+    )
+    receipt_id: Mapped[UUID] = mapped_column(
+        ForeignKey("receipts.receipt_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    event_type: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+    )
+    field_name: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+    )
+    operation: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+    )
+    actor_id: Mapped[UUID | None] = mapped_column(
+        nullable=True,
+    )
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )

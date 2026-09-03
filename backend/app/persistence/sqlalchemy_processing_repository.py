@@ -7,11 +7,17 @@ from sqlalchemy import and_, or_, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from backend.app.domain.enums import ProcessingStage, ReceiptStatus
+from backend.app.domain.enums import FieldName, ProcessingStage, ReceiptStatus
 from backend.app.domain.errors import PersistenceFailure, StaleUpdate
 from backend.app.domain.models import ProcessingAttempt, ProcessingError
 
-from .models import KIERunRecord, OCRRunRecord, ProcessingAttemptRecord, ReceiptRecord
+from .models import (
+    ExtractedFieldRecord,
+    KIERunRecord,
+    OCRRunRecord,
+    ProcessingAttemptRecord,
+    ReceiptRecord,
+)
 
 
 def _aware(value: datetime | None) -> datetime | None:
@@ -197,6 +203,66 @@ class SQLAlchemyProcessingRepository:
             ) from exc
         return dict(record.payload) if record else None
 
+
+    def _materialize_kie_fields(
+        self,
+        attempt: ProcessingAttempt,
+        payload: dict,
+        *,
+        updated_at: datetime,
+    ) -> None:
+        fields = payload["fields"]
+
+        for field_name in FieldName:
+            field = fields[field_name.value]
+
+            self._session.add(
+                ExtractedFieldRecord(
+                    receipt_id=attempt.receipt_id,
+                    field_name=field_name.value,
+                    ocr_run_id=attempt.ocr_run_id,
+                    kie_run_id=attempt.kie_run_id,
+                    raw_text=field.get("raw_text"),
+                    predicted_value=field.get(
+                        "predicted_value"
+                    ),
+                    normalized_value=field.get(
+                        "normalized_value"
+                    ),
+                    normalization=field.get(
+                        "normalization"
+                    ),
+                    value_status=field["value_status"],
+                    corrected_value=None,
+                    corrected_status=None,
+                    has_correction=False,
+                    effective_value=field.get(
+                        "normalized_value"
+                    ),
+                    effective_status=field[
+                        "value_status"
+                    ],
+                    confidence=field["confidence"],
+                    machine_needs_review=field[
+                        "machine_needs_review"
+                    ],
+                    effective_needs_review=field[
+                        "machine_needs_review"
+                    ],
+                    review_reasons=list(
+                        field["review_reasons"]
+                    ),
+                    review_policy_version=field.get(
+                        "review_policy_version"
+                    ),
+                    source_block_ids=list(
+                        field["source_block_ids"]
+                    ),
+                    verified=False,
+                    updated_at=updated_at,
+                )
+            )
+
     async def append_kie_output_and_complete(
         self,
         attempt: ProcessingAttempt,
@@ -268,6 +334,12 @@ class SQLAlchemyProcessingRepository:
                 raise StaleUpdate(
                     "KIE run identity does not match processing attempt."
                 )
+
+            self._materialize_kie_fields(
+                attempt,
+                payload,
+                updated_at=completed_at,
+            )
 
             self._session.flush()
         except StaleUpdate:
