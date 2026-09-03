@@ -12,6 +12,15 @@ from .sqlalchemy_receipt_repository import SQLAlchemyReceiptRepository
 
 
 class SQLAlchemyUnitOfWork:
+    """Receipt-only SQLAlchemy persistence helper, not the canonical UnitOfWork.
+
+    The canonical backend ``UnitOfWork`` also requires ``fields``,
+    ``correction_history``, and ``audit_events``. Those adapters are outside this
+    receipt-persistence slice, so this helper deliberately exposes only
+    ``receipts`` and must not be wired where the full canonical UnitOfWork is
+    required.
+    """
+
     def __init__(
         self,
         session_factory: sessionmaker[Session],
@@ -57,6 +66,8 @@ class SQLAlchemyUnitOfWork:
 
 
 class SQLAlchemyUnitOfWorkFactory:
+    """Factory for the receipt-only persistence helper above."""
+
     def __init__(
         self,
         session_factory: sessionmaker[Session],
