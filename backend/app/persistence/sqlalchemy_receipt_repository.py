@@ -15,14 +15,33 @@ from .models import ReceiptRecord
 
 
 class SQLAlchemyReceiptRepository:
+    """SQLAlchemy adapter for the canonical receipt repository contract."""
+
     def __init__(self, session: Session) -> None:
         self._session = session
 
     async def create(self, receipt: Receipt) -> Receipt:
-        raise PersistenceFailure(
-            "Receipt creation requires storage metadata; "
-            "use create_with_storage() from the persistence adapter."
+        """Persist a receipt using repository-only metadata defaults.
+
+        The upload application service uses ``create_with_storage`` because it has
+        the authoritative validated image format/content type. This canonical
+        repository method remains usable on its own by deriving an internal
+        metadata key from the receipt id and using an explicit generic content
+        type rather than raising unconditionally.
+        """
+        record = ReceiptRecord.from_domain(
+            receipt,
+            storage_key=f"receipts/{receipt.receipt_id}",
+            content_type="application/octet-stream",
         )
+        try:
+            self._session.add(record)
+            self._session.flush()
+            return record.to_domain()
+        except SQLAlchemyError as exc:
+            raise PersistenceFailure(
+                "Could not persist receipt metadata."
+            ) from exc
 
     async def create_with_storage(
         self,
