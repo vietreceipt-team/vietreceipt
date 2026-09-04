@@ -62,6 +62,12 @@ thuộc về Backend-1/Backend-2. `Frontend` build từ
 `infra/docker/frontend.Dockerfile`, chạy `next dev` cho môi trường local; đây
 không phải production image.
 
+Worker xử lý OCR mặc định chạy `linux/amd64` vì PaddlePaddle 3.0.0 được pin
+theo runtime này. Docker Desktop sẽ dùng emulation trên Apple Silicon. Có thể
+đổi `WORKER_PLATFORM` khi pinned Paddle wheel hỗ trợ platform đích; giá trị
+rỗng vẫn dùng mặc định `linux/amd64`. Backend và Celery beat không bị ép sang
+platform của worker.
+
 Backend, Worker và Frontend chạy trong cùng Compose network phải dùng service
 name, không dùng `localhost`:
 

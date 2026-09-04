@@ -57,10 +57,9 @@ services:
     healthcheck:
       test:
         - CMD
-        - curl
-        - --fail
-        - --silent
-        - http://localhost:9000/minio/health/live
+        - mc
+        - ready
+        - local
       interval: 5s
       timeout: 5s
       retries: 12
@@ -129,6 +128,7 @@ services:
       - vietreceipt_internal
 
   worker:
+    platform: ${WORKER_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: infra/docker/worker.Dockerfile
