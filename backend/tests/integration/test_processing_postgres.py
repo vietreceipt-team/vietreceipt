@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from backend.app.domain.enums import ReceiptStatus
+from backend.app.domain.enums import FieldName, ReceiptStatus
 from backend.app.domain.models import Receipt
 from backend.app.persistence.models import Base
 from backend.app.persistence.sqlalchemy_receipt_repository import SQLAlchemyReceiptRepository
@@ -82,3 +82,99 @@ def test_postgres_atomic_claim_allows_one_worker(postgres_factory):
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(claim, ["postgres-race-a", "postgres-race-b"]))
     assert sum(result is not None for result in results) == 1
+
+
+def test_postgres_kie_completion_inserts_run_before_linked_fields(
+    postgres_factory,
+):
+    receipt_id = uuid4()
+    attempt_id = uuid4()
+    ocr_run_id = uuid4()
+    kie_run_id = uuid4()
+    now = datetime.now(timezone.utc)
+    session = postgres_factory()
+    asyncio.run(
+        SQLAlchemyReceiptRepository(session).create_with_storage(
+            Receipt(
+                receipt_id=receipt_id,
+                original_filename="postgres-kie.png",
+                status=ReceiptStatus.UPLOADED,
+                image_width_px=20,
+                image_height_px=20,
+                created_at=now,
+                updated_at=now,
+            ),
+            storage_key=f"receipts/{receipt_id}.png",
+            content_type="image/png",
+        )
+    )
+    session.commit()
+    session.close()
+
+    async def complete_processing():
+        async with SQLAlchemyUnitOfWorkFactory(postgres_factory)() as uow:
+            attempt = await uow.processing.claim(
+                receipt_id,
+                delivery_id="postgres-kie-completion",
+                attempt_id=attempt_id,
+                ocr_run_id=ocr_run_id,
+                kie_run_id=kie_run_id,
+                started_at=now,
+            )
+            assert attempt is not None
+            await uow.commit()
+
+        async with SQLAlchemyUnitOfWorkFactory(postgres_factory)() as uow:
+            await uow.processing.append_ocr_output(
+                attempt,
+                {
+                    "receipt_id": str(receipt_id),
+                    "ocr_run_id": str(ocr_run_id),
+                },
+                created_at=now,
+            )
+            await uow.commit()
+
+        unknown_field = {
+            "raw_text": None,
+            "predicted_value": None,
+            "normalized_value": None,
+            "normalization": None,
+            "value_status": "UNKNOWN",
+            "confidence": 0.0,
+            "machine_needs_review": True,
+            "review_reasons": ["NO_CANDIDATE"],
+            "review_policy_version": "test-policy",
+            "source_block_ids": [],
+        }
+        kie_payload = {
+            "receipt_id": str(receipt_id),
+            "kie_run_id": str(kie_run_id),
+            "source_ocr_run_id": str(ocr_run_id),
+            "fields": {
+                field_name.value: dict(unknown_field)
+                for field_name in FieldName
+            },
+        }
+
+        async with SQLAlchemyUnitOfWorkFactory(postgres_factory)() as uow:
+            await uow.processing.append_kie_output_and_complete(
+                attempt,
+                kie_payload,
+                completed_at=now,
+            )
+            await uow.commit()
+
+        async with SQLAlchemyUnitOfWorkFactory(postgres_factory)() as uow:
+            receipt = await uow.receipts.get(receipt_id)
+            fields = await uow.fields.list_for_receipt(
+                receipt_id,
+                kie_run_id=kie_run_id,
+            )
+        return receipt, fields
+
+    receipt, fields = asyncio.run(complete_processing())
+
+    assert receipt is not None
+    assert receipt.status is ReceiptStatus.NEEDS_REVIEW
+    assert {field.field_name for field in fields} == set(FieldName)

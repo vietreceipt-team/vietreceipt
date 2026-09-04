@@ -327,6 +327,10 @@ class SQLAlchemyProcessingRepository:
                         created_at=completed_at,
                     )
                 )
+                # PostgreSQL checks the extracted-field foreign key at
+                # statement time. Flush the parent run first while keeping
+                # both inserts in the same transaction.
+                self._session.flush()
             elif (
                 existing.attempt_id != attempt.attempt_id
                 or existing.receipt_id != attempt.receipt_id
