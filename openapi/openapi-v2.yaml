@@ -1,0 +1,134 @@
+openapi: 3.1.0
+info:
+  title: VietReceipt Target API
+  version: 2.0.0
+  description: |
+    Target API for the invoice-v2 plan. The current openapi/openapi.yaml is the
+    legacy five-field runtime contract until migration is complete.
+servers:
+  - url: /api/v2
+paths:
+  /receipts:
+    post:
+      summary: Upload an invoice image or PDF
+      operationId: uploadInvoice
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                source_group:
+                  type: string
+                  enum: [PAPER_DIGITIZED, IMAGE, PDF]
+      responses:
+        "201":
+          description: Upload accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptSummary"
+    get:
+      summary: List processed invoices
+      operationId: listInvoices
+      responses:
+        "200":
+          description: Invoice list
+  /receipts/{receipt_id}:
+    get:
+      summary: Get invoice, evidence and current review state
+      parameters:
+        - $ref: "#/components/parameters/ReceiptId"
+      responses:
+        "200":
+          description: Invoice detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDetail"
+  /receipts/{receipt_id}/retry:
+    post:
+      summary: Retry a failed processing attempt
+      parameters:
+        - $ref: "#/components/parameters/ReceiptId"
+      responses:
+        "202":
+          description: Retry accepted
+  /receipts/{receipt_id}/verify:
+    post:
+      summary: Confirm reviewed invoice data
+      parameters:
+        - $ref: "#/components/parameters/ReceiptId"
+      responses:
+        "200":
+          description: Invoice verified
+  /receipts/{receipt_id}/export:
+    get:
+      summary: Export confirmed invoice data
+      parameters:
+        - $ref: "#/components/parameters/ReceiptId"
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [json, csv, xlsx]
+      responses:
+        "200":
+          description: Exported result
+components:
+  parameters:
+    ReceiptId:
+      name: receipt_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    ReceiptSummary:
+      type: object
+      required: [receipt_id, original_filename, status]
+      properties:
+        receipt_id:
+          type: string
+          format: uuid
+        original_filename:
+          type: string
+        status:
+          type: string
+          enum: [UPLOADED, PROCESSING, NEEDS_REVIEW, VERIFIED, FAILED]
+        seller_name:
+          type: [string, "null"]
+        invoice_date:
+          type: [string, "null"]
+          format: date
+        total_amount:
+          type: [integer, "null"]
+          minimum: 0
+    InvoiceDetail:
+      type: object
+      required: [receipt_id, status, fields, tax_breakdown, line_items]
+      properties:
+        receipt_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [UPLOADED, PROCESSING, NEEDS_REVIEW, VERIFIED, FAILED]
+        fields:
+          type: object
+          description: Canonical invoice-v2 header fields.
+        tax_breakdown:
+          type: array
+          items:
+            type: object
+        line_items:
+          type: array
+          items:
+            type: object
