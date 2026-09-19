@@ -72,7 +72,7 @@ Direct PDF text extraction and OCR should be adapted into this common evidence r
 
 ## 6. KIE contract
 
-KIE consumes one canonical OCR/text-evidence result and emits `schemas/kie-result.schema.json`.
+KIE consumes one canonical OCR/text-evidence result and targets `schemas/invoice-kie-result.v2.schema.json`. The existing `schemas/kie-result.schema.json` remains the legacy five-field runtime contract until migration is complete.
 
 KIE output preserves:
 
