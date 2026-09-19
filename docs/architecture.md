@@ -1,173 +1,79 @@
-# Architecture v1
+# VietReceipt Architecture v2
 
-## 1. Architectural style
+## System goal
 
-VietReceipt v1 uses a **modular monolith with an asynchronous worker**. FastAPI, the worker, OCR adapter and KIE adapter live in one repository but are isolated behind typed interfaces. This keeps deployment suitable for a student project while allowing OCR/KIE to become independent services later without changing the public API.
+A web application receives an invoice document, produces structured invoice data, lets a user review/correct it and exports the confirmed result.
 
-```mermaid
-flowchart TD
-    FE["Frontend<br/>React or Next.js"]
-    API["Backend API<br/>FastAPI"]
-    Q["Job Queue<br/>Redis/Celery"]
-    W["Processing Worker"]
-    OCR["OCR Adapter"]
-    KIE["KIE Adapter"]
-    DB["PostgreSQL"]
-    STORE["MinIO / S3"]
-
-    FE -->|"HTTPS REST / JSON"| API
-    API -->|"enqueue receipt_id"| Q
-    Q -->|"receipt_id"| W
-    W --> OCR
-    OCR --> KIE
-    API --> DB
-    API --> STORE
-    W --> DB
-    W --> STORE
-```
-
-## 2. Module responsibilities
-
-| Module | Owns | Must not own |
-| --- | --- | --- |
-| Frontend | Upload UI, polling, receipt list, review form, bounding-box rendering | OCR/KIE rules, direct database/storage access |
-| Backend API | Authentication, authorization, validation, CRUD, state transitions, public API | OCR engine-specific output |
-| Worker | Pipeline orchestration, retry boundary, persistence of OCR/KIE results | Public HTTP contract |
-| OCR | Image-to-text blocks, polygons, block confidence, reading order | Selecting business fields |
-| KIE | Five-field prediction, normalization, field confidence, source-block mapping | Receipt lifecycle or verification |
-| PostgreSQL | Structured source of truth and transactional state | Original image bytes |
-| Object storage | Original/preprocessed image bytes | Receipt status or field values |
-| Queue | Delivery of processing jobs | Durable business state |
-
-## 3. Communication contracts
-
-### Frontend to Backend
-
-- Protocol: HTTPS.
-- API style: REST under `/api/v1`.
-- Payload: JSON except image upload (`multipart/form-data`).
-- Authentication: Bearer access token.
-- Long-running behavior: upload returns `201` after image/receipt persistence with public state `UPLOADED`; Backend automatically schedules processing, and Frontend polls `GET /api/v1/receipts/{receipt_id}`. Enqueue success does not itself mean `PROCESSING`.
-- Frontend never contacts PostgreSQL, MinIO, OCR or KIE directly.
-
-### Backend API to worker
-
-- After a successful upload commit, Backend automatically enqueues `{ "receipt_id": "uuid" }`; no public `/process` endpoint exists.
-- Successful enqueue leaves the receipt in `UPLOADED`; the public transition to `PROCESSING` occurs only when a worker claims and starts the attempt.
-- If scheduling/enqueue fails after the receipt was committed, Backend records `FAILED` with `stage=SCHEDULING` and `retryable=true`.
-- The queue message deliberately contains no image URL or user data.
-- Worker loads the current receipt from PostgreSQL, claims the attempt and performs the `UPLOADED|FAILED -> PROCESSING` transition before processing.
-- Duplicate delivery is safe: a job for a receipt already `PROCESSING`, `NEEDS_REVIEW` or `VERIFIED` must not create duplicate OCR blocks.
-
-### Worker to OCR
-
-Python interface:
-
-```python
-from pathlib import Path
-
-class OCRProvider:
-    def recognize(
-        self, *, receipt_id: str, ocr_run_id: str, image_path: Path
-    ) -> "OCRResult": ...
-```
-
-- Worker downloads the image to a temporary local path.
-- OCR returns the engine-independent `OCRResult` schema.
-- OCR must not update the database or receipt status directly.
-
-### Worker to KIE
-
-Python interface:
-
-```python
-class KIEProvider:
-    def extract(
-        self, *, receipt_id: str, kie_run_id: str, ocr: "OCRResult"
-    ) -> "KIEResult": ...
-```
-
-- KIE consumes the normalized OCR schema, not raw PaddleOCR objects.
-- KIE returns all five field keys.
-- KIE links `kie_run_id` to the exact input `ocr_run_id` through `source_ocr_run_id`.
-- KIE must not update the database or receipt status directly.
-
-### Backend/worker to data stores
-
-- PostgreSQL changes are performed through repository/service boundaries.
-- Upload order: validate file -> store object -> insert receipt metadata. If metadata insertion fails, schedule orphan-object cleanup.
-- Processing result order: create run IDs -> calculate OCR/KIE -> open transaction -> append immutable run output -> point receipt to latest run -> set `NEEDS_REVIEW` -> commit.
-- Verification order: validate all effective statuses/values -> create correction history with old/new status -> set `VERIFIED` -> commit.
-- Object storage is private. API returns an authorized image endpoint or short-lived signed URL; permanent public URLs are forbidden.
-
-## 4. Processing sequence
-
-```mermaid
-sequenceDiagram
-    participant F as Frontend
-    participant B as Backend
-    participant Q as Queue/Worker
-    participant O as OCR
-    participant K as KIE
-    participant D as DB/Storage
-
-    F->>B: Upload image
-    B->>D: Store image + receipt
-    B-->>F: 201 UPLOADED
-    B->>Q: Enqueue receipt_id
-    Note over B,Q: Enqueue success keeps public state UPLOADED
-    Q->>D: Claim attempt + load receipt/image
-    Q->>D: Set PROCESSING
-    Q->>O: recognize(image)
-    O-->>Q: OCRResult
-    Q->>K: extract(OCRResult)
-    K-->>Q: KIEResult
-    Q->>D: Save result + NEEDS_REVIEW
-    F->>B: Poll receipt detail
-    B-->>F: Fields + OCR blocks
-```
-
-## 5. Suggested repository structure
+## Logical flow
 
 ```text
-vietreceipt/
-  apps/
-    api/                  # FastAPI routes and dependency wiring
-    worker/               # Celery tasks and pipeline orchestration
-  src/vietreceipt/
-    domain/               # enums, entities, transition rules
-    contracts/            # Pydantic OCR/KIE schemas
-    services/             # application use cases
-    adapters/
-      db/                 # SQLAlchemy repositories
-      storage/            # MinIO/S3 implementation
-      ocr/                 # OCRProvider implementation
-      kie/                 # KIEProvider implementation
-  openapi/
-  schemas/
-  docs/
-  tests/
-  docker-compose.yml
-  .env.example
+Browser
+  │
+  │ REST/JSON + multipart upload
+  ▼
+FastAPI
+  ├─ receipt metadata / status
+  ├─ review corrections
+  ├─ confirmation
+  └─ export
+  │
+  ▼
+Processing scheduler / worker
+  ├─ source classifier
+  ├─ PDF text extractor
+  ├─ image preprocessing
+  ├─ OCR adapter
+  ├─ KIE / line-item extraction
+  ├─ normalization
+  └─ consistency checks
+  │
+  ├──────────────► object storage (source files)
+  └──────────────► PostgreSQL (metadata, runs, extracted data, corrections)
 ```
 
-## 6. Failure ownership
+Redis/Celery may remain the first queue implementation. Queue state is not the source of truth.
 
-| Failure | Owner | External behavior |
-| --- | --- | --- |
-| Unsupported/oversized upload | Backend | `400` or `413`; receipt is not created |
-| Receipt not owned by user | Backend | `404` to avoid leaking existence |
-| Invalid state transition | Backend | `409 RECEIPT_STATE_CONFLICT` |
-| OCR timeout/error | Worker/OCR | Receipt becomes `FAILED`, stage=`OCR` |
-| KIE error | Worker/KIE | Receipt becomes `FAILED`, stage=`KIE` |
-| Scheduling/enqueue error after receipt commit | Backend/DevOps | Receipt becomes `FAILED`, `stage=SCHEDULING`, `retryable=true`; retry is allowed |
-| Unknown/missing field | KIE | Normalized value=`null`, explicit value status, `machine_needs_review=true`; receipt still reaches `NEEDS_REVIEW` |
+## Processing paths
 
-## 7. Security baseline
+### Image / digitized paper
 
-- Repository and GitHub Project remain private.
-- No secrets or real sensitive receipts in Git.
-- `.env` is ignored; `.env.example` contains names only.
-- Passwords are hashed; tokens and storage credentials never appear in logs.
-- Every receipt query is scoped by authenticated `user_id`.
-- File content is validated by decoded MIME type, not filename extension alone.
+image → preprocessing when justified → OCR → OCR blocks/geometry → KIE
+
+### PDF with usable text layer
+
+PDF → direct text/position extraction → canonical text blocks → KIE
+
+### PDF scan/image-only
+
+PDF pages → images → OCR → KIE
+
+All paths must converge on the same KIE contract.
+
+## Immutable runs
+
+Each processing attempt creates new OCR/KIE run IDs. Previous machine results are preserved. Human corrections are stored separately from machine output.
+
+## Review workflow
+
+Public lifecycle remains:
+
+- UPLOADED
+- PROCESSING
+- NEEDS_REVIEW
+- VERIFIED
+- FAILED
+
+A field can be PRESENT, NOT_PRESENT, UNREADABLE, AMBIGUOUS or UNKNOWN.
+
+Machine confidence is evidence, not a verified probability of correctness. The UI must not hide uncertain fields merely because a threshold is high.
+
+## Canonical content
+
+Header fields are defined in `docs/integration-contracts.md`. Tax breakdown and line items are first-class structured outputs, not text pasted into a single field.
+
+## Security/data handling
+
+- never commit private invoice documents or credentials;
+- dataset provenance and license/access conditions must be recorded;
+- source files and exported results should be isolated from public demo fixtures;
+- synthetic fixtures are preferred for screenshots, CI and public demos.

@@ -1,3 +1,5 @@
+> **LEGACY v1 NOTICE (19/09/2026):** This file belongs to the former five-field Week-1/2/3 plan. Do not use it as a current requirement. See `README.md`, `docs/project-plan.md` and `docs/migration-status.md`.
+
 # Báo cáo DevOps W1 — Local Infrastructure Foundation
 
 Nhánh: `feat/devops-local-infra-foundation` — commit HEAD: `ed04715`

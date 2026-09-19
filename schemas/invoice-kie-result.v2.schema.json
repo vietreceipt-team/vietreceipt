@@ -1,0 +1,45 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://vietreceipt.local/schemas/invoice-kie-result.v2.schema.json",
+  "title":"VietReceipt Invoice KIE Target Contract v2",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema_version","receipt_id","kie_run_id","source_ocr_run_id","fields","tax_breakdown","line_items"],
+  "properties":{
+    "schema_version":{"const":"2.0"},
+    "receipt_id":{"type":"string","format":"uuid"},
+    "kie_run_id":{"type":"string","format":"uuid"},
+    "source_ocr_run_id":{"type":"string","format":"uuid"},
+    "fields":{
+      "type":"object","additionalProperties":false,
+      "required":["invoice_template_number","invoice_symbol","invoice_number","invoice_date","seller_name","seller_tax_id","seller_address","buyer_name","buyer_tax_id","subtotal","tax_amount","total_amount","currency"],
+      "properties":{
+        "invoice_template_number":{"$ref":"#/$defs/stringField"},
+        "invoice_symbol":{"$ref":"#/$defs/stringField"},
+        "invoice_number":{"$ref":"#/$defs/stringField"},
+        "invoice_date":{"$ref":"#/$defs/dateField"},
+        "seller_name":{"$ref":"#/$defs/stringField"},
+        "seller_tax_id":{"$ref":"#/$defs/stringField"},
+        "seller_address":{"$ref":"#/$defs/stringField"},
+        "buyer_name":{"$ref":"#/$defs/stringField"},
+        "buyer_tax_id":{"$ref":"#/$defs/stringField"},
+        "subtotal":{"$ref":"#/$defs/moneyField"},
+        "tax_amount":{"$ref":"#/$defs/moneyField"},
+        "total_amount":{"$ref":"#/$defs/moneyField"},
+        "currency":{"$ref":"#/$defs/stringField"}
+      }
+    },
+    "tax_breakdown":{"type":"array","items":{"$ref":"#/$defs/taxGroup"}},
+    "line_items":{"type":"array","items":{"$ref":"#/$defs/lineItem"}}
+  },
+  "$defs":{
+    "status":{"type":"string","enum":["PRESENT","NOT_PRESENT","UNREADABLE","AMBIGUOUS","UNKNOWN"]},
+    "base":{"type":"object"},
+    "stringField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["string","null"]},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
+    "dateField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["string","null"],"format":"date"},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
+    "moneyField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["integer","null"],"minimum":0},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
+    "decimalField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["number","null"],"minimum":0},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
+    "taxGroup":{"type":"object","additionalProperties":false,"required":["rate","taxable_amount","tax_amount"],"properties":{"rate":{"$ref":"#/$defs/stringField"},"taxable_amount":{"$ref":"#/$defs/moneyField"},"tax_amount":{"$ref":"#/$defs/moneyField"}}},
+    "lineItem":{"type":"object","additionalProperties":false,"required":["line_id","description","unit","quantity","unit_price","amount"],"properties":{"line_id":{"type":"string","minLength":1},"description":{"$ref":"#/$defs/stringField"},"unit":{"$ref":"#/$defs/stringField"},"quantity":{"$ref":"#/$defs/decimalField"},"unit_price":{"$ref":"#/$defs/moneyField"},"amount":{"$ref":"#/$defs/moneyField"}}}
+  }
+}
