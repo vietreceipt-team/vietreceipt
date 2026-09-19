@@ -1,0 +1,27 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://vietreceipt.local/schemas/invoice-annotation.v2.schema.json",
+  "title":"VietReceipt Public/Synthetic Ground Truth v2",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["annotation_schema_version","receipt_id","dataset_family","dataset_snapshot","sample_id","synthetic","split","mapping_version","fields","line_items"],
+  "properties":{
+    "annotation_schema_version":{"const":"2.0"},
+    "receipt_id":{"type":"string","format":"uuid"},
+    "dataset_family":{"type":"string","minLength":1},
+    "dataset_snapshot":{"type":"string","minLength":1},
+    "sample_id":{"type":"string","minLength":1},
+    "synthetic":{"type":"boolean"},
+    "split":{"type":"string","enum":["train","validation","test","benchmark"]},
+    "mapping_version":{"type":"string","minLength":1},
+    "template_id":{"type":["string","null"]},
+    "parent_sample_id":{"type":["string","null"]},
+    "fields":{"type":"object","additionalProperties":{"$ref":"#/$defs/field"}},
+    "line_items":{"type":"array","items":{"$ref":"#/$defs/line"}}
+  },
+  "$defs":{
+    "status":{"type":"string","enum":["PRESENT","NOT_PRESENT","UNREADABLE","AMBIGUOUS","UNKNOWN"]},
+    "field":{"type":"object","additionalProperties":false,"required":["annotation_status","raw_value","normalized_value","source_block_ids"],"properties":{"annotation_status":{"$ref":"#/$defs/status"},"raw_value":{"type":["string","number","integer","null"]},"normalized_value":{"type":["string","number","integer","null"]},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
+    "line":{"type":"object","additionalProperties":false,"required":["line_id","description","unit","quantity","unit_price","amount"],"properties":{"line_id":{"type":"string","minLength":1},"description":{"$ref":"#/$defs/field"},"unit":{"$ref":"#/$defs/field"},"quantity":{"$ref":"#/$defs/field"},"unit_price":{"$ref":"#/$defs/field"},"amount":{"$ref":"#/$defs/field"}}}
+  }
+}
