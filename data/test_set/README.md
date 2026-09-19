@@ -1,3 +1,5 @@
+> **LEGACY v1 NOTICE (19/09/2026):** This directory belongs to the former five-field benchmark plan. Do not treat these artifacts as the v2 dataset strategy or final test set. See `docs/dataset-strategy.md` and `docs/migration-status.md`.
+
 # Frozen Week-1 OCR probe manifest
 
 This directory describes a fixed 40-sample selection from the RIVF 2021
