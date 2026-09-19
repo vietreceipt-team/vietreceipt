@@ -114,8 +114,8 @@ The asynchronous worker design, immutable OCR/KIE run provenance and human revie
 - `docs/architecture.md`
 - `docs/integration-contracts.md`
 - `docs/evaluation-plan.md`
-- `schemas/kie-result.schema.json`
-- `schemas/annotation-record.schema.json`
+- `schemas/invoice-kie-result.v2.schema.json` (target v2)
+- `schemas/invoice-annotation.v2.schema.json` (target v2)
 - `schemas/ocr-result.schema.json`
 
-Historical Week-1/2/3 documents and closed issues may remain in Git history for traceability, but they are not current requirements.
+See `docs/migration-status.md` for the v1-runtime → v2-target transition. Historical Week-1/2/3 documents and closed issues may remain in Git history for traceability, but they are not current requirements.
