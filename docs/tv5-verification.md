@@ -6,7 +6,10 @@ Ngày kiểm tra: 22/09/2026. Base của mã nguồn: `main` commit `4f662e9e8cb
 
 | Nhóm | Lệnh | Kết quả |
 | --- | --- | --- |
-| Backend V1 và V2 | `PYTHONPATH=.:backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest backend/tests -q` | 156 passed, 1 skipped (PostgreSQL race); 1 warning từ Starlette TestClient |
+| Backend V1 và V2 tại máy | `PYTHONPATH=.:backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest backend/tests -q` | 156 passed, 1 skipped (PostgreSQL race); 1 warning từ Starlette TestClient |
+| Backend V2 CI PostgreSQL | [Run 35697260659](https://github.com/vietreceipt-team/vietreceipt/actions/runs/35697260659) | 157 passed, gồm race PostgreSQL; migration và legacy contracts đạt |
+| Smoke CI Redis/Celery/HTTP | Run 35697260659, artifact `tv5-backend-v2-test-provider-evidence` | PNG và PDF đạt 13 header, 1 line, review, verify, JSON/CSV/XLSX; provider có nhãn `backend-test-providers` |
+| Hạ tầng V1 và backend storage | [Run 35697260676](https://github.com/vietreceipt-team/vietreceipt/actions/runs/35697260676) | backend storage và Compose smoke đạt sau khi chuyển image MinIO sang Quay cùng tag |
 | Shared OCR/KIE/evaluation | `PYTHONPATH=.:backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest tests -q` | 65 passed, 40 subtests passed |
 | Contract legacy | `PYTHONPATH=. python tests/contracts/run_contract_tests.py` | toàn bộ kiểm tra báo PASS |
 | OpenAPI V2 | `openapi_spec_validator.validate_spec` trên `openapi/openapi-v2.yaml` | hợp lệ |
@@ -18,17 +21,17 @@ Review độc lập đã tái hiện và test đỏ trước khi sửa:
 2. Ký tự không hợp lệ XML trong correction làm xuất XLSX lỗi 500; từ chối input không hợp lệ và test Unicode.
 3. Provider trả `NaN` ở OCR/KIE vẫn qua JSON Schema, khiến serialization/DB fail; từ chối payload trước persistence và test OCR/KIE riêng.
 
-## Đã thiết kế nhưng chưa chạy thật tại môi trường này
+## Chưa nghiệm thu tích hợp AI thật
 
-- `backend/tests/v2/test_postgres.py` yêu cầu `TEST_DATABASE_URL` dùng PostgreSQL đã migrate; hiện skip vì môi trường không có PostgreSQL service. CI mới có PostgreSQL service, cần xem log CI sau khi GitHub chấp nhận PR.
-- `backend-v2.yml` có Redis/Celery/HTTP smoke với provider fake có nhãn `backend-test-providers`. Workflow chưa chạy trên GitHub, chưa khẳng định kết quả.
-- Compose `docker-compose.v2.yml` chưa thể chạy do môi trường này không có Docker. Chưa có bằng chứng worker logs/receipt IDs của lượt E2E thật.
+- `backend/tests/v2/test_postgres.py` đã chạy trên PostgreSQL trong CI; tại máy vẫn skip vì thiếu service.
+- Smoke CI lưu hai `receipt_id`, `attempt_id`, `ocr_run_id`, `kie_run_id`, kích thước ba export cùng API/worker/beat logs trong artifact. Đây là bằng chứng hạ tầng với provider kiểm thử, không phải OCR/KIE thực.
+- Compose `docker-compose.v2.yml` chưa chạy tại máy vì không có Docker. Chưa có bằng chứng worker logs/receipt IDs của lượt E2E với provider thật.
 - Chưa có TV3 PDF-capable document reader và TV4 KIE callable trả schema V2 trên `main`; adapter V1.3 không dùng để đánh dấu success V2. Ảnh/PDF phải chạy smoke thật với provider của hai thành viên khi đã sẵn sàng.
 - Frontend TV6 và acceptance với leader chưa thể kết luận từ backend tests.
 
 ## Những kết quả cần ghi sau CI và integration thật
 
-- Xem `backend-v2` workflow: PostgreSQL migration/race, hợp đồng, Redis/Celery smoke PNG/PDF, artifact `image.json`, `pdf.json`, API/worker/beat logs.
+- Dùng artifact CI `image.json`, `pdf.json`, API/worker/beat logs để đối chiếu lượt hạ tầng; giữ nhãn provider kiểm thử.
 - Chạy `infra/scripts/smoke-v2.py` với fixture được TV2 cho phép và callable thật TV3/TV4. Chụp `receipt_id`, `attempt_id`, `ocr_run_id`, `kie_run_id`, 13 header, line/tax counts, trạng thái xác nhận, kích thước ba export.
 - Kiểm tra riêng ảnh, PDF text, PDF scan; UI sửa từng ô và tải export theo OpenAPI V2.
 
