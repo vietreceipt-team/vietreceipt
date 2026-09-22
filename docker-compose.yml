@@ -41,7 +41,7 @@ services:
       - vietreceipt_internal
 
   minio:
-    image: minio/minio:RELEASE.2024-07-16T23-46-41Z
+    image: quay.io/minio/minio:RELEASE.2024-07-16T23-46-41Z
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
@@ -69,7 +69,7 @@ services:
       - vietreceipt_internal
 
   minio-init:
-    image: minio/mc:RELEASE.2024-07-15T17-46-06Z
+    image: quay.io/minio/mc:RELEASE.2024-07-15T17-46-06Z
     restart: "no"
     depends_on:
       minio:
