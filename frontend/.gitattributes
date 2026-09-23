@@ -1,0 +1,2 @@
+assets/vendor/*.mjs linguist-vendored
+tests/fixtures/*.pdf binary
