@@ -1,7 +1,9 @@
 # TV3 Document Reader V2 — development benchmark
 
-Run date: 24/09/2026 (Asia/Saigon)  
-Commit: `8caf8d5ea7bb325bfc5c8d5edaf87bbd923535b8`  
+Run date: 24/09/2026 (Asia/Saigon)
+
+Commit: `8caf8d5ea7bb325bfc5c8d5edaf87bbd923535b8`
+
 Dataset: `tv3-synthetic-diagnostics` v1.0, development split
 
 ## Scope and interpretation
