@@ -46,7 +46,7 @@ def verify_runtime_versions() -> None:
         raise RuntimeError("Unpinned OCR runtime: " + "; ".join(mismatches))
 
 
-def create_paddleocr_engine() -> Any:
+def create_paddleocr_engine(*, use_textline_orientation: bool = True) -> Any:
     """Create the pinned Vietnamese PaddleOCR engine lazily."""
     from paddleocr import PaddleOCR
 
@@ -56,7 +56,7 @@ def create_paddleocr_engine() -> Any:
         ocr_version=OCR_MODEL_VERSION,
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
-        use_textline_orientation=True,
+        use_textline_orientation=use_textline_orientation,
         enable_mkldnn=False,
     )
 
