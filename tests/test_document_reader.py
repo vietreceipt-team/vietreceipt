@@ -1,4 +1,5 @@
 import io
+import importlib.util
 import json
 import tempfile
 import unittest
@@ -13,7 +14,20 @@ from ai.document_reader import DocumentReader, ReaderConfig, ReaderError
 from ai.document_reader.contract import validate_document
 from ai.document_reader.pipeline import _restore_point
 from ai.ocr.pipeline import OCRPipeline
-from scripts.create_document_fixtures import make_text_pdf, scan_pdf
+
+HAS_PDF_FIXTURE_DEPS = importlib.util.find_spec("reportlab") is not None
+
+
+def make_text_pdf(*args, **kwargs):
+    from scripts.create_document_fixtures import make_text_pdf as build
+
+    return build(*args, **kwargs)
+
+
+def scan_pdf(*args, **kwargs):
+    from scripts.create_document_fixtures import scan_pdf as build
+
+    return build(*args, **kwargs)
 
 
 class Engine:
@@ -64,6 +78,7 @@ class ReaderTests(unittest.TestCase):
             result["pages"][0]["evidence"]["blocks"][0]["block_id"], "p0_b000000"
         )
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_text_pdf_avoids_ocr_and_keeps_order(self):
         text = "INVOICE DEMONSTRATION ABCDEFG 123456789"
         result = self.read(make_text_pdf([text]))
@@ -71,6 +86,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(" ".join(b["text"] for b in blocks), text)
         self.assertEqual(self.engine.calls, 0)
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_pdf_geometry_matches_unrotated_viewport(self):
         from contextlib import closing
 
@@ -88,6 +104,7 @@ class ReaderTests(unittest.TestCase):
         self.assertAlmostEqual(a[0]["polygon"][0]["x"], 35 / 640, delta=0.01)
         self.assertLess(a[0]["polygon"][0]["y"], 0.07)
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_blank_pdf_falls_back_to_empty_ocr(self):
         class Empty:
             def predict(self, image):
@@ -99,6 +116,7 @@ class ReaderTests(unittest.TestCase):
         result = self.read(make_text_pdf([]), reader=reader)
         self.assertEqual(result["pages"][0]["evidence"]["blocks"], [])
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_multilingual_text(self):
         fonts = [
             Path("C:/Windows/Fonts/arial.ttf"),
@@ -112,11 +130,13 @@ class ReaderTests(unittest.TestCase):
         actual = " ".join(b["text"] for b in result["pages"][0]["evidence"]["blocks"])
         self.assertEqual(actual, text)
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_scan_uses_ocr(self):
         result = self.read(scan_pdf(Image.new("RGB", (640, 820), "white")))
         self.assertEqual(self.engine.calls, 1)
         self.assertEqual(result["pages"][0]["evidence"]["engine"]["name"], "paddleocr")
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_mixed_pdf_routing(self):
         with (
             pdfium.PdfDocument(
@@ -132,6 +152,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(self.engine.calls, 1)
         validate_document(result)
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_multi_page_ids_and_provenance(self):
         data = make_text_pdf(["INVOICE DEMONSTRATION ABCDEFG 123456789"], pages=2)
         first = self.read(data)
@@ -142,6 +163,7 @@ class ReaderTests(unittest.TestCase):
         for a, b in zip(first["pages"], second["pages"]):
             self.assertEqual(a["evidence"]["blocks"], b["evidence"]["blocks"])
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_duplicate_block_across_pages_rejected(self):
         result = self.read(
             make_text_pdf(["INVOICE DEMONSTRATION ABCDEFG 123456789"], pages=2)
@@ -177,6 +199,7 @@ class ReaderTests(unittest.TestCase):
             ):
                 self.read(data, mime)
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_resource_limits(self):
         for config, data, mime in [
             (ReaderConfig(max_bytes=10), self.png(), "image/png"),
@@ -254,6 +277,7 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, "OCR_FAILED")
         self.assertNotIn("private", str(ctx.exception))
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_force_pdf_ocr_ablation(self):
         reader = DocumentReader(
             config=ReaderConfig(orientation="none", force_pdf_ocr=True),
@@ -276,6 +300,7 @@ class ReaderTests(unittest.TestCase):
             self.read(self.png(), "image/png", reader)
         self.assertEqual(ctx.exception.code, "ORIENTATION_FAILED")
 
+    @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_benchmark_keeps_failures_and_missing_references(self):
         from scripts.benchmark_document_reader import benchmark
 
