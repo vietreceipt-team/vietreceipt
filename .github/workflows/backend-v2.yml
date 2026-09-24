@@ -1,0 +1,97 @@
+name: TV5 Backend V2
+on:
+  pull_request:
+    paths: ['backend/**', 'schemas/**', 'openapi/**', 'scripts/export_openapi_v2.py', 'infra/scripts/smoke-v2.py', '.github/workflows/backend-v2.yml']
+  push:
+    branches: [main, 'feat/tv5-backend-v2']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backend-v2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vietreceipt
+          POSTGRES_PASSWORD: test_only
+          POSTGRES_DB: vietreceipt_test
+        ports: ['5432:5432']
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    env:
+      DATABASE_URL: postgresql+psycopg://vietreceipt:test_only@localhost:5432/vietreceipt_test
+      TEST_DATABASE_URL: postgresql+psycopg://vietreceipt:test_only@localhost:5432/vietreceipt_test
+      CELERY_BROKER_URL: redis://localhost:6379/0
+      STORAGE_BACKEND: filesystem
+      STORAGE_FILESYSTEM_ROOT: /tmp/vietreceipt-v2-ci-sources
+      PYTHONPATH: .:backend
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      # These are explicitly test-only providers. This job is NOT real AI evidence.
+      V2_DOCUMENT_READER_CALLABLE: backend.tests.v2.test_workflow:reader
+      V2_KIE_CALLABLE: backend.tests.v2.test_workflow:kie
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install backend and contract dependencies
+        run: python -m pip install -r backend/requirements-dev.txt -r requirements-contracts.txt
+      - name: Wait for PostgreSQL and Redis
+        run: |
+          python - <<'PY'
+          import os
+          import time
+
+          import psycopg
+          import redis
+
+          for attempt in range(30):
+              try:
+                  dsn = os.environ['DATABASE_URL'].replace('postgresql+psycopg://', 'postgresql://', 1)
+                  with psycopg.connect(dsn, connect_timeout=2):
+                      pass
+                  assert redis.Redis.from_url(os.environ['CELERY_BROKER_URL']).ping()
+                  break
+              except (psycopg.OperationalError, redis.RedisError, AssertionError):
+                  time.sleep(1)
+          else:
+              raise RuntimeError('PostgreSQL or Redis did not become ready')
+          PY
+      - name: Migrate PostgreSQL
+        run: python -m alembic -c backend/alembic.ini upgrade head
+      - name: Backend tests including PostgreSQL race
+        run: python -m pytest backend/tests -q
+      - name: Legacy contracts
+        run: python tests/contracts/run_contract_tests.py
+      - name: Redis Celery HTTP smoke with test providers
+        shell: bash
+        run: |
+          mkdir -p evidence
+          python -m uvicorn backend.app.main:app --port 18000 > evidence/api.log 2>&1 &
+          python -m celery -A backend.app.v2.worker:celery_app worker --concurrency=2 --loglevel=info > evidence/worker.log 2>&1 &
+          python -m celery -A backend.app.v2.worker:celery_app beat --loglevel=info > evidence/beat.log 2>&1 &
+          python - <<'PY'
+          import time, urllib.request
+          from PIL import Image
+          from pypdf import PdfWriter
+          Image.new('RGB',(100,100),'white').save('/tmp/smoke.png')
+          writer=PdfWriter();writer.add_blank_page(100,100)
+          with open('/tmp/smoke.pdf','wb') as f:writer.write(f)
+          for attempt in range(30):
+              try:
+                  urllib.request.urlopen('http://localhost:18000/api/v2/readiness');break
+              except OSError:time.sleep(1)
+          else:raise RuntimeError('API did not become ready')
+          PY
+          python infra/scripts/smoke-v2.py /tmp/smoke.png --url http://localhost:18000 --test-providers --database-url "$DATABASE_URL" --output evidence/image.json
+          python infra/scripts/smoke-v2.py /tmp/smoke.pdf --url http://localhost:18000 --test-providers --database-url "$DATABASE_URL" --output evidence/pdf.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tv5-backend-v2-test-provider-evidence
+          path: evidence/
