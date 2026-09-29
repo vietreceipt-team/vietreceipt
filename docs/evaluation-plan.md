@@ -183,3 +183,19 @@ The web demo proves functional integration:
 upload → processing → review → correction → confirmation → export.
 
 Do not claim accountant time savings unless a real manual-vs-tool study is separately designed and executed. A synthetic dry run is not a user study.
+
+## Executable TV4 V2 evaluator
+
+`python scripts/evaluate_invoice_kie.py --manifest <authorized-frozen-manifest>`
+implements per-header metrics, evidence-based one-to-one row matching, line recall,
+extra rows, matched cells/per-column correctness, complete-line/table/header/invoice
+accuracy and automatic error diagnostics. Optional verified oracle evidence enables
+paired OCR-propagation diagnostics. Manifest/artifact hashes, dataset/split/template
+regime, synthetic flag, code/config versions and git/content provenance are recorded.
+
+The default missing-data state is `WAITING_FOR_VERIFIED_V2_GOLD`, exit 2,
+zero evaluated samples and null metrics/modes/gap. Unit fixtures cannot stand in for
+frozen TV2 gold. Exact eligibility checks, denominator definitions, oracle limitations
+and manifest format are documented in [the V2 guide](kie-v2.md#evaluation-protocol).
+This is a module evaluator; full source-routing failures, latency, unseen-template
+experiments and actual upload-to-export acceptance remain part of the wider plan.

@@ -1,45 +1,567 @@
 {
-  "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "$id":"https://vietreceipt.local/schemas/invoice-kie-result.v2.schema.json",
-  "title":"VietReceipt Invoice KIE Target Contract v2",
-  "type":"object",
-  "additionalProperties":false,
-  "required":["schema_version","receipt_id","kie_run_id","source_ocr_run_id","fields","tax_breakdown","line_items"],
-  "properties":{
-    "schema_version":{"const":"2.0"},
-    "receipt_id":{"type":"string","format":"uuid"},
-    "kie_run_id":{"type":"string","format":"uuid"},
-    "source_ocr_run_id":{"type":"string","format":"uuid"},
-    "fields":{
-      "type":"object","additionalProperties":false,
-      "required":["invoice_template_number","invoice_symbol","invoice_number","invoice_date","seller_name","seller_tax_id","seller_address","buyer_name","buyer_tax_id","subtotal","tax_amount","total_amount","currency"],
-      "properties":{
-        "invoice_template_number":{"$ref":"#/$defs/stringField"},
-        "invoice_symbol":{"$ref":"#/$defs/stringField"},
-        "invoice_number":{"$ref":"#/$defs/stringField"},
-        "invoice_date":{"$ref":"#/$defs/dateField"},
-        "seller_name":{"$ref":"#/$defs/stringField"},
-        "seller_tax_id":{"$ref":"#/$defs/stringField"},
-        "seller_address":{"$ref":"#/$defs/stringField"},
-        "buyer_name":{"$ref":"#/$defs/stringField"},
-        "buyer_tax_id":{"$ref":"#/$defs/stringField"},
-        "subtotal":{"$ref":"#/$defs/moneyField"},
-        "tax_amount":{"$ref":"#/$defs/moneyField"},
-        "total_amount":{"$ref":"#/$defs/moneyField"},
-        "currency":{"$ref":"#/$defs/stringField"}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vietreceipt.local/schemas/invoice-kie-result.v2.schema.json",
+  "title": "VietReceipt Invoice KIE machine contract v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "kie_run_id",
+    "source_ocr_run_id",
+    "fields",
+    "tax_breakdown",
+    "line_items",
+    "extractor",
+    "configuration",
+    "consistency"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0"
+    },
+    "receipt_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kie_run_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source_ocr_run_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "invoice_template_number",
+        "invoice_symbol",
+        "invoice_number",
+        "invoice_date",
+        "seller_name",
+        "seller_tax_id",
+        "seller_address",
+        "buyer_name",
+        "buyer_tax_id",
+        "subtotal",
+        "tax_amount",
+        "total_amount",
+        "currency"
+      ],
+      "properties": {
+        "invoice_template_number": {
+          "$ref": "#/$defs/stringField"
+        },
+        "invoice_symbol": {
+          "$ref": "#/$defs/stringField"
+        },
+        "invoice_number": {
+          "$ref": "#/$defs/stringField"
+        },
+        "invoice_date": {
+          "$ref": "#/$defs/dateField"
+        },
+        "seller_name": {
+          "$ref": "#/$defs/stringField"
+        },
+        "seller_tax_id": {
+          "$ref": "#/$defs/stringField"
+        },
+        "seller_address": {
+          "$ref": "#/$defs/stringField"
+        },
+        "buyer_name": {
+          "$ref": "#/$defs/stringField"
+        },
+        "buyer_tax_id": {
+          "$ref": "#/$defs/stringField"
+        },
+        "subtotal": {
+          "$ref": "#/$defs/moneyField"
+        },
+        "tax_amount": {
+          "$ref": "#/$defs/moneyField"
+        },
+        "total_amount": {
+          "$ref": "#/$defs/moneyField"
+        },
+        "currency": {
+          "$ref": "#/$defs/stringField"
+        }
       }
     },
-    "tax_breakdown":{"type":"array","items":{"$ref":"#/$defs/taxGroup"}},
-    "line_items":{"type":"array","items":{"$ref":"#/$defs/lineItem"}}
+    "tax_breakdown": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/taxGroup"
+      }
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/lineItem"
+      }
+    },
+    "extractor": {
+      "$ref": "#/$defs/component"
+    },
+    "configuration": {
+      "$ref": "#/$defs/component"
+    },
+    "consistency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "tolerance_vnd",
+        "checks"
+      ],
+      "properties": {
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tolerance_vnd": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status",
+              "difference_vnd"
+            ],
+            "properties": {
+              "name": {
+                "enum": [
+                  "line_sum_subtotal",
+                  "subtotal_tax_total"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "PASS",
+                  "WARNING",
+                  "SKIPPED"
+                ]
+              },
+              "difference_vnd": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
   },
-  "$defs":{
-    "status":{"type":"string","enum":["PRESENT","NOT_PRESENT","UNREADABLE","AMBIGUOUS","UNKNOWN"]},
-    "base":{"type":"object"},
-    "stringField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["string","null"]},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
-    "dateField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["string","null"],"format":"date"},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
-    "moneyField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["integer","null"],"minimum":0},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
-    "decimalField":{"type":"object","additionalProperties":false,"required":["raw_text","normalized_value","value_status","source_block_ids"],"properties":{"raw_text":{"type":["string","null"]},"normalized_value":{"type":["number","null"],"minimum":0},"value_status":{"$ref":"#/$defs/status"},"confidence":{"type":["number","null"],"minimum":0,"maximum":1},"machine_needs_review":{"type":"boolean"},"review_reasons":{"type":"array","items":{"type":"string"}},"source_block_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}}}},
-    "taxGroup":{"type":"object","additionalProperties":false,"required":["rate","taxable_amount","tax_amount"],"properties":{"rate":{"$ref":"#/$defs/stringField"},"taxable_amount":{"$ref":"#/$defs/moneyField"},"tax_amount":{"$ref":"#/$defs/moneyField"}}},
-    "lineItem":{"type":"object","additionalProperties":false,"required":["line_id","description","unit","quantity","unit_price","amount"],"properties":{"line_id":{"type":"string","minLength":1},"description":{"$ref":"#/$defs/stringField"},"unit":{"$ref":"#/$defs/stringField"},"quantity":{"$ref":"#/$defs/decimalField"},"unit_price":{"$ref":"#/$defs/moneyField"},"amount":{"$ref":"#/$defs/moneyField"}}}
+  "$defs": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "PRESENT",
+        "NOT_PRESENT",
+        "UNREADABLE",
+        "AMBIGUOUS",
+        "UNKNOWN"
+      ]
+    },
+    "stringField": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "normalized_value": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "dateField": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "normalized_value": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "moneyField": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "normalized_value": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "decimalField": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/cell"
+        },
+        {
+          "properties": {
+            "normalized_value": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "taxGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rate",
+        "taxable_amount",
+        "tax_amount"
+      ],
+      "properties": {
+        "rate": {
+          "$ref": "#/$defs/stringField"
+        },
+        "taxable_amount": {
+          "$ref": "#/$defs/moneyField"
+        },
+        "tax_amount": {
+          "$ref": "#/$defs/moneyField"
+        }
+      }
+    },
+    "lineItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "line_id",
+        "description",
+        "unit",
+        "quantity",
+        "unit_price",
+        "amount",
+        "machine_needs_review",
+        "review_reasons",
+        "review_policy_version",
+        "source_block_ids"
+      ],
+      "properties": {
+        "line_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+        },
+        "description": {
+          "$ref": "#/$defs/stringField"
+        },
+        "unit": {
+          "$ref": "#/$defs/stringField"
+        },
+        "quantity": {
+          "$ref": "#/$defs/decimalField"
+        },
+        "unit_price": {
+          "$ref": "#/$defs/moneyField"
+        },
+        "amount": {
+          "$ref": "#/$defs/moneyField"
+        },
+        "machine_needs_review": {
+          "type": "boolean"
+        },
+        "review_reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reviewReason"
+          }
+        },
+        "review_policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_block_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule",
+        "version"
+      ],
+      "properties": {
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "reviewReason": {
+      "enum": [
+        "NO_CANDIDATE",
+        "LOW_CONFIDENCE",
+        "MULTIPLE_CANDIDATES",
+        "AMBIGUOUS_FORMAT",
+        "NORMALIZATION_FAILED",
+        "UNREADABLE_SOURCE",
+        "SOURCE_ROLE_UNCLEAR",
+        "CONSISTENCY_WARNING",
+        "UNSUPPORTED_CURRENCY"
+      ]
+    },
+    "cell": {
+      "type": "object",
+      "required": [
+        "raw_text",
+        "normalized_value",
+        "value_status",
+        "confidence",
+        "machine_needs_review",
+        "review_reasons",
+        "source_block_ids",
+        "predicted_value",
+        "normalization",
+        "review_policy_version",
+        "heuristic_score",
+        "score_version"
+      ],
+      "properties": {
+        "raw_text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "normalized_value": {},
+        "value_status": {
+          "$ref": "#/$defs/status"
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "machine_needs_review": {
+          "type": "boolean"
+        },
+        "review_reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/reviewReason"
+          }
+        },
+        "source_block_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "predicted_value": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "normalization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/normalization"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "review_policy_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "heuristic_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "score_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "value_status": {
+                "const": "PRESENT"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "normalized_value": {
+                "not": {
+                  "type": "null"
+                }
+              },
+              "raw_text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "predicted_value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "normalization": {
+                "$ref": "#/$defs/normalization"
+              },
+              "source_block_ids": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "normalized_value": {
+                "type": "null"
+              },
+              "normalization": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "predicted_value": {
+                "type": "string"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "raw_text": {
+                "type": "string"
+              },
+              "source_block_ids": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "review_reasons": {
+                "minItems": 1
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "machine_needs_review": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "value_status": {
+                "enum": [
+                  "UNKNOWN",
+                  "UNREADABLE",
+                  "AMBIGUOUS"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "machine_needs_review": {
+                "const": true
+              },
+              "review_reasons": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

@@ -24,6 +24,7 @@ except ImportError:
 
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from validate_annotation_ocr import linkage_errors  # noqa: E402
@@ -364,6 +365,9 @@ def set_kie_unknown(record: dict[str, Any], predicted_value: str | None) -> None
 
 
 def main() -> int:
+    from tests.contracts.invoice_v2 import run as run_invoice_v2
+
+    run_invoice_v2()
     annotation = read_json(ANNOTATION_EXAMPLE)
     kie = read_json(KIE_EXAMPLE)
     ocr = read_json(OCR_EXAMPLE)

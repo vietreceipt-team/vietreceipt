@@ -112,3 +112,32 @@ Legacy names are not canonical:
 - `merchant_address` → `seller_address`
 
 New code must use the canonical v2 names.
+
+## 10. Implemented TV4 provider and required machine metadata
+
+`extract_invoice(evidence: dict, *, kie_run_id: uuid.UUID) -> dict` is exposed as
+`V2_KIE_CALLABLE=ai.kie.v2:extract_invoice`. It accepts OCRResult 1.3 or the TV3
+`document-2.0` envelope with `pages[{page_index,evidence}]`. Pages are zero-based,
+contiguous and share receipt/OCR run identity; block IDs are unique document-wide.
+
+The shared V2 schema now resolves the omissions identified in issue #49:
+
+- Every cell requires `raw_text`, `predicted_value`, `normalized_value`,
+  `normalization`, `value_status`, `confidence`, `heuristic_score`, `score_version`,
+  `machine_needs_review`, `review_reasons`, `review_policy_version`, `source_block_ids`.
+- Root requires immutable `receipt_id`, `kie_run_id`, `source_ocr_run_id`,
+  `extractor{name,version}`, `configuration{name,version}`, and versioned
+  `consistency{version,tolerance_vnd,checks}` diagnostics.
+- Each line requires `line_id` plus aggregate row-level source IDs, review flag,
+  reasons and policy version in addition to its five cells. Partial rows are retained.
+- PRESENT requires prediction, normalized value, normalization rule/version and
+  source evidence. All other statuses have null normalized value/normalization.
+- Baseline field confidence is null; its versioned heuristic score is not a
+  probability. OCR `pdfium-text` sentinel 1.0 means N/A evidence confidence.
+- Source membership/raw-text equality and run identity need the cross-record
+  validator `ai.kie.v2.contract.validate_result`, not JSON Schema alone.
+
+No human correction/effective/verified state is accepted by this machine schema.
+Dependent V2 test producers must adopt these required additions; the V1 five-field
+schema is unchanged. See [TV4 implementation guide](kie-v2.md) for exact rules,
+provider references, synthetic examples and known limits.
