@@ -41,7 +41,11 @@ services:
       - vietreceipt_internal
 
   minio:
-    image: minio/minio:RELEASE.2024-07-16T23-46-41Z
+    image: vietreceipt-minio:RELEASE.2024-07-16T23-46-41Z
+    build:
+      context: .
+      dockerfile: infra/docker/minio.Dockerfile
+      target: server
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
@@ -69,7 +73,11 @@ services:
       - vietreceipt_internal
 
   minio-init:
-    image: minio/mc:RELEASE.2024-07-15T17-46-06Z
+    image: vietreceipt-minio-mc:RELEASE.2024-07-15T17-46-06Z
+    build:
+      context: .
+      dockerfile: infra/docker/minio.Dockerfile
+      target: client
     restart: "no"
     depends_on:
       minio:

@@ -6,6 +6,10 @@ on:
       - "ai/kie/**"
       - "data/kie_evaluation/**"
       - "scripts/evaluate_kie.py"
+      - "scripts/evaluate_invoice_kie.py"
+      - "examples/invoice-v2-*.json"
+      - "tests/kie_v2_fixtures.py"
+      - "tests/contracts/**"
       - "tests/test_kie_*.py"
       - "schemas/**"
       - "openapi/**"
@@ -17,6 +21,10 @@ on:
       - "ai/kie/**"
       - "data/kie_evaluation/**"
       - "scripts/evaluate_kie.py"
+      - "scripts/evaluate_invoice_kie.py"
+      - "examples/invoice-v2-*.json"
+      - "tests/kie_v2_fixtures.py"
+      - "tests/contracts/**"
       - "tests/test_kie_*.py"
       - "schemas/**"
       - "openapi/**"
@@ -53,7 +61,28 @@ jobs:
             tests.test_kie_baseline \
             tests.test_kie_evaluation \
             tests.test_kie_artifacts \
+            tests.test_kie_v2 \
+            tests.test_kie_v2_evaluation \
             -v
+
+      - name: Verify V2 waits for verified frozen gold
+        shell: bash
+        run: |
+          set +e
+          python scripts/evaluate_invoice_kie.py > "$RUNNER_TEMP/invoice-kie-evaluation.json"
+          evaluator_status=$?
+          set -e
+          test "$evaluator_status" -eq 2
+          python - "$RUNNER_TEMP/invoice-kie-evaluation.json" <<'PY'
+          import json
+          import sys
+          with open(sys.argv[1]) as handle:
+              report = json.load(handle)
+          assert report["status"] == "WAITING_FOR_VERIFIED_V2_GOLD"
+          assert report["metrics"] is None
+          assert report["modes"] is None
+          assert report["evaluated"] == 0
+          PY
 
       - name: Run shared contract tests
         run: python tests/contracts/run_contract_tests.py

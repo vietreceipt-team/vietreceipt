@@ -1,4 +1,11 @@
-> **LEGACY v1 NOTICE (19/09/2026):** This file belongs to the former five-field Week-1/2/3 plan. Do not use it as a current requirement. See `README.md`, `docs/project-plan.md` and `docs/migration-status.md`.
+# Additive Invoice V2 provider
+
+The canonical invoice baseline is available at `ai.kie.v2:extract_invoice`.
+See [Invoice V2 guide](../../docs/kie-v2.md) for the callable, schema, synthetic
+examples, normalization, line grouping, review policy and fail-closed evaluator.
+The five-field implementation documented below remains the legacy V1 path.
+
+> **LEGACY v1 NOTICE (19/09/2026):** The remainder of this file documents the former five-field Week-1/2/3 plan. Do not use it as a current requirement. See `README.md`, `docs/project-plan.md` and `docs/migration-status.md`.
 
 # KIE VietReceipt
 

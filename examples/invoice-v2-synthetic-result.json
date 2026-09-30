@@ -1,0 +1,453 @@
+{
+  "schema_version": "2.0",
+  "receipt_id": "00000000-0000-4000-8000-000000000049",
+  "kie_run_id": "00000000-0000-4000-8000-000000000053",
+  "source_ocr_run_id": "00000000-0000-4000-8000-000000000055",
+  "extractor": {
+    "name": "deterministic-invoice-kie",
+    "version": "2.0.0"
+  },
+  "configuration": {
+    "name": "invoice-vnd-baseline",
+    "version": "2.0.0"
+  },
+  "fields": {
+    "invoice_template_number": {
+      "raw_text": "Mẫu số: 01GTKT0/001",
+      "predicted_value": "01GTKT0/001",
+      "normalized_value": "01GTKT0/001",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b0"
+      ]
+    },
+    "invoice_symbol": {
+      "raw_text": "Ký hiệu: AA/26E",
+      "predicted_value": "AA/26E",
+      "normalized_value": "AA/26E",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b1"
+      ]
+    },
+    "invoice_number": {
+      "raw_text": "Số hóa đơn: 0000049",
+      "predicted_value": "0000049",
+      "normalized_value": "0000049",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b2"
+      ]
+    },
+    "invoice_date": {
+      "raw_text": "Ngày lập: 19/09/2026",
+      "predicted_value": "19/09/2026",
+      "normalized_value": "2026-09-19",
+      "normalization": {
+        "rule": "dmy_four_digit_year",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b3"
+      ]
+    },
+    "seller_name": {
+      "raw_text": "Đơn vị bán hàng: Công ty Tổng Hợp Mẫu",
+      "predicted_value": "Công ty Tổng Hợp Mẫu",
+      "normalized_value": "Công ty Tổng Hợp Mẫu",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b4"
+      ]
+    },
+    "seller_tax_id": {
+      "raw_text": "Đơn vị bán hàng: Công ty Tổng Hợp Mẫu\nMST: 0101 234 567",
+      "predicted_value": "0101 234 567",
+      "normalized_value": "0101234567",
+      "normalization": {
+        "rule": "tax_id_printed_separators",
+        "version": "invoice-normalization-2.0.0"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b4",
+        "p0_b5"
+      ]
+    },
+    "seller_address": {
+      "raw_text": "Đơn vị bán hàng: Công ty Tổng Hợp Mẫu\nĐịa chỉ: 1 Đường Mẫu, Thành phố Mẫu",
+      "predicted_value": "1 Đường Mẫu, Thành phố Mẫu",
+      "normalized_value": "1 Đường Mẫu, Thành phố Mẫu",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b4",
+        "p0_b6"
+      ]
+    },
+    "buyer_name": {
+      "raw_text": "Người mua hàng: Công ty Khách Mẫu",
+      "predicted_value": "Công ty Khách Mẫu",
+      "normalized_value": "Công ty Khách Mẫu",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b7"
+      ]
+    },
+    "buyer_tax_id": {
+      "raw_text": "Người mua hàng: Công ty Khách Mẫu\nMST: 0201234567",
+      "predicted_value": "0201234567",
+      "normalized_value": "0201234567",
+      "normalization": {
+        "rule": "tax_id_printed_separators",
+        "version": "invoice-normalization-2.0.0"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b7",
+        "p0_b8"
+      ]
+    },
+    "subtotal": {
+      "raw_text": "Cộng tiền hàng: 100000",
+      "predicted_value": "100000",
+      "normalized_value": 100000,
+      "normalization": {
+        "rule": "vnd_plain_integer",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b20"
+      ]
+    },
+    "tax_amount": {
+      "raw_text": "Tổng tiền thuế: 8000",
+      "predicted_value": "8000",
+      "normalized_value": 8000,
+      "normalization": {
+        "rule": "vnd_plain_integer",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b21"
+      ]
+    },
+    "total_amount": {
+      "raw_text": "Tổng cộng: 108000",
+      "predicted_value": "108000",
+      "normalized_value": 108000,
+      "normalization": {
+        "rule": "vnd_plain_integer",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b22"
+      ]
+    },
+    "currency": {
+      "raw_text": "Đơn vị tiền tệ: VND",
+      "predicted_value": "VND",
+      "normalized_value": "VND",
+      "normalization": {
+        "rule": "explicit_vnd_marker",
+        "version": "invoice-normalization-2.0.0"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b9"
+      ]
+    }
+  },
+  "line_items": [
+    {
+      "description": {
+        "raw_text": "Dịch vụ mẫu",
+        "predicted_value": "Dịch vụ mẫu",
+        "normalized_value": "Dịch vụ mẫu",
+        "normalization": {
+          "rule": "identity_string",
+          "version": "normalization-v0.1"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b15"
+        ]
+      },
+      "unit": {
+        "raw_text": "gói",
+        "predicted_value": "gói",
+        "normalized_value": "gói",
+        "normalization": {
+          "rule": "identity_string",
+          "version": "normalization-v0.1"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b16"
+        ]
+      },
+      "quantity": {
+        "raw_text": "2",
+        "predicted_value": "2",
+        "normalized_value": 2,
+        "normalization": {
+          "rule": "quantity_decimal_no_grouping",
+          "version": "invoice-normalization-2.0.0"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b17"
+        ]
+      },
+      "unit_price": {
+        "raw_text": "50000",
+        "predicted_value": "50000",
+        "normalized_value": 50000,
+        "normalization": {
+          "rule": "vnd_plain_integer",
+          "version": "normalization-v0.1"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b18"
+        ]
+      },
+      "amount": {
+        "raw_text": "100000",
+        "predicted_value": "100000",
+        "normalized_value": 100000,
+        "normalization": {
+          "rule": "vnd_plain_integer",
+          "version": "normalization-v0.1"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b19"
+        ]
+      },
+      "line_id": "line-0001",
+      "source_block_ids": [
+        "p0_b15",
+        "p0_b16",
+        "p0_b17",
+        "p0_b18",
+        "p0_b19"
+      ],
+      "review_policy_version": "invoice-review-2.0.0",
+      "review_reasons": [],
+      "machine_needs_review": false
+    }
+  ],
+  "tax_breakdown": [
+    {
+      "rate": {
+        "raw_text": "8%",
+        "predicted_value": "8%",
+        "normalized_value": "8%",
+        "normalization": {
+          "rule": "printed_percent",
+          "version": "invoice-normalization-2.0.0"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b27"
+        ]
+      },
+      "taxable_amount": {
+        "raw_text": "100000",
+        "predicted_value": "100000",
+        "normalized_value": 100000,
+        "normalization": {
+          "rule": "vnd_plain_integer",
+          "version": "normalization-v0.1"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b28"
+        ]
+      },
+      "tax_amount": {
+        "raw_text": "8000",
+        "predicted_value": "8000",
+        "normalized_value": 8000,
+        "normalization": {
+          "rule": "vnd_plain_integer",
+          "version": "normalization-v0.1"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b29"
+        ]
+      }
+    }
+  ],
+  "consistency": {
+    "version": "invoice-consistency-2.0.0",
+    "tolerance_vnd": 1,
+    "checks": [
+      {
+        "name": "line_sum_subtotal",
+        "status": "PASS",
+        "difference_vnd": 0
+      },
+      {
+        "name": "subtotal_tax_total",
+        "status": "PASS",
+        "difference_vnd": 0
+      }
+    ]
+  }
+}

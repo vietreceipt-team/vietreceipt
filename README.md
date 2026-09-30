@@ -160,3 +160,12 @@ Module metrics are diagnostic evidence only. A high OCR or KIE score does not su
 - `schemas/ocr-result.schema.json`
 
 See `docs/migration-status.md` for the v1-runtime → v2-target transition. Historical Week-1/2/3 documents and closed issues may remain in Git history for traceability, but they are not current requirements.
+
+## Invoice KIE V2 baseline
+
+TV4 now exposes `V2_KIE_CALLABLE=ai.kie.v2:extract_invoice`: canonical OCRResult
+1.3 or `document-2.0` evidence → 13 header fields, tax groups and row-grouped line
+items, with immutable evidence, explicit uncertainty and arithmetic review warnings.
+V1 remains available. See [running, contracts and limitations](docs/kie-v2.md).
+Examples/tests are explicitly synthetic; frozen V2 evaluation fails closed with
+`WAITING_FOR_VERIFIED_V2_GOLD` until verified external data is provided.

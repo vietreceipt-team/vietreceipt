@@ -82,3 +82,17 @@ The following are required before the project can support the intended thesis cl
 Closed Week-2/3 issues and PRs are retained only as Git history. They are not active requirements and should not be reopened to continue the old scope.
 
 Existing v1 metrics are useful only as historical/baseline evidence; they are not final evidence for the v2 invoice thesis.
+
+## TV4 implementation for issue #49
+
+The additive `ai/kie/v2` baseline now implements 13 header fields, grouped line
+items, tax groups, conservative normalization, source/status/review/provenance
+validation and arithmetic warnings. The canonical V2 schema's predicted-value,
+extractor/configuration and row-review omissions are resolved together with
+examples, shared contract tests and CI. V1 code/contracts remain intact.
+
+Gate B has executable baseline code and synthetic regression coverage. Gate C
+remains an external data dependency: the V2 evaluator reports WAITING with null
+metrics until a complete verified frozen manifest is supplied. Provider-seam
+checks do not establish Gate A or image/PDF-to-export acceptance. See
+[KEEP/CHANGE/REMOVE/ADD and limitations](kie-v2.md#migration-and-limitations).
