@@ -1,0 +1,22 @@
+name: TV3 Document Reader V2
+on:
+  pull_request:
+    paths: ['ai/document_reader/**', 'ai/ocr/**', 'schemas/**', 'scripts/*document*', 'tests/test_document_reader.py', 'requirements-document-reader*', '.github/workflows/document-reader-v2.yml']
+  workflow_dispatch:
+jobs:
+  contract-and-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements-document-reader-test.txt ruff==0.15.6
+      - run: python -m ruff check ai/document_reader scripts/create_document_fixtures.py scripts/benchmark_document_reader.py scripts/demo_document_reader.py tests/test_document_reader.py
+      - run: python -m unittest tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 -v
+      - run: python -m scripts.create_document_fixtures --output results/tv3-fixtures --font /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tv3-synthetic-fixtures
+          path: results/tv3-fixtures/
