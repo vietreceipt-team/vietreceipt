@@ -42,6 +42,12 @@ network `vietreceipt_internal`. Container `minio-init` chờ MinIO healthy, tạ
 bucket private `vietreceipt` nếu chưa có, rồi thoát với code 0. Việc chạy lại
 init là an toàn.
 
+Các image MinIO cũ không còn được Docker Hub/Quay phục vụ. Compose build
+`vietreceipt-minio` và `vietreceipt-minio-mc` từ binary GitHub Release đúng hai
+phiên bản đã pin trong `infra/docker/minio.Dockerfile`; SHA-256 riêng cho amd64
+và arm64 được kiểm tra ngay trong build. Không dùng mirror bên thứ ba hoặc tag
+`latest`. `docker compose up --build -d` buộc cập nhật image sau thay đổi Dockerfile.
+
 Các endpoint từ máy host:
 
 | Dịch vụ | Endpoint mặc định |

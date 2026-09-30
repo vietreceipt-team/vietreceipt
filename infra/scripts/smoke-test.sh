@@ -147,7 +147,7 @@ echo "[1/10] Validate Compose configuration"
 compose config --quiet
 
 echo "[2/10] Start infrastructure"
-compose up -d
+compose up -d --build
 
 echo "[3/10] Check service health and MinIO bootstrap"
 wait_for_healthy postgres
