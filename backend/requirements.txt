@@ -3,3 +3,15 @@ pydantic==2.13.4
 pydantic-settings==2.15.0
 python-multipart==0.0.32
 uvicorn[standard]==0.52.3
+
+# TV5 V2 runtime: persistence, processing, source validation and export.
+SQLAlchemy==2.0.54
+alembic==1.20.0
+psycopg[binary]==3.3.6
+celery[redis]==5.6.3
+boto3>=1.34,<2
+Pillow>=10.3,<13
+pypdf>=6,<7
+openpyxl>=3.1,<4
+jsonschema[format-nongpl]==4.26.0
+PyYAML>=6,<7
