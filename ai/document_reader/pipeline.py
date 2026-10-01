@@ -121,6 +121,53 @@ def _reading_order(blocks):
     ]
 
 
+def _pdf_segments(words, width, height):
+    """Join adjacent words into spatial spans while retaining column gutters.
+
+    KIE labels contain multiple words. PDFium emits glyphs/words, whereas OCR
+    emits line spans. Use baseline overlap and a font-relative gap to give both
+    routes comparable evidence without any invoice-specific field rules.
+    """
+    groups = []
+    for word in _reading_order(words):
+        points = word["polygon"]
+        box = (
+            min(p["x"] for p in points),
+            min(p["y"] for p in points),
+            max(p["x"] for p in points),
+            max(p["y"] for p in points),
+        )
+        if groups:
+            previous, last = groups[-1]
+            overlap = min(last[3], box[3]) - max(last[1], box[1])
+            same_line = overlap > 0.45 * min(last[3] - last[1], box[3] - box[1])
+            gap = (box[0] - last[2]) * width
+            font_height = max(last[3] - last[1], box[3] - box[1]) * height
+            if same_line and gap <= 1.2 * font_height:
+                previous.append(word)
+                groups[-1] = (previous, box)
+                continue
+        groups.append(([word], box))
+    spans = []
+    for group, _ in groups:
+        points = [p for word in group for p in word["polygon"]]
+        left, top = min(p["x"] for p in points), min(p["y"] for p in points)
+        right, bottom = max(p["x"] for p in points), max(p["y"] for p in points)
+        spans.append(
+            {
+                "text": " ".join(word["text"] for word in group),
+                "confidence": 1.0,
+                "polygon": [
+                    {"x": left, "y": top},
+                    {"x": right, "y": top},
+                    {"x": right, "y": bottom},
+                    {"x": left, "y": bottom},
+                ],
+            }
+        )
+    return spans
+
+
 class DocumentReader:
     """One instance per process; serialized because PDFium/Paddle are not thread-safe.
 
@@ -238,7 +285,9 @@ class DocumentReader:
             result = self.ocr.run_ocr(rotated, receipt_id=receipt_id, ocr_run_id=run_id)
         except Exception as exc:
             raise ReaderError(
-                "OCR_FAILED", "OCR engine failed; inspect worker diagnostics"
+                "OCR_FAILED",
+                "OCR engine failed; inspect worker diagnostics",
+                retryable=True,
             ) from exc
         result["blocks"] = _reading_order(result["blocks"])
         for block in result["blocks"]:
@@ -292,7 +341,9 @@ class DocumentReader:
             return (-label) % 360, score
         except Exception as exc:
             raise ReaderError(
-                "ORIENTATION_FAILED", "Document orientation model failed"
+                "ORIENTATION_FAILED",
+                "Document orientation model failed",
+                retryable=True,
             ) from exc
 
     def _pdf(self, data, receipt_id, run_id):
@@ -436,7 +487,7 @@ class DocumentReader:
             x_left, b, r, t = obj.get_bounds()
             if (r - x_left) * (t - b) > 0.5 * width * height and len(text) < 200:
                 usable = False
-        return words, usable
+        return _pdf_segments(words, width, height), usable
 
 
 _reader = None

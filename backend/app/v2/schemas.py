@@ -55,6 +55,8 @@ class Summary(BaseModel):
     version: int
     created_at: str
     seller_name: str | None = None
+    invoice_number: str | None = None
+    currency: str | None = None
     invoice_date: str | None = None
     total_amount: int | None = None
 

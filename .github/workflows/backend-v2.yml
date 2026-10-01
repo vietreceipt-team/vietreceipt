@@ -1,7 +1,7 @@
 name: TV5 Backend V2
 on:
   pull_request:
-    paths: ['backend/**', 'schemas/**', 'openapi/**', 'scripts/export_openapi_v2.py', 'infra/scripts/smoke-v2.py', '.github/workflows/backend-v2.yml']
+    paths: ['backend/**', 'ai/**', 'schemas/**', 'openapi/**', 'requirements-ocr-runtime.txt', 'docker-compose.v2.yml', 'infra/docker/backend-v2.Dockerfile', 'scripts/export_openapi_v2.py', 'infra/scripts/smoke-v2.py', '.github/workflows/backend-v2.yml']
   push:
     branches: [main, 'feat/tv5-backend-v2']
   workflow_dispatch:

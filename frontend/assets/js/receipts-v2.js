@@ -39,11 +39,12 @@ async function load() {
       if (page.items.length < 100 || !fresh.length) break;
     }
     invoices = loaded; render();
-    // The list API omits invoice numbers; read the actual field with bounded concurrency.
+    // Older backends omit these fields; retain bounded fallback for compatibility.
     let index = 0, failures = 0;
     await Promise.all(Array.from({length: Math.min(4, invoices.length)}, async () => {
       while (index < invoices.length) {
         const item = invoices[index++];
+        if (Object.hasOwn(item, "invoice_number") && Object.hasOwn(item, "currency")) continue;
         try { const detail = await invoiceApi.detail(item.receipt_id); item.invoice_number = detail.fields.invoice_number?.effective_value; item.currency = detail.fields.currency?.effective_value; }
         catch { failures++; }
       }

@@ -137,6 +137,26 @@ class InvoiceService:
                 .limit(limit)
                 .offset(offset)
             ).all()
+            fields = (
+                "invoice_number",
+                "seller_name",
+                "invoice_date",
+                "total_amount",
+                "currency",
+            )
+            header_cells = {
+                (cell.receipt_id, cell.field): cell
+                for cell in s.scalars(
+                    select(Cell).where(
+                        Cell.receipt_id.in_(
+                            [invoice.receipt_id for invoice in invoices]
+                        ),
+                        Cell.section == "header",
+                        Cell.row_id == "",
+                        Cell.field.in_(fields),
+                    )
+                )
+            }
             result = []
             for inv in invoices:
                 summary = {
@@ -149,8 +169,8 @@ class InvoiceService:
                         "created_at",
                     )
                 }
-                for field in ("seller_name", "invoice_date", "total_amount"):
-                    cell = s.get(Cell, (inv.receipt_id, "header", "", field))
+                for field in fields:
+                    cell = header_cells.get((inv.receipt_id, field))
                     summary[field] = (
                         None
                         if cell is None

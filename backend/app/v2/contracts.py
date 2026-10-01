@@ -90,7 +90,9 @@ def validate_evidence(evidence, receipt_id, ocr_run_id):
             for index, page in enumerate(pages):
                 if (
                     set(page) != {"page_index", "evidence"}
+                    or type(page["page_index"]) is not int
                     or page["page_index"] != index
+                    or page["evidence"].get("schema_version") != "1.3"
                 ):
                     raise invalid()
                 validate_evidence(page["evidence"], receipt_id, ocr_run_id)
@@ -130,8 +132,14 @@ def cells(result):
 
 def validate_result(result, evidence, receipt_id, kie_run_id, ocr_run_id):
     try:
+        from uuid import UUID
+
+        from ai.kie.v2.contract import validate_result as validate_provenance
+
         validate_transport(result)
-        validator("invoice-kie-result.v2.schema.json").validate(result)
+        # Use the shared TV4 validator: schema alone cannot enforce raw evidence,
+        # ordered block linkage or aggregate row review metadata.
+        validate_provenance(result, evidence, kie_run_id=UUID(kie_run_id))
         if (
             result["receipt_id"],
             result["kie_run_id"],

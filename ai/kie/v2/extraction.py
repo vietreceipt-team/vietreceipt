@@ -191,7 +191,8 @@ def table_regions(blocks):
                 or any(label_match(b.text, LABELS) for b in row)
                 or any(
                     re.match(
-                        r"^(?:nguoi |ky ten|signature|ghi chu|notes?\b)", folded(b.text)
+                        r"^(?:nguoi |ky ten|signature|ghi chu|notes?\b|chi dung de\b|cam on\b|thank you\b)",
+                        folded(b.text),
                     )
                     for b in row
                 )

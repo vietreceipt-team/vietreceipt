@@ -9,16 +9,13 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 from pypdf import PdfWriter
-from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func, select
 
 from backend.app.main import create_app
-from backend.app.storage.filesystem import FileSystemReceiptImageStorage
 from backend.app.v2.contracts import HEADER_FIELDS, validate_result
 from backend.app.v2.errors import V2Error
-from backend.app.v2.models import Attempt, Base, MachineRun, Outbox
+from backend.app.v2.models import Attempt, MachineRun, Outbox
 from backend.app.v2.processing import Processor
-from backend.app.v2.service import InvoiceService
 
 
 def image_bytes(fmt="PNG"):
@@ -37,11 +34,18 @@ def pdf_bytes():
 
 def value(v="00123"):
     return dict(
-        raw_text=str(v),
+        raw_text="Công ty 00123",
+        predicted_value=str(v),
         normalized_value=v,
+        normalization=dict(rule="test-only", version="1"),
         value_status="PRESENT",
+        confidence=None,
+        heuristic_score=0.95,
+        score_version="test-only-1",
         source_block_ids=["b1"],
         machine_needs_review=False,
+        review_reasons=[],
+        review_policy_version="test-only-1",
     )
 
 
@@ -85,6 +89,9 @@ def kie(evidence, *, kie_run_id):
         receipt_id=evidence["receipt_id"],
         kie_run_id=str(kie_run_id),
         source_ocr_run_id=evidence["ocr_run_id"],
+        extractor=dict(name="backend-test-double", version="1"),
+        configuration=dict(name="backend-test-double", version="1"),
+        consistency=dict(version="test-only-1", tolerance_vnd=1, checks=[]),
         fields=fields,
         tax_breakdown=[
             dict(rate=value("10%"), taxable_amount=value(100), tax_amount=value(10))
@@ -92,6 +99,10 @@ def kie(evidence, *, kie_run_id):
         line_items=[
             dict(
                 line_id="line-1",
+                source_block_ids=["b1"],
+                machine_needs_review=False,
+                review_reasons=[],
+                review_policy_version="test-only-1",
                 description=value("Cà phê"),
                 unit=value("ly"),
                 quantity=value(2),
@@ -99,18 +110,6 @@ def kie(evidence, *, kie_run_id):
                 amount=value(100),
             )
         ],
-    )
-
-
-@pytest.fixture
-def svc(tmp_path):
-    engine = create_engine(
-        "sqlite:///" + str(tmp_path / "db.sqlite"), connect_args={"timeout": 20}
-    )
-    Base.metadata.create_all(engine)
-    return InvoiceService(
-        sessionmaker(engine, expire_on_commit=False),
-        FileSystemReceiptImageStorage(tmp_path / "files"),
     )
 
 
@@ -142,6 +141,48 @@ def test_upload_and_outbox(svc):
 )
 def test_valid_uploads(svc, name, mime, data):
     assert svc.upload(name, mime, data)["status"] == "UPLOADED"
+
+
+def test_upload_rejects_pdf_beyond_reader_page_limit(svc):
+    stream = io.BytesIO()
+    writer = PdfWriter()
+    for _ in range(31):
+        writer.add_blank_page(100, 100)
+    writer.write(stream)
+    with pytest.raises(V2Error):
+        svc.upload("too-many-pages.pdf", "application/pdf", stream.getvalue())
+
+
+def test_list_returns_reviewed_headers_without_per_invoice_queries(svc):
+    from sqlalchemy import event
+
+    first = process(svc)
+    second = process(svc)
+    rid = second["receipt_id"]
+    second = svc.correct(
+        rid, "header", "", "invoice_number", "000007", "PRESENT", second["version"]
+    )
+    second = svc.correct(
+        rid, "header", "", "total_amount", 0, "PRESENT", second["version"]
+    )
+    svc.correct(rid, "header", "", "currency", None, "UNKNOWN", second["version"])
+    statements = []
+    engine = svc.sessions.kw["bind"]
+
+    def record(connection, cursor, statement, parameters, context, executemany):
+        if statement.lstrip().upper().startswith("SELECT"):
+            statements.append(statement)
+
+    event.listen(engine, "before_cursor_execute", record)
+    try:
+        summaries = svc.list()
+    finally:
+        event.remove(engine, "before_cursor_execute", record)
+    assert len(statements) == 2
+    assert [item["receipt_id"] for item in summaries] == [rid, first["receipt_id"]]
+    assert summaries[0]["invoice_number"] == "000007"
+    assert summaries[0]["total_amount"] == 0 and summaries[0]["currency"] is None
+    assert svc.list(limit=1, offset=1)[0]["receipt_id"] == first["receipt_id"]
 
 
 @pytest.mark.parametrize(
@@ -274,7 +315,11 @@ def test_unknown_requires_explicit_review(svc):
     def unsure(e, **kw):
         result = kie(e, **kw)
         result["fields"]["buyer_name"].update(
-            normalized_value=None, value_status="UNKNOWN"
+            normalized_value=None,
+            normalization=None,
+            value_status="UNKNOWN",
+            machine_needs_review=True,
+            review_reasons=["NO_CANDIDATE"],
         )
         return result
 
@@ -285,6 +330,33 @@ def test_unknown_requires_explicit_review(svc):
         r["receipt_id"], "header", "", "buyer_name", None, "NOT_PRESENT", r["version"]
     )
     assert svc.verify(r["receipt_id"], r["version"])["status"] == "VERIFIED"
+
+
+def test_exports_preserve_reviewed_uncertainty(svc):
+    import csv
+
+    r = process(svc)
+    rid = r["receipt_id"]
+    r = svc.correct(rid, "header", "", "buyer_name", None, "UNKNOWN", r["version"])
+    r = svc.correct(rid, "line", "line-1", "unit", None, "UNREADABLE", r["version"])
+    r = svc.correct(rid, "tax", "0", "rate", None, "NOT_PRESENT", r["version"])
+    svc.verify(rid, r["version"])
+    payload = json.loads(svc.export(rid, "json")[0])
+    assert payload["header"]["buyer_name"] is None
+    assert payload["value_statuses"]["header"]["buyer_name"] == "UNKNOWN"
+    assert payload["value_statuses"]["line_items"][0]["unit"] == "UNREADABLE"
+    assert payload["value_statuses"]["tax_breakdown"][0]["rate"] == "NOT_PRESENT"
+    assert payload["ocr_run_id"] == r["latest_ocr_run_id"]
+    with zipfile.ZipFile(io.BytesIO(svc.export(rid, "csv")[0])) as archive:
+        for name, field, status in (
+            ("invoice_headers.csv", "buyer_name", "UNKNOWN"),
+            ("invoice_items.csv", "unit", "UNREADABLE"),
+            ("invoice_taxes.csv", "rate", "NOT_PRESENT"),
+        ):
+            row = next(
+                csv.DictReader(io.StringIO(archive.read(name).decode("utf-8-sig")))
+            )
+            assert row[field] == "" and row[field + "_status"] == status
 
 
 def test_nonpresent_nonnull_and_foreign_evidence_rejected():
@@ -390,7 +462,7 @@ def test_api_rejects_boolean_amount_and_exposes_evidence(svc):
 def test_missing_provider_is_explicit(svc, monkeypatch):
     from backend.app.v2.providers import configured_kie
 
-    monkeypatch.delenv("V2_KIE_CALLABLE", raising=False)
+    monkeypatch.setenv("V2_KIE_CALLABLE", "")
     r = process(svc, provider=configured_kie)
     assert r["processing_error"]["code"] == "PROVIDER_NOT_CONFIGURED"
 
@@ -423,16 +495,16 @@ def test_openapi_matches_runtime():
     assert yaml.safe_load(Path("openapi/openapi-v2.yaml").read_text()) == document()
 
 
-def test_review_line_ids_with_slashes(svc):
+def test_review_canonical_line_ids(svc):
     def provider(e, **kw):
         result = kie(e, **kw)
-        result["line_items"][0]["line_id"] = "page/1"
+        result["line_items"][0]["line_id"] = "page_1-line-2"
         return result
 
     r = process(svc, provider=provider)
     client = TestClient(create_app(v2_service=svc))
     response = client.patch(
-        f"/api/v2/receipts/{r['receipt_id']}/line-items/page%2F1/description/correction",
+        f"/api/v2/receipts/{r['receipt_id']}/line-items/page_1-line-2/description/correction",
         json={
             "expected_version": r["version"],
             "value": "Cà phê mới",

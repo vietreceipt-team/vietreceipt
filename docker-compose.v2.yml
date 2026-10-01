@@ -4,13 +4,14 @@ x-runtime: &runtime
   build:
     context: .
     dockerfile: infra/docker/backend-v2.Dockerfile
+    target: runtime
   environment: &environment
     DATABASE_URL: postgresql+psycopg://vietreceipt:local_dev_only@postgres:5432/vietreceipt
     CELERY_BROKER_URL: redis://redis:6379/0
     STORAGE_BACKEND: filesystem
     STORAGE_FILESYSTEM_ROOT: /data/sources
-    V2_DOCUMENT_READER_CALLABLE: ${V2_DOCUMENT_READER_CALLABLE:-}
-    V2_KIE_CALLABLE: ${V2_KIE_CALLABLE:-}
+    V2_DOCUMENT_READER_CALLABLE: ${V2_DOCUMENT_READER_CALLABLE:-ai.document_reader.backend:read_document}
+    V2_KIE_CALLABLE: ${V2_KIE_CALLABLE:-ai.kie.v2:extract_invoice}
   volumes:
     - source_data:/data/sources
   depends_on:
@@ -44,6 +45,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/backend-v2.Dockerfile
+      target: runtime
     environment: *environment
     command: [python, -m, alembic, -c, backend/alembic.ini, upgrade, head]
     depends_on:
@@ -58,7 +60,14 @@ services:
       retries: 12
   worker:
     <<: *runtime
-    command: [python, -m, celery, -A, backend.app.v2.worker:celery_app, worker, --loglevel=info, --concurrency=2]
+    build:
+      context: .
+      dockerfile: infra/docker/backend-v2.Dockerfile
+      target: worker
+    volumes:
+      - source_data:/data/sources
+      - reader_models:/app/.paddlex-cache
+    command: [python, -m, celery, -A, backend.app.v2.worker:celery_app, worker, --loglevel=info, "--concurrency=${WORKER_CONCURRENCY:-1}"]
   beat:
     <<: *runtime
     command: [python, -m, celery, -A, backend.app.v2.worker:celery_app, beat, --loglevel=info, --schedule=/tmp/celerybeat-schedule]
@@ -66,3 +75,4 @@ volumes:
   db_data:
   redis_data:
   source_data:
+  reader_models:

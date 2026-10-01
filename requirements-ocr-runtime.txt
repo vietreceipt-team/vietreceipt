@@ -1,0 +1,15 @@
+# Shared CPU pins; callers select their transport validator version.
+paddlepaddle==3.0.0
+paddleocr==3.0.3
+paddlex[ie,multimodal,ocr]==3.0.3
+# PaddleX needs the compatible LangChain 0.3 line.
+langchain==0.3.30
+langchain-community==0.3.31
+langchain-core==0.3.86
+langchain-openai==0.3.35
+langchain-text-splitters==0.3.11
+numpy==1.26.4
+Pillow==10.4.0
+jiwer==3.0.3
+# Paddle imports pkg_resources, removed in setuptools 81.
+setuptools==80.9.0

@@ -30,8 +30,9 @@ evidence, audit = reader.process_with_metadata(
 )
 ```
 
-For the TV5 worker from PR #53, install reader requirements in the worker image,
-put the repository root and `backend` on `PYTHONPATH`, and set:
+For the integrated TV5 worker, install `backend/requirements-ai.txt` (combines
+backend and OCR dependencies without conflicting validator pins), put the repository
+root on `PYTHONPATH`, and set:
 
 ```text
 V2_DOCUMENT_READER_CALLABLE=ai.document_reader.backend:read_document
@@ -46,7 +47,9 @@ TV4 must consume the document envelope and preserve `source_block_ids`.
 
 - PNG/JPEG: signature validation, EXIF orientation, optional resize/contrast,
   document orientation classifier, Vietnamese PP-OCRv3.
-- Text PDF: extract words and glyph geometry directly with PDFium.
+- Text PDF: extract glyph/word geometry directly with PDFium, then join adjacent
+  words on overlapping baselines into spans using font-relative gaps. Column
+  gutters remain separate; KIE can match multiword labels without a demo adapter.
 - Scan or unusable text layer: render page at 200 DPI RGB, then OCR.
 - Mixed document: route each page separately. A large image with a sparse text
   footer is treated as a scan. This is a heuristic, not full intra-page fusion.

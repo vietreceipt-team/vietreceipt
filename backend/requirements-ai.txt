@@ -1,0 +1,4 @@
+# Complete V2 worker runtime with the actual TV3/TV4 providers.
+-r requirements.txt
+-r ../requirements-ocr-runtime.txt
+pypdfium2==5.12.1

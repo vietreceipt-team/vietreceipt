@@ -120,6 +120,7 @@ class ReaderTests(unittest.TestCase):
     def test_multilingual_text(self):
         fonts = [
             Path("C:/Windows/Fonts/arial.ttf"),
+            Path("/System/Library/Fonts/Supplemental/Arial.ttf"),
             Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
         ]
         font = next((p for p in fonts if p.exists()), None)
@@ -275,6 +276,7 @@ class ReaderTests(unittest.TestCase):
         with self.assertRaises(ReaderError) as ctx:
             self.read(self.png(), "image/png", reader)
         self.assertEqual(ctx.exception.code, "OCR_FAILED")
+        self.assertTrue(ctx.exception.retryable)
         self.assertNotIn("private", str(ctx.exception))
 
     @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
@@ -299,6 +301,7 @@ class ReaderTests(unittest.TestCase):
         with self.assertRaises(ReaderError) as ctx:
             self.read(self.png(), "image/png", reader)
         self.assertEqual(ctx.exception.code, "ORIENTATION_FAILED")
+        self.assertTrue(ctx.exception.retryable)
 
     @unittest.skipUnless(HAS_PDF_FIXTURE_DEPS, "reportlab test dependency unavailable")
     def test_benchmark_keeps_failures_and_missing_references(self):

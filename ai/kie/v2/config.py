@@ -25,7 +25,7 @@ MONEY_FIELDS = {
     "amount",
     "taxable_amount",
 }
-EXTRACTOR = {"name": "deterministic-invoice-kie", "version": "2.0.0"}
+EXTRACTOR = {"name": "deterministic-invoice-kie", "version": "2.0.1"}
 CONFIGURATION = {"name": "invoice-vnd-baseline", "version": "2.0.0"}
 REVIEW_VERSION = "invoice-review-2.0.0"
 SCORE_VERSION = "invoice-heuristic-2.0.0"

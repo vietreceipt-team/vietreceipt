@@ -1,5 +1,7 @@
 # TV5 V2 — báo cáo kiểm thử và phụ thuộc
 
+Đây là báo cáo lịch sử ngày 22/09. Bản tích hợp sau khi TV3/TV4/TV6 merge được cập nhật tại [Backend V2 integration](backend-v2-integration.md).
+
 Ngày kiểm tra: 22/09/2026. Base của mã nguồn: `main` commit `4f662e9e8cb4cbab309a8d187d318cba04945d6c`.
 
 ## Đã chạy

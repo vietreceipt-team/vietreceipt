@@ -6,9 +6,14 @@ from uuid import UUID
 
 from .errors import V2Error
 
+DEFAULT_PROVIDERS = {
+    "V2_DOCUMENT_READER_CALLABLE": "ai.document_reader.backend:read_document",
+    "V2_KIE_CALLABLE": "ai.kie.v2:extract_invoice",
+}
+
 
 def load_callable(setting):
-    path = os.getenv(setting, "")
+    path = os.getenv(setting, DEFAULT_PROVIDERS.get(setting, ""))
     if not path:
         raise V2Error(
             "PROVIDER_NOT_CONFIGURED",

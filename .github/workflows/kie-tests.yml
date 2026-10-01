@@ -123,4 +123,14 @@ jobs:
 
       - name: Check patch whitespace
         shell: bash
-        run: git diff --check "origin/${{ github.base_ref }}...HEAD"
+        env:
+          PR_BASE_REF: ${{ github.base_ref }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [ -n "$PR_BASE_REF" ]; then
+            git diff --check "origin/$PR_BASE_REF...HEAD"
+          elif [ -n "$PUSH_BEFORE_SHA" ] && [ "$PUSH_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            git diff --check "$PUSH_BEFORE_SHA" HEAD
+          else
+            git show --format= --check HEAD
+          fi

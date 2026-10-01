@@ -1,7 +1,10 @@
 name: TV3 Document Reader V2
 on:
   pull_request:
-    paths: ['ai/document_reader/**', 'ai/ocr/**', 'schemas/**', 'scripts/*document*', 'tests/test_document_reader.py', 'requirements-document-reader*', '.github/workflows/document-reader-v2.yml']
+    paths: ['ai/document_reader/**', 'ai/ocr/**', 'schemas/**', 'scripts/*document*', 'tests/test_document_reader.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
+  push:
+    branches: [main]
+    paths: ['ai/document_reader/**', 'ai/ocr/**', 'tests/test_document_reader.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
   workflow_dispatch:
 jobs:
   contract-and-pdf:

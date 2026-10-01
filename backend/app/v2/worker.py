@@ -12,6 +12,7 @@ celery_app = Celery(
     "vietreceipt_v2", broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 )
 celery_app.conf.update(
+    task_default_queue="vietreceipt-v2",
     task_serializer="json",
     accept_content=["json"],
     task_acks_late=True,

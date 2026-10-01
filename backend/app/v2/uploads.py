@@ -16,7 +16,7 @@ TYPES = {
 
 
 def validate_upload(
-    filename, mime, data, max_bytes, max_pixels=40_000_000, max_pages=100
+    filename, mime, data, max_bytes, max_pixels=40_000_000, max_pages=30
 ):
     filename = PurePosixPath((filename or "").replace("\\", "/")).name
     ext = PurePosixPath(filename).suffix.lower()

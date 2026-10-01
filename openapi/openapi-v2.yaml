@@ -1164,6 +1164,16 @@ components:
           - type: string
           - type: 'null'
           title: Seller Name
+        invoice_number:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Invoice Number
+        currency:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Currency
         invoice_date:
           anyOf:
           - type: string
