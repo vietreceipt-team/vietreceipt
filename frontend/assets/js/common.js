@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { icon } from "./ui.js?v=20260930";
 export const CORE_FIELD_TYPES = [
   "merchant_name",
   "receipt_date",
@@ -87,18 +88,12 @@ export function renderNavigation() {
     { href: "/receipts/", label: "Hóa đơn", active: pathname.startsWith("/receipts") },
   ];
 
-  host.innerHTML = `<header class="sticky top-0 z-50 h-14 border-b border-slate-200/90 bg-white/95 backdrop-blur">
-    <div class="flex h-full w-full items-center gap-3 px-5">
-      <a href="/receipts/" class="flex shrink-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2" aria-label="VietReceipt — Trang hóa đơn">
-        <span class="grid size-9 place-items-center rounded-xl bg-teal-800 text-base font-black tracking-tight text-white shadow-sm shadow-teal-900/20">V</span>
-        <span class="hidden text-lg font-bold tracking-[-0.025em] text-slate-950 sm:inline">VietReceipt</span>
-      </a>
-      <nav class="ml-1 flex min-w-0 flex-1 items-center gap-1 overflow-x-auto sm:ml-6" aria-label="Điều hướng chính">
-        ${navItems.map((item) => `<a href="${item.href}" class="shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${item.active ? "bg-teal-50 text-teal-800" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"}">${item.label}</a>`).join("")}
-      </nav>
-      <span class="hidden text-xs text-slate-500 lg:inline">Bản thử nghiệm · chưa có đăng nhập</span>
-    </div>
-  </header>`;
+  document.body.classList.add("app-shell");
+  host.innerHTML = `<aside class="app-sidebar">
+    <a href="/receipts/" class="app-brand" aria-label="VietReceipt — Trang hóa đơn"><span class="brand-mark">${icon("receipt")}</span><span>VietReceipt</span></a>
+    <nav class="sidebar-nav" aria-label="Điều hướng chính">${navItems.map((item, index) => `<a href="${item.href}" class="sidebar-link ${item.active ? "active" : ""}" ${item.active ? 'aria-current="page"' : ""}>${icon(index === 0 ? "file" : "list")}<span>${item.label}</span></a>`).join("")}</nav>
+    <div class="sidebar-foot"><span class="sidebar-dot"></span><span>Không gian hóa đơn</span></div>
+  </aside>`;
 }
 
 export function setBusy(button, busy, busyText, idleText) {

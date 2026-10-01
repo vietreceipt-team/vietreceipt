@@ -103,7 +103,7 @@ test("correction payload giữ type canonical và optimistic concurrency token",
 test("HTML shell dùng shared stylesheet và ES modules", () => {
   const html = readFileSync(join(root, "receipts/index.html"), "utf8");
   assert.match(html, /assets\/css\/tailwind\.css/);
-  assert.match(html, /type="module" src="\/assets\/js\/receipts-v2\.js"/);
+  assert.match(html, /type="module" src="\/assets\/js\/receipts-v2\.js(?:\?v=[^"]+)?"/);
 });
 
 

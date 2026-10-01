@@ -83,6 +83,7 @@ export const invoiceApi={
   },
   async list(limit=50,offset=0){const page=await json(`${BASE}?limit=${limit}&offset=${offset}`);if(!Array.isArray(page?.items))throw new Error("Backend trả danh sách không hợp lệ.");return page;},
   async detail(id){return assertDetail(await json(path(id)));},
+  async history(id){const items=await json(`${path(id)}/history`);if(!Array.isArray(items))throw new Error("Không tải được lịch sử hóa đơn.");return items;},
   async source(id){const response=await request(v2Paths.source(id));const type=response.headers.get("content-type")?.split(";")[0]||"";if(!["image/jpeg","image/png","application/pdf"].includes(type))throw new Error("Backend trả nguồn tài liệu không hợp lệ.");return {blob:await response.blob(),type};},
   async evidence(id){return json(v2Paths.evidence(id));},
   async correction(id,section,row,field,value,status,version){

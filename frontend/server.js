@@ -109,7 +109,7 @@ export function createStaticServer(root = projectRoot, {
         response.end(html);
         return;
       }
-      response.writeHead(200, { "content-type": contentTypes[extname(filePath).toLowerCase()] ?? "application/octet-stream", "cache-control": extname(filePath) === ".html" ? "no-cache" : "public, max-age=3600" });
+      response.writeHead(200, { "content-type": contentTypes[extname(filePath).toLowerCase()] ?? "application/octet-stream", "cache-control": [".html", ".js", ".mjs", ".css"].includes(extname(filePath)) ? "no-cache" : "public, max-age=3600" });
       createReadStream(filePath).pipe(response);
     } catch {
       response.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
