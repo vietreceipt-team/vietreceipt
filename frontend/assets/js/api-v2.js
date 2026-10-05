@@ -22,11 +22,15 @@ export function validateFile(file) {
   if (file.size>10*1024*1024) return "Tệp vượt giới hạn 10 MiB.";
   return null;
 }
-export function correctionValue(field,text,status){
+export function correctionValue(field,text,status,currency="VND"){
   if (!Object.hasOwn(VALUE_LABELS,status)) throw new Error("Trạng thái giá trị không hợp lệ.");
   if(status!=="PRESENT") return null;
   const value=text.trim();
   if(["subtotal","tax_amount","total_amount","unit_price","amount","taxable_amount"].includes(field)){
+    if(currency==="USD"){
+      if(!/^\d+(?:\.\d{1,2})?$/.test(value)||!Number.isFinite(Number(value))||Number(value)>Number.MAX_SAFE_INTEGER/100) throw new Error("Số tiền USD phải không âm, dùng dấu chấm và tối đa 2 chữ số thập phân.");
+      return Number(value);
+    }
     if(!/^\d+$/.test(value)||!Number.isSafeInteger(Number(value))) throw new Error("Số tiền phải là số nguyên không âm.");
     return Number(value);
   }

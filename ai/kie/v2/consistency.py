@@ -10,7 +10,13 @@ def check(result):
     checks = []
 
     def compare(name, left, right, cells):
-        available = left is not None and right is not None
+        # This diagnostic contract is denominated in integer VND. Do not apply
+        # its one-VND tolerance or label USD differences as VND.
+        available = (
+            fields["currency"]["normalized_value"] == "VND"
+            and left is not None
+            and right is not None
+        )
         passed = abs(left - right) <= TOLERANCE_VND if available else None
         checks.append(
             {

@@ -20,9 +20,19 @@ def acquire(s, rid, version):
 
 
 def correct(service, rid, section, row_id, field, value, status, version):
-    validate_value(section, field, value, status)
     with service.sessions.begin() as s:
         service.get(s, rid)
+        currency_cell = s.get(Cell, (rid, "header", "", "currency"))
+        currency = (
+            (
+                (currency_cell.correction or {}).get("value")
+                if currency_cell.correction
+                else currency_cell.machine["normalized_value"]
+            )
+            if currency_cell
+            else None
+        )
+        validate_value(section, field, value, status, currency=currency)
         acquire(s, rid, version)
         cell = s.get(Cell, (rid, section, row_id, field))
         if cell is None:

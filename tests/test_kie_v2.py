@@ -141,7 +141,7 @@ class InvoiceV2Tests(unittest.TestCase):
                 )
 
     def test_currency_required_and_unsupported(self):
-        for currency in ["USD", "EUR", "JPY"]:
+        for currency in ["EUR", "JPY"]:
             result = self.extract(
                 evidence(
                     [("Total: 100", 0.1, 0.1), ("Currency: " + currency, 0.1, 0.2)]
@@ -156,6 +156,83 @@ class InvoiceV2Tests(unittest.TestCase):
                 "total_amount"
             ]["normalized_value"]
         )
+
+    def test_usd_money_and_english_calendar_dates(self):
+        for value, expected in [
+            ("349 USD", 349),
+            ("USD 1,234.56", 1234.56),
+            ("0.05", 0.05),
+        ]:
+            self.assertEqual(
+                self.field("Total: " + value, "total_amount", currency="USD")[
+                    "normalized_value"
+                ],
+                expected,
+            )
+        for value in ["1.234", "1,23", "349 VND", "NaN", "-1"]:
+            self.assertIsNone(
+                self.field("Total: " + value, "total_amount", currency="USD")[
+                    "normalized_value"
+                ]
+            )
+        for value, expected in [
+            ("21st Sep 2026", "2026-09-21"),
+            ("2nd October 2026", "2026-10-02"),
+            ("29th Feb 2024", "2024-02-29"),
+        ]:
+            self.assertEqual(
+                self.field("Date: " + value, "invoice_date")["normalized_value"],
+                expected,
+            )
+        for value in ["31st Sep 2026", "29th Feb 2025", "21st Other 2026"]:
+            self.assertIsNone(
+                self.field("Date: " + value, "invoice_date")["normalized_value"]
+            )
+
+    def test_english_service_invoice_preserves_roles_and_missing_fields(self):
+        source = evidence(
+            [
+                ("Example Service Joint Stock Company", 0.05, 0.02, 0.5),
+                ("Address: 1 Example Road,", 0.05, 0.045, 0.4),
+                ("Example City", 0.05, 0.07, 0.25),
+                ("INVOICE", 0.4, 0.13),
+                ("To: Sample Client", 0.05, 0.2, 0.35),
+                ("LDA (SAMPLE)", 0.05, 0.225, 0.25),
+                ("Taxcode: 7654321", 0.05, 0.27),
+                ("Date: 3rd Oct 2026", 0.55, 0.27, 0.4),
+                ("Revenue Sharing of the service", 0.05, 0.4, 0.4),
+                ("Amount", 0.7, 0.4),
+                ("(SERVICE 25%)", 0.05, 0.425),
+                ("Example chat service", 0.05, 0.46, 0.4),
+                ("123.45 USD", 0.7, 0.46),
+                ("of Sep 2026", 0.05, 0.485),
+                ("Total", 0.05, 0.53),
+                ("123.45 USD", 0.7, 0.53),
+                ("Please remit payment to:", 0.05, 0.62, 0.4),
+                ("Beneficiary: Another Account", 0.05, 0.65, 0.4),
+                ("Address: Other bank address", 0.05, 0.68, 0.4),
+            ]
+        )
+        result = self.extract(source)
+        fields = result["fields"]
+        self.assertEqual(
+            fields["seller_name"]["normalized_value"],
+            "Example Service Joint Stock Company",
+        )
+        self.assertTrue(fields["seller_name"]["machine_needs_review"])
+        self.assertEqual(
+            fields["seller_address"]["normalized_value"], "1 Example Road, Example City"
+        )
+        self.assertEqual(
+            fields["buyer_name"]["normalized_value"], "Sample Client LDA (SAMPLE)"
+        )
+        self.assertEqual(fields["buyer_tax_id"]["normalized_value"], "7654321")
+        self.assertEqual(fields["total_amount"]["normalized_value"], 123.45)
+        self.assertEqual(fields["currency"]["normalized_value"], "USD")
+        self.assertEqual(fields["tax_amount"]["value_status"], "UNKNOWN")
+        self.assertEqual(len(result["line_items"]), 1)
+        self.assertEqual(result["line_items"][0]["amount"]["normalized_value"], 123.45)
+        self.assertEqual(result["tax_breakdown"], [])
 
     def test_unicode_and_identifier_normalization(self):
         self.assertEqual(

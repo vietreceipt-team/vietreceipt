@@ -18,6 +18,9 @@ test("validation JPEG/PNG/PDF và giá trị correction",()=>{
   assert.equal(correctionValue("seller_tax_id","00120","PRESENT"),"00120");
   assert.equal(correctionValue("amount","","UNREADABLE"),null);
   assert.throws(()=>correctionValue("amount","12.5","PRESENT"));
+  assert.equal(correctionValue("amount","123.45","PRESENT","USD"),123.45);
+  assert.throws(()=>correctionValue("amount","123.456","PRESENT","USD"));
+  assert.throws(()=>correctionValue("amount","1,234.56","PRESENT","USD"));
 });
 test("unresolved phân biệt header, line và tax",()=>{
   const record=detail();record.fields.seller_name.effective_needs_review=true;record.line_items[0].description.effective_needs_review=true;record.tax_breakdown[0].rate.effective_needs_review=true;

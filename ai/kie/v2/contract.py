@@ -7,7 +7,7 @@ from uuid import UUID
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-from .config import LINE_FIELDS, TAX_FIELDS
+from .config import LINE_FIELDS, TAX_FIELDS, MONEY_FIELDS
 from .evidence import flatten
 
 
@@ -34,6 +34,25 @@ def cells(result):
 def validate_result(result: dict, evidence: dict, *, kie_run_id: UUID):
     json.dumps(result, allow_nan=False)
     validator().validate(result)
+    from decimal import Decimal
+
+    currency = result["fields"]["currency"]["normalized_value"]
+    money_cells = [result["fields"][f] for f in MONEY_FIELDS if f in result["fields"]]
+    money_cells += [
+        row[f] for row in result["line_items"] for f in ("amount", "unit_price")
+    ]
+    money_cells += [
+        row[f]
+        for row in result["tax_breakdown"]
+        for f in ("taxable_amount", "tax_amount")
+    ]
+    for cell in money_cells:
+        value = cell["normalized_value"]
+        if value is not None:
+            number = Decimal(str(value))
+            scale = 100 if currency == "USD" else 1
+            if number * scale != (number * scale).to_integral_value():
+                raise ValueError("Money precision does not match the printed currency")
     blocks = flatten(evidence)
     by_id = {b.block_id: b for b in blocks}
     if (result["receipt_id"], result["source_ocr_run_id"], result["kie_run_id"]) != (

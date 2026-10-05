@@ -120,6 +120,16 @@ test("trường thiếu dữ liệu có thể mở sửa và đổi trạng thá
  await seller.locator("[data-status]").selectOption("PRESENT");await seller.locator("[data-input]").fill("Công ty đã đối chiếu");await seller.getByRole("button",{name:"Lưu",exact:true}).click();
  await expect(seller.locator("[data-input]")).toHaveValue("Công ty đã đối chiếu");expect(state.record.fields.seller_name.effective_needs_review).toBe(false);
 });
+test("USD: lưu số tiền có phần lẻ và giữ đúng loại tiền",async({page})=>{
+ const state=await provider(page);state.record.fields.currency=cell("USD");state.record.fields.total_amount=cell(349);
+ await page.goto(`${ORIGIN}/receipts/${RID}/`);
+ const total=page.locator('[data-cell="header||total_amount"]');
+ await expect(total.locator(".amount-currency")).toHaveText("USD");
+ await total.locator("[data-edit]").click();await total.locator("[data-input]").fill("349.25");
+ await total.getByRole("button",{name:"Lưu",exact:true}).click();
+ await expect(total).toContainText("Đã lưu");expect(state.record.fields.total_amount.effective_value).toBe(349.25);
+ expect(state.record.fields.currency.effective_value).toBe("USD");
+});
 test("danh sách tìm kiếm không dấu, lọc ngày/trạng thái và phân trang",async({page})=>{
  const items=Array.from({length:12},(_,index)=>({receipt_id:RID,original_filename:`hoa_don_${index+1}.pdf`,status:index===0?"VERIFIED":"NEEDS_REVIEW",seller_name:index===0?"Công ty Văn Phòng Mẫu":"Công ty ABC",invoice_date:index===0?"2026-09-24":"2026-09-20",total_amount:143000,created_at:"2026-09-24T00:00:00Z"}));
  // Distinct records make pagination reflect real API records rather than duplicate IDs.

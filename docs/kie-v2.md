@@ -109,11 +109,13 @@ Tax group values are not summed to invent an absent header tax amount.
 | Identifiers | Reuse `invoice_id` primitive; NFC, trim/collapse whitespace, retain leading zeros, case and safe separators; legacy rule/version recorded |
 | Names/addresses | Reuse merchant name/address primitives behind seller/buyer canonical names; no accent repair, geocoding or abbreviation expansion |
 | Date | Reuse calendar validation; ISO or unambiguous numeric day/month; ambiguous `09/10/2026` stays null even with a generic Vietnamese label. Explicit `ngày D tháng M năm YYYY` supplies components. No two-digit-year guessing |
-| Money | Reuse total-amount integer parser only with explicit VND evidence; consistent dot/comma/space groups of three. No decimals, mixed separators, negatives or currency conversion |
-| Currency | Explicit VND/VNĐ/đ/₫/đồng markers only. Unsupported or competing currencies remain unresolved; amounts cannot be silently labeled VND |
+| Money | VND retains the integer parser and consistent groups of three. Explicit USD accepts integers or up to two decimal places using a decimal point and optional comma groups of three; no negatives, malformed grouping or currency conversion. Corrections enforce currency precision. |
+| Currency | Explicit VND/VNĐ/đ/₫/đồng markers or USD code. Bare dollar signs remain unresolved because their currency is ambiguous. Unsupported or competing currencies remain unresolved; amounts cannot be silently labeled VND. |
 | Tax ID | Remove printed ASCII spaces/dots/hyphens only, requiring 10 or 13 ASCII digits; never repair digits; `tax_id_printed_separators`, `invoice-normalization-2.0.0` |
 | Quantity | Non-negative integer or one decimal comma/dot; grouping unsupported; `quantity_decimal_no_grouping`, V2 normalization version |
 | Tax rate | Preserve printed percent or supported category; normalize whitespace and decimal comma only; V2 normalization version |
+
+English day/month-name/year dates, including `21st Sep 2026`, are calendar-validated. `To:`/`Bill to:` identify buyer sections; a unique company letterhead above `INVOICE` provides a seller candidate that remains flagged for role confirmation. Wrapped names/addresses retain every source block. Bank remittance addresses are excluded from role extraction. Explicit `Taxcode` on a USD document preserves printed foreign numeric identifiers of 5–20 digits without asserting registry validity. Service revenue/amount tables are supported; quantity, unit price, subtotal and tax are never inferred from totals. The existing VND arithmetic diagnostics are skipped for USD, as their contract uses integer VND differences and tolerance.
 
 `raw_text` is unmodified source block text joined by newline in page/reading order.
 `predicted_value` is the selected candidate before normalization. Every selected

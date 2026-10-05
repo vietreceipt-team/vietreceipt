@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from .cells import select
+from .cells import add_reason, select
 from .config import CONFIGURATION, EXTRACTOR, HEADER_FIELDS
 from .consistency import check
 from .evidence import flatten
@@ -24,6 +24,13 @@ def extract_invoice(evidence: dict, *, kie_run_id: UUID) -> dict:
         for field in HEADER_FIELDS
     }
     fields["currency"] = currency_cell
+    if fields["seller_name"]["value_status"] == "PRESENT" and any(
+        c.value == fields["seller_name"]["predicted_value"]
+        and len(c.blocks) == 1
+        and c.blocks[0].text == c.value
+        for c in candidates["seller_name"]
+    ):
+        add_reason(fields["seller_name"], "SOURCE_ROLE_UNCLEAR")
     lines, taxes = extract_tables(regions, currency)
     taxes.extend(inline_taxes(blocks, excluded, currency))
     result = {

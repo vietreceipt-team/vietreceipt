@@ -19,7 +19,7 @@ LABELS = {
     "invoice_number": r"so hoa don|invoice (?:number|no\.?)|so(?:\s*\(no\.?\))?",
     "invoice_date": r"ngay lap(?: hoa don)?|ngay hoa don|invoice date|date|ngay",
     "seller_name": r"(?:ten )?(?:don vi ban hang|nguoi ban|ben ban)|seller(?: name)?",
-    "buyer_name": r"(?:ho ten )?nguoi mua(?: hang)?|(?:ten )?(?:don vi mua hang|ben mua)|buyer(?: name)?|khach hang",
+    "buyer_name": r"(?:ho ten )?nguoi mua(?: hang)?|(?:ten )?(?:don vi mua hang|ben mua)|buyer(?: name)?|khach hang|bill to|to(?=\s*:)",
     "seller_tax_id": r"(?:ma so thue|mst)(?: nguoi ban| ben ban)|seller tax (?:id|code)",
     "buyer_tax_id": r"(?:ma so thue|mst)(?: nguoi mua| ben mua)|buyer tax (?:id|code)",
     "seller_address": r"dia chi (?:nguoi ban|ben ban)|seller address",
@@ -29,12 +29,12 @@ LABELS = {
     "currency": r"don vi tien te|loai tien|currency",
 }
 GENERIC = {
-    "tax_id": r"ma so thue|mst|tax (?:id|code)",
+    "tax_id": r"ma so thue|mst|tax\s*(?:id|code)",
     "address": r"dia chi|address",
     "name": r"ten don vi|company name",
 }
 LINE_LABELS = {
-    "description": r"ten hang(?: hoa)?(?:,? dich vu)?|hang hoa(?:,? dich vu)?|description|item",
+    "description": r"ten hang(?: hoa)?(?:,? dich vu)?|hang hoa(?:,? dich vu)?|description|item|revenue sharing of (?:the )?service",
     "unit": r"don vi tinh|dvt|unit",
     "quantity": r"so luong|sl|quantity|qty",
     "unit_price": r"don gia|unit price|price",
@@ -68,6 +68,21 @@ def label_match(value, patterns):
 def header_candidates(blocks, excluded):
     result = {field: [] for field in HEADER_FIELDS}
     anchors = []
+    # A unique company letterhead above INVOICE supplies a seller candidate.
+    # Preserve this inferred role for explicit review after selection.
+    titles = [b for b in blocks if folded(b.text) == "invoice"]
+    letterheads = [
+        b
+        for b in blocks
+        if any(b.page == t.page and b.bottom < t.top for t in titles)
+        and re.search(r"\b(?:company|corporation|limited|ltd|jsc)\b", folded(b.text))
+        and not label_match(b.text, GENERIC)
+        and not label_match(b.text, LABELS)
+    ]
+    if len(letterheads) == 1:
+        head = letterheads[0]
+        result["seller_name"].append(Candidate(head.text, (head,)))
+        anchors.append(("seller", head))
     for block in blocks:
         match = label_match(block.text, LABELS)
         if (
@@ -85,6 +100,14 @@ def header_candidates(blocks, excluded):
         context = []
         if generic:
             suffix, value = generic
+            # Bank remittance fields do not identify the invoice seller/buyer.
+            if any(
+                b.page == block.page
+                and b.top < block.top
+                and re.match(r"^(?:please remit|beneficiary|bank\s*:)", folded(b.text))
+                for b in blocks
+            ):
+                continue
             # Relative section geometry handles side-by-side roles even when
             # reading order interleaves seller and buyer blocks.
             nearby = [
@@ -138,6 +161,24 @@ def header_candidates(blocks, excluded):
             # The generic date label retains its word form for explicit component dates.
             if field == "invoice_date" and "thang" in folded(value):
                 value = "ngày " + value
+            if field in {"buyer_name", "seller_address"} and value:
+                previous = sources[-1]
+                for neighbor in sorted(blocks, key=lambda b: (b.page, b.top, b.left)):
+                    if (
+                        neighbor.page == previous.page
+                        and neighbor.block_id not in excluded
+                        and 0 <= neighbor.top - previous.bottom <= 1.1 * previous.height
+                        and abs(neighbor.left - previous.left) < previous.height
+                        and not label_match(neighbor.text, LABELS)
+                        and not label_match(neighbor.text, GENERIC)
+                        and not re.match(
+                            r"^(?:attn|contract|invoice|bank|beneficiary)\b",
+                            folded(neighbor.text),
+                        )
+                    ):
+                        value += " " + neighbor.text
+                        sources.append(neighbor)
+                        previous = neighbor
             result[field].append(
                 Candidate(value, tuple(dict.fromkeys(sources)), explicit)
             )
@@ -186,6 +227,14 @@ def table_regions(blocks):
             continue
         if current:
             _, columns, data = current
+            if (
+                not data
+                and "description" in columns
+                and folded(columns["description"].text).startswith("revenue sharing")
+                and all(re.fullmatch(r"\([^)]*\)", text(b.text)) for b in row)
+            ):
+                excluded.update(b.block_id for b in row)
+                continue
             if (
                 row[0].page != next(iter(columns.values())).page
                 or any(label_match(b.text, LABELS) for b in row)

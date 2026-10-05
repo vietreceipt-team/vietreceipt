@@ -220,7 +220,7 @@
           "properties": {
             "normalized_value": {
               "type": [
-                "integer",
+                "number",
                 "null"
               ],
               "minimum": 0

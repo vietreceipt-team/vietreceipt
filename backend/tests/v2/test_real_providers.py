@@ -69,6 +69,89 @@ def invoice_pdf(pages=1):
     return stream.getvalue()
 
 
+def test_english_usd_pdf_review_and_exports(svc, monkeypatch):
+    monkeypatch.delenv("V2_DOCUMENT_READER_CALLABLE", raising=False)
+    monkeypatch.delenv("V2_KIE_CALLABLE", raising=False)
+    stream = io.BytesIO()
+    pdf = canvas.Canvas(stream, pagesize=(600, 850))
+    for index, value in enumerate(
+        [
+            "Invoice No.: SAMPLE-USD-01",
+            "Date: 3rd October 2026",
+            "Seller name: Example Service Company",
+            "Seller address: 1 Example Road",
+            "To: Example Overseas Client",
+            "Taxcode: 7654321",
+            "Currency: USD",
+            "Subtotal: 123.45 USD",
+            "Tax amount: 0.00 USD",
+            "Total: 123.45 USD",
+        ]
+    ):
+        pdf.drawString(35, 810 - index * 25, value)
+    pdf.save()
+    client = TestClient(create_app(v2_service=svc))
+    rid = client.post(
+        "/api/v2/receipts",
+        files={"file": ("synthetic-usd.pdf", stream.getvalue(), "application/pdf")},
+    ).json()["receipt_id"]
+    assert Processor(svc, configured_reader, configured_kie).process(rid)
+    detail = client.get(f"/api/v2/receipts/{rid}").json()
+    assert detail["fields"]["currency"]["effective_value"] == "USD"
+    assert detail["fields"]["total_amount"]["effective_value"] == 123.45
+    assert detail["fields"]["invoice_date"]["effective_value"] == "2026-10-03"
+    assert detail["fields"]["buyer_tax_id"]["effective_value"] == "7654321"
+    # Missing printed identifiers cannot be silently assumed absent.
+    assert (
+        client.post(
+            f"/api/v2/receipts/{rid}/verify",
+            json={"expected_version": detail["version"]},
+        ).status_code
+        == 422
+    )
+    response = client.patch(
+        f"/api/v2/receipts/{rid}/fields/total_amount/correction",
+        json={
+            "expected_version": detail["version"],
+            "value": 123.456,
+            "status": "PRESENT",
+        },
+    )
+    assert response.status_code == 422
+    response = client.patch(
+        f"/api/v2/receipts/{rid}/fields/total_amount/correction",
+        json={
+            "expected_version": detail["version"],
+            "value": 123.45,
+            "status": "PRESENT",
+        },
+    )
+    assert response.status_code == 200
+    detail = response.json()
+    for field, cell in list(detail["fields"].items()):
+        if cell["effective_needs_review"]:
+            response = client.patch(
+                f"/api/v2/receipts/{rid}/fields/{field}/correction",
+                json={
+                    "expected_version": detail["version"],
+                    "value": None,
+                    "status": "NOT_PRESENT",
+                },
+            )
+            assert response.status_code == 200
+            detail = response.json()
+    response = client.post(
+        f"/api/v2/receipts/{rid}/verify", json={"expected_version": detail["version"]}
+    )
+    assert response.status_code == 200
+    for format in ("json", "csv", "xlsx"):
+        response = client.get(f"/api/v2/receipts/{rid}/export?format={format}")
+        assert response.status_code == 200
+        if format == "json":
+            assert response.json()["header"]["currency"] == "USD"
+            assert response.json()["header"]["total_amount"] == 123.45
+
+
 @pytest.mark.parametrize("pages", [1, 2])
 def test_real_pdf_to_verified_exports(svc, monkeypatch, pages):
     monkeypatch.delenv("V2_DOCUMENT_READER_CALLABLE", raising=False)

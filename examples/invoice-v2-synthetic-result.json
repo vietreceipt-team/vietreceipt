@@ -5,11 +5,11 @@
   "source_ocr_run_id": "00000000-0000-4000-8000-000000000055",
   "extractor": {
     "name": "deterministic-invoice-kie",
-    "version": "2.0.1"
+    "version": "2.0.2"
   },
   "configuration": {
-    "name": "invoice-vnd-baseline",
-    "version": "2.0.0"
+    "name": "invoice-baseline",
+    "version": "2.1.0"
   },
   "fields": {
     "invoice_template_number": {

@@ -151,7 +151,13 @@ def validate_result(result, evidence, receipt_id, kie_run_id, ocr_run_id):
             raise invalid()
         ids = evidence_ids(evidence)
         for section, row, index, field, val in cells(result):
-            validate_value(section, field, val["normalized_value"], val["value_status"])
+            validate_value(
+                section,
+                field,
+                val["normalized_value"],
+                val["value_status"],
+                currency=result["fields"]["currency"]["normalized_value"],
+            )
             if not set(val["source_block_ids"]) <= ids:
                 raise invalid()
             if val["value_status"] == "PRESENT" and not val["source_block_ids"]:
@@ -167,7 +173,7 @@ def validate_result(result, evidence, receipt_id, kie_run_id, ocr_run_id):
         raise invalid() from exc
 
 
-def validate_value(section, field, value, status):
+def validate_value(section, field, value, status, *, currency=None):
     from datetime import date
 
     allowed = {"header": HEADER_FIELDS, "line": LINE_FIELDS, "tax": TAX_FIELDS}
@@ -191,6 +197,16 @@ def validate_value(section, field, value, status):
     )
     if money:
         valid = type(value) is int and value >= 0
+        if currency == "USD":
+            from decimal import Decimal
+
+            valid = (
+                type(value) in (int, float)
+                and math.isfinite(value)
+                and value >= 0
+                and Decimal(str(value)) * 100
+                == (Decimal(str(value)) * 100).to_integral_value()
+            )
     elif field == "quantity":
         valid = type(value) in (int, float) and math.isfinite(value) and value >= 0
     else:

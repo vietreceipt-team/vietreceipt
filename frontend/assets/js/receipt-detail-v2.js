@@ -197,7 +197,7 @@ async function save(id, confirm = false) {
   const match = getCell(id); if (!match) return;
   const [section, row, field, cell] = match, draft = confirm ? {text: cell.effective_value == null ? "" : String(cell.effective_value), status: cell.effective_status} : draftValue(id, cell);
   let value;
-  try { value = correctionValue(field, draft.text, draft.status); }
+  try { value = correctionValue(field, draft.text, draft.status, detail.fields.currency?.effective_value || "VND"); }
   catch (error) { errors.set(id, errorText(error)); renderContent(); return; }
   drafts.set(id, draft); errors.delete(id); saving = true; render();
   try {
