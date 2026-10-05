@@ -36,8 +36,9 @@ function editorExtra(id, cell) {
 }
 function inputHtml(id, field, cell) {
   const draft = draftValue(id, cell), numeric = moneyFields.has(field) || field === "quantity";
+  const inputType = field === "invoice_date" && draft.text ? "date" : "text";
   if (field === "seller_address") return `<textarea class="v2-input" rows="3" data-input="${safe(id)}" aria-label="${safe(labelMap[field])}" ${!editable() ? "readonly" : ""} ${saving || stale || verifying || draft.status !== "PRESENT" ? "disabled" : ""} placeholder="${safe(draft.status === "PRESENT" ? "Chưa có dữ liệu" : VALUE_LABELS[draft.status])}">${safe(draft.text)}</textarea>`;
-  return `<input class="v2-input ${numeric ? "number" : ""}" data-input="${safe(id)}" aria-label="${safe(labelMap[field] || field)}" value="${safe(draft.text)}" ${field === "invoice_date" ? 'type="date"' : 'type="text"'} ${numeric ? 'inputmode="decimal"' : ""} ${!editable() ? "readonly" : ""} ${saving || stale || verifying || draft.status !== "PRESENT" ? "disabled" : ""} placeholder="${safe(draft.status === "PRESENT" ? "Chưa có dữ liệu" : VALUE_LABELS[draft.status])}">`;
+  return `<input class="v2-input ${numeric ? "number" : ""}" data-input="${safe(id)}" aria-label="${safe(labelMap[field] || field)}" value="${safe(draft.text)}" type="${inputType}" ${numeric ? 'inputmode="decimal"' : ""} ${!editable() ? "readonly" : ""} ${saving || stale || verifying || draft.status !== "PRESENT" ? "disabled" : ""} placeholder="${safe(draft.status === "PRESENT" ? "Chưa có dữ liệu" : VALUE_LABELS[draft.status])}">`;
 }
 function renderField(field) {
   const cell = detail.fields[field] || {}, id = key("header", "", field);

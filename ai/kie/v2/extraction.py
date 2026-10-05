@@ -182,6 +182,16 @@ def header_candidates(blocks, excluded):
                     nearest = min(neighbors, key=lambda b: (b.left, b.reading_order))
                     value = nearest.text
                     sources.append(nearest)
+                    if field in {"invoice_number", "invoice_date"}:
+                        for following in sorted(neighbors, key=lambda b: b.left):
+                            if (
+                                following.left >= sources[-1].right
+                                and following.left - sources[-1].right
+                                <= 1.5 * sources[-1].height
+                            ):
+                                value += " " + following.text
+                                sources.append(following)
+                    value = re.sub(r"^\s*[:#：]\s*", "", value)
             # The generic date label retains its word form for explicit component dates.
             if field == "invoice_date" and "thang" in folded(value):
                 value = "ngày " + value

@@ -16,6 +16,23 @@ from tests.kie_v2_fixtures import KIE_RUN, document, evidence, invoice
 
 
 class InvoiceV2Tests(unittest.TestCase):
+    def test_pdf_separate_colon_and_adjacent_identifier_tokens(self):
+        fields = self.extract(
+            evidence(
+                [
+                    ("Date", 0.1, 0.1),
+                    (": 21st Sep 2026", 0.4, 0.1, 0.3),
+                    ("Invoice No.", 0.1, 0.2),
+                    (": 082026", 0.4, 0.2, 0.1),
+                    ("UCHAT -", 0.51, 0.2, 0.15),
+                ]
+            )
+        )["fields"]
+        self.assertEqual(fields["invoice_date"]["normalized_value"], "2026-09-21")
+        self.assertEqual(fields["invoice_date"]["raw_text"], "Date\n: 21st Sep 2026")
+        self.assertEqual(fields["invoice_number"]["normalized_value"], "082026 UCHAT -")
+        self.assertTrue(fields["invoice_number"]["machine_needs_review"])
+
     def test_vietnamese_pos_labels_and_reviewed_currency_inference(self):
         source = evidence(
             [

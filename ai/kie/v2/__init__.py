@@ -25,6 +25,9 @@ def extract_invoice(evidence: dict, *, kie_run_id: UUID) -> dict:
         for field in HEADER_FIELDS
     }
     fields["currency"] = currency_cell
+    number = fields["invoice_number"]
+    if number["normalized_value"] and number["normalized_value"].endswith("-"):
+        add_reason(number, "AMBIGUOUS_FORMAT")
     if fields["seller_name"]["value_status"] == "PRESENT" and any(
         c.value == fields["seller_name"]["predicted_value"]
         and c.blocks[0].text in c.value

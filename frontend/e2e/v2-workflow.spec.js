@@ -120,6 +120,12 @@ test("trường thiếu dữ liệu có thể mở sửa và đổi trạng thá
  await seller.locator("[data-status]").selectOption("PRESENT");await seller.locator("[data-input]").fill("Công ty đã đối chiếu");await seller.getByRole("button",{name:"Lưu",exact:true}).click();
  await expect(seller.locator("[data-input]")).toHaveValue("Công ty đã đối chiếu");expect(state.record.fields.seller_name.effective_needs_review).toBe(false);
 });
+test("ngày chưa đọc được hiện trống, không hiện ngày hiện tại",async({page})=>{
+ const state=await provider(page);state.record.fields.invoice_date={...cell(null,true),effective_value:null,effective_status:"AMBIGUOUS",normalized_value:null};
+ await page.goto(`${ORIGIN}/receipts/${RID}/`);
+ const input=page.locator('[data-cell="header||invoice_date"] [data-input]');
+ await expect(input).toHaveAttribute("type","text");await expect(input).toHaveValue("");await expect(input).toHaveAttribute("placeholder","Mơ hồ");
+});
 test("USD: lưu số tiền có phần lẻ và giữ đúng loại tiền",async({page})=>{
  const state=await provider(page);state.record.fields.currency=cell("USD");state.record.fields.total_amount=cell(349);
  await page.goto(`${ORIGIN}/receipts/${RID}/`);
