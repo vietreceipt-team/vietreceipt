@@ -130,6 +130,24 @@ test("USD: lưu số tiền có phần lẻ và giữ đúng loại tiền",asyn
  await expect(total).toContainText("Đã lưu");expect(state.record.fields.total_amount.effective_value).toBe(349.25);
  expect(state.record.fields.currency.effective_value).toBe("USD");
 });
+test("đối chiếu các mục còn lại giữ UNKNOWN và mở xác nhận hóa đơn",async({page})=>{
+ const state=await provider(page);state.record.fields.invoice_symbol={...cell(null,true),normalized_value:null,value_status:"UNKNOWN",effective_value:null,effective_status:"UNKNOWN"};
+ await page.goto(`${ORIGIN}/receipts/${RID}/`);await expect(page.locator("#verify")).toBeDisabled();
+ await page.getByRole("button",{name:"Đối chiếu các mục còn lại",exact:true}).click();
+ const dialog=page.getByRole("dialog",{name:"Đối chiếu các mục còn lại"});await expect(dialog).toContainText("Chưa xác định");
+ await expect(dialog.getByRole("button",{name:"Lưu xác nhận đối chiếu"})).toBeDisabled();
+ await dialog.getByRole("button",{name:"Quay lại sửa"}).click();expect(state.patches).toBe(0);await expect(page.locator("#verify")).toBeDisabled();
+ await page.getByRole("button",{name:"Đối chiếu các mục còn lại",exact:true}).click();
+ await dialog.locator("#batch-all").check();await dialog.getByRole("button",{name:"Lưu xác nhận đối chiếu"}).click();
+ await expect(page.locator("#verify")).toBeEnabled();expect(state.record.fields.invoice_symbol.effective_status).toBe("UNKNOWN");expect(state.record.fields.invoice_symbol.effective_value).toBeNull();
+ await page.locator("#verify").click();await expect(page.locator(".verified-label")).toContainText("Đã xác nhận");
+ await page.locator(".export-menu summary").click();await expect(page.getByRole("button",{name:"Tải Excel"})).toBeEnabled();
+});
+test("đối chiếu hàng loạt gặp 409 dừng, không tự xác nhận hoặc gửi lại",async({page})=>{
+ const state=await provider(page,{conflict:true});await page.goto(`${ORIGIN}/receipts/${RID}/`);
+ await page.getByRole("button",{name:"Đối chiếu các mục còn lại",exact:true}).click();await page.locator("#batch-all").check();await page.getByRole("button",{name:"Lưu xác nhận đối chiếu"}).click();
+ await expect(page.locator("#stale-banner")).toBeVisible();expect(state.patches).toBe(1);expect(state.record.status).toBe("NEEDS_REVIEW");await expect(page.locator("#verify")).toBeDisabled();
+});
 test("danh sách tìm kiếm không dấu, lọc ngày/trạng thái và phân trang",async({page})=>{
  const items=Array.from({length:12},(_,index)=>({receipt_id:RID,original_filename:`hoa_don_${index+1}.pdf`,status:index===0?"VERIFIED":"NEEDS_REVIEW",seller_name:index===0?"Công ty Văn Phòng Mẫu":"Công ty ABC",invoice_date:index===0?"2026-09-24":"2026-09-20",total_amount:143000,created_at:"2026-09-24T00:00:00Z"}));
  // Distinct records make pagination reflect real API records rather than duplicate IDs.

@@ -16,6 +16,45 @@ from tests.kie_v2_fixtures import KIE_RUN, document, evidence, invoice
 
 
 class InvoiceV2Tests(unittest.TestCase):
+    def test_vietnamese_pos_labels_and_reviewed_currency_inference(self):
+        source = evidence(
+            [
+                ("Cöng ty TNHH Cong Nghe", 0.2, 0.03, 0.5),
+                ("Example Viet Nam", 0.25, 0.055, 0.35),
+                ("DC123Example Road", 0.2, 0.09, 0.5),
+                ("HOA DON BANHANG", 0.2, 0.15, 0.5),
+                ("Ngay:07/11/2022", 0.1, 0.2),
+                ("sphieu12345678", 0.55, 0.2),
+                ("Khäch hangANH MAU", 0.1, 0.25, 0.5),
+                ("Mat hang", 0.1, 0.35),
+                ("SL", 0.4, 0.35),
+                ("DVT", 0.5, 0.35),
+                ("Gia", 0.65, 0.35),
+                ("T tien", 0.8, 0.35),
+                ("San pham mau", 0.1, 0.4),
+                ("1", 0.4, 0.4),
+                ("cai", 0.5, 0.4),
+                ("1,234,000", 0.65, 0.4),
+                ("1,234,000", 0.8, 0.4),
+                ("Tong SL", 0.1, 0.45),
+                ("1", 0.4, 0.45),
+                ("Tien hang:", 0.1, 0.5),
+                ("1,234,000", 0.8, 0.5),
+                ("Tong:", 0.1, 0.55),
+                ("1,234,000", 0.8, 0.55),
+            ]
+        )
+        result = self.extract(source)
+        fields = result["fields"]
+        self.assertEqual(fields["invoice_number"]["normalized_value"], "12345678")
+        self.assertEqual(fields["invoice_date"]["normalized_value"], "2022-11-07")
+        self.assertEqual(fields["buyer_name"]["normalized_value"], "ANH MAU")
+        self.assertEqual(fields["total_amount"]["normalized_value"], 1234000)
+        self.assertTrue(fields["currency"]["machine_needs_review"])
+        self.assertTrue(fields["seller_name"]["machine_needs_review"])
+        self.assertEqual(len(result["line_items"]), 1)
+        self.assertIsNone(fields["tax_amount"]["normalized_value"])
+
     def extract(self, source=None):
         return extract_invoice(
             source if source is not None else invoice(), kie_run_id=KIE_RUN

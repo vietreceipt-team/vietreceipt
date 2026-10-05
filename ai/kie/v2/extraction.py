@@ -16,29 +16,29 @@ from .normalization import folded, text
 LABELS = {
     "invoice_template_number": r"mau so|invoice template(?: number)?",
     "invoice_symbol": r"ky hieu|invoice symbol|serial",
-    "invoice_number": r"so hoa don|invoice (?:number|no\.?)|so(?:\s*\(no\.?\))?",
+    "invoice_number": r"so hoa don|so\s*phieu|s\s*phieu|invoice (?:number|no\.?)|so(?:\s*\(no\.?\))?",
     "invoice_date": r"ngay lap(?: hoa don)?|ngay hoa don|invoice date|date|ngay",
     "seller_name": r"(?:ten )?(?:don vi ban hang|nguoi ban|ben ban)|seller(?: name)?",
     "buyer_name": r"(?:ho ten )?nguoi mua(?: hang)?|(?:ten )?(?:don vi mua hang|ben mua)|buyer(?: name)?|khach hang|bill to|to(?=\s*:)",
     "seller_tax_id": r"(?:ma so thue|mst)(?: nguoi ban| ben ban)|seller tax (?:id|code)",
     "buyer_tax_id": r"(?:ma so thue|mst)(?: nguoi mua| ben mua)|buyer tax (?:id|code)",
     "seller_address": r"dia chi (?:nguoi ban|ben ban)|seller address",
-    "subtotal": r"cong tien hang|tong (?:tien )?truoc thue|tam tinh|subtotal|sub total",
+    "subtotal": r"cong tien hang|tien hang|tong (?:tien )?truoc thue|tam tinh|subtotal|sub total",
     "tax_amount": r"tong tien thue(?: gtgt)?|tien thue(?: gtgt)?|tax amount|total tax|vat amount",
-    "total_amount": r"tong cong(?: tien thanh toan)?|tong tien thanh toan|tong thanh toan|grand total|total(?: amount)?",
+    "total_amount": r"tong cong(?: tien thanh toan)?|tong tien thanh toan|tong thanh toan|tong(?=\s*:|$)|grand total|total(?: amount)?",
     "currency": r"don vi tien te|loai tien|currency",
 }
 GENERIC = {
     "tax_id": r"ma so thue|mst|tax\s*(?:id|code)",
-    "address": r"dia chi|address",
+    "address": r"dia chi|address|d\s*c\.?",
     "name": r"ten don vi|company name",
 }
 LINE_LABELS = {
-    "description": r"ten hang(?: hoa)?(?:,? dich vu)?|hang hoa(?:,? dich vu)?|description|item|revenue sharing of (?:the )?service",
+    "description": r"ten hang(?: hoa)?(?:,? dich vu)?|mat hang|hang hoa(?:,? dich vu)?|description|item|revenue sharing of (?:the )?service",
     "unit": r"don vi tinh|dvt|unit",
     "quantity": r"so luong|sl|quantity|qty",
-    "unit_price": r"don gia|unit price|price",
-    "amount": r"thanh tien|amount",
+    "unit_price": r"don gia|gia|unit price|price",
+    "amount": r"thanh tien|t\s*tien|amount",
 }
 TAX_LABELS = {
     "rate": r"thue suat(?: gtgt)?|tax rate|vat",
@@ -51,11 +51,11 @@ CURRENCY_PATTERN = re.compile(
 
 
 def label_match(value, patterns):
-    normalized = text(value)
+    normalized = text(re.sub(r"(?<=[a-z])(?=[A-Z])", " ", value))
     matches = []
     for field, pattern in patterns.items():
         match = re.match(
-            rf"^(?:{pattern})(?=\s|[:#：]|$)\s*[:#：]?\s*", folded(normalized)
+            rf"^(?:{pattern})(?=\s|[:#：]|\d|$)\s*[:#：]?\s*", folded(normalized)
         )
         if match:
             matches.append((match.end(), field))
@@ -70,18 +70,42 @@ def header_candidates(blocks, excluded):
     anchors = []
     # A unique company letterhead above INVOICE supplies a seller candidate.
     # Preserve this inferred role for explicit review after selection.
-    titles = [b for b in blocks if folded(b.text) == "invoice"]
+    titles = [
+        b
+        for b in blocks
+        if folded(b.text) == "invoice"
+        or folded(b.text).replace(" ", "").startswith("hoadon")
+    ]
     letterheads = [
         b
         for b in blocks
         if any(b.page == t.page and b.bottom < t.top for t in titles)
-        and re.search(r"\b(?:company|corporation|limited|ltd|jsc)\b", folded(b.text))
+        and re.search(
+            r"\b(?:company|corporation|limited|ltd|jsc)\b|^cong ty", folded(b.text)
+        )
         and not label_match(b.text, GENERIC)
         and not label_match(b.text, LABELS)
     ]
     if len(letterheads) == 1:
         head = letterheads[0]
-        result["seller_name"].append(Candidate(head.text, (head,)))
+        sources = [head]
+        for other in sorted(blocks, key=lambda b: (b.page, b.top)):
+            previous = sources[-1]
+            if (
+                other.page == head.page
+                and 0 <= other.top - previous.bottom <= 1.2 * previous.height
+                and head.left - head.height <= other.left
+                and other.right <= head.right + head.height
+                and other not in titles
+                and not label_match(other.text, GENERIC)
+                and not label_match(other.text, LABELS)
+                and not re.match(r"^(?:dt|tel|phone|attn)\b", folded(other.text))
+            ):
+                sources.append(other)
+                break
+        result["seller_name"].append(
+            Candidate(" ".join(b.text for b in sources), tuple(sources))
+        )
         anchors.append(("seller", head))
     for block in blocks:
         match = label_match(block.text, LABELS)
@@ -161,18 +185,35 @@ def header_candidates(blocks, excluded):
             # The generic date label retains its word form for explicit component dates.
             if field == "invoice_date" and "thang" in folded(value):
                 value = "ngày " + value
-            if field in {"buyer_name", "seller_address"} and value:
+            numeric_date = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", value)
+            if (
+                field == "invoice_date"
+                and numeric_date
+                and any(
+                    t.page == block.page
+                    and folded(t.text).replace(" ", "").startswith("hoadon")
+                    for t in titles
+                )
+            ):
+                day, month, year = numeric_date.groups()
+                value = f"ngày {day} tháng {month} năm {year}"
+            if field in {"buyer_name", "seller_name", "seller_address"} and value:
                 previous = sources[-1]
                 for neighbor in sorted(blocks, key=lambda b: (b.page, b.top, b.left)):
                     if (
                         neighbor.page == previous.page
                         and neighbor.block_id not in excluded
                         and 0 <= neighbor.top - previous.bottom <= 1.1 * previous.height
-                        and abs(neighbor.left - previous.left) < previous.height
+                        and (
+                            abs(neighbor.left - previous.left) < previous.height
+                            or field == "seller_address"
+                            and previous.left <= neighbor.left <= previous.right
+                            and neighbor.right <= previous.right + previous.height
+                        )
                         and not label_match(neighbor.text, LABELS)
                         and not label_match(neighbor.text, GENERIC)
                         and not re.match(
-                            r"^(?:attn|contract|invoice|bank|beneficiary)\b",
+                            r"^(?:attn|contract|invoice|bank|beneficiary|dt|tel)(?=\W|\d|$)",
                             folded(neighbor.text),
                         )
                     ):
@@ -184,6 +225,15 @@ def header_candidates(blocks, excluded):
             )
         for marker in CURRENCY_PATTERN.finditer(block.text):
             result["currency"].append(Candidate(marker.group(), (block,)))
+    vn_titles = [
+        t for t in titles if folded(t.text).replace(" ", "").startswith("hoadon")
+    ]
+    if not result["currency"] and vn_titles and result["total_amount"]:
+        if all(
+            re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", c.value)
+            for c in result["total_amount"]
+        ):
+            result["currency"].append(Candidate("VND", (vn_titles[0],)))
     return result
 
 
@@ -240,7 +290,7 @@ def table_regions(blocks):
                 or any(label_match(b.text, LABELS) for b in row)
                 or any(
                     re.match(
-                        r"^(?:nguoi |ky ten|signature|ghi chu|notes?\b|chi dung de\b|cam on\b|thank you\b)",
+                        r"^(?:tong sl\b|nguoi |ky ten|signature|ghi chu|notes?\b|chi dung de\b|cam on\b|thank you\b)",
                         folded(b.text),
                     )
                     for b in row

@@ -110,8 +110,42 @@ function updateHeader() {
   const actions = main.querySelector(".review-header-actions"), open = actions.querySelector("details")?.open;
   actions.innerHTML = `${editable() && unresolved.length ? `<button type="button" class="review-count" id="show-unresolved">${icon("warning")} ${unresolved.length} mục cần kiểm tra</button>` : ""}<details class="export-menu" ${open ? "open" : ""}><summary class="v2-button secondary" title="${detail.status === "VERIFIED" ? "Xuất dữ liệu" : "Xác nhận hóa đơn trước khi xuất"}">Xuất kết quả ${icon("down")}</summary><div class="export-menu-items">${[["json", "Tải JSON"], ["csv", "Tải CSV (ZIP)"], ["xlsx", "Tải Excel"]].map(([format, label]) => `<button type="button" data-export="${format}" ${detail.status !== "VERIFIED" || exporting ? "disabled" : ""}>${icon("download")} ${label}</button>`).join("")}${detail.status !== "VERIFIED" ? '<p class="v2-muted export-hint">Xác nhận hóa đơn để xuất dữ liệu.</p>' : ""}</div></details>${detail.status === "VERIFIED" ? `<span class="verified-label">${icon("check")} Đã xác nhận</span>` : `<button type="button" id="verify" class="v2-button" ${blocked ? "disabled" : ""}>${verifying ? "Đang xác nhận…" : "Xác nhận hóa đơn"}</button>`}`;
   main.querySelector("#review-help").textContent = detail.status === "VERIFIED" ? "Hóa đơn đã xác nhận. Bạn có thể xuất dữ liệu." : drafts.size ? `${drafts.size} ô có thay đổi chưa lưu. Lưu hoặc hủy trước khi xác nhận.` : unresolved.length ? `${unresolved.length} ô cần đối chiếu. Nhấn biểu tượng chi tiết để kiểm tra hoặc xác nhận giá trị.` : editable() ? "Đã xử lý các ô cần kiểm tra. Bạn có thể xác nhận hóa đơn." : "Hóa đơn đang được xử lý.";
+  if (editable() && unresolved.length) actions.querySelector(".review-count")?.insertAdjacentHTML("afterend", `<button type="button" class="v2-button secondary" id="review-remaining" ${disabled() || drafts.size ? "disabled" : ""}>Đối chiếu các mục còn lại</button>`);
   main.querySelector("#stale-banner").hidden = !stale;
   updateTabs();
+}
+function reviewRemaining() {
+  if (disabled() || drafts.size) return;
+  const pending = allCells().filter((entry) => entry[3].effective_needs_review);
+  if (!pending.length) return;
+  main.querySelector("#batch-review")?.remove();
+  main.insertAdjacentHTML("beforeend", `<dialog id="batch-review" aria-labelledby="batch-title" style="max-width:680px;width:90%;max-height:85vh;border:1px solid #dce5ed;border-radius:12px;padding:24px"><h2 id="batch-title">Đối chiếu các mục còn lại</h2><p>So sánh các giá trị dưới đây với ảnh gốc. Nếu sai, đóng bảng này để sửa. Giá trị “Chưa xác định” vẫn để trống khi xuất, không tự chuyển thành “Không có” hay số 0.</p><div style="max-height:45vh;overflow:auto">${pending.map(([section,row,field,cell],index) => `<label style="display:block;padding:10px;border-bottom:1px solid #dce5ed"><input type="checkbox" data-batch-check="${index}"> ${safe(section === "header" ? "Thông tin" : section === "line" ? `Dòng ${row}` : `Thuế ${row}`)} · ${safe(labelMap[field])}: <strong>${safe(display(cell.effective_value,field))}</strong> (${safe(VALUE_LABELS[cell.effective_status])})</label>`).join("")}</div><label style="display:block;margin:16px 0"><input type="checkbox" id="batch-all"> Tôi đã đối chiếu tất cả các mục và chấp nhận cả các giá trị còn trống.</label><div class="button-row"><button type="button" class="v2-button" id="batch-apply" disabled>Lưu xác nhận đối chiếu</button><button type="button" class="v2-button secondary" id="batch-cancel">Quay lại sửa</button></div></dialog>`);
+  const dialog = main.querySelector("#batch-review"), boxes = [...dialog.querySelectorAll("[data-batch-check]")];
+  dialog.addEventListener("change", (event) => {
+    if (event.target.id === "batch-all") boxes.forEach((box) => { box.checked = event.target.checked; });
+    const checked = boxes.every((box) => box.checked);
+    dialog.querySelector("#batch-all").checked = checked;
+    dialog.querySelector("#batch-apply").disabled = !checked;
+  });
+  dialog.addEventListener("close", () => dialog.remove());
+  dialog.showModal();
+}
+async function applyRemaining() {
+  if (disabled() || drafts.size) return;
+  const dialog = main.querySelector("#batch-review");
+  if (!dialog || [...dialog.querySelectorAll("[data-batch-check]")].some((box) => !box.checked)) return;
+  const pending = allCells().filter((entry) => entry[3].effective_needs_review);
+  dialog.close(); saving = true; render();
+  try {
+    for (const [section,row,field,cell] of pending) {
+      applyDetail(await invoiceApi.correction(receiptId,section,row,field,cell.effective_value ?? null,cell.effective_status,detail.version));
+    }
+    history = null;
+    main.querySelector("#action-message").textContent = "Đã lưu đối chiếu. Nhấn “Xác nhận hóa đơn” để hoàn tất và xuất dữ liệu.";
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 409) stale = true;
+    main.querySelector("#action-message").textContent = `Đối chiếu chưa hoàn tất: ${errorText(error)}. Các mục đã lưu được giữ lại.`;
+  } finally { saving = false; render(); }
 }
 function renderContent() {
   const body = main.querySelector("#detail-body"); if (!body) return;
@@ -245,6 +279,9 @@ main.addEventListener("click", (event) => {
   else if (button.hasAttribute("data-toggle-source")) toggleSource();
   else if (button.id === "close-inspector") { inspectorId = null; renderInspector(); }
   else if (button.id === "verify") verify();
+  else if (button.id === "review-remaining") reviewRemaining();
+  else if (button.id === "batch-apply") applyRemaining();
+  else if (button.id === "batch-cancel") main.querySelector("#batch-review")?.close();
   else if (button.id === "retry-processing") retry();
   else if (["refresh-now", "reload-detail"].includes(button.id)) reload();
   else if (button.id === "reload-history") loadHistory();

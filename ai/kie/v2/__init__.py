@@ -6,6 +6,7 @@ from .cells import add_reason, select
 from .config import CONFIGURATION, EXTRACTOR, HEADER_FIELDS
 from .consistency import check
 from .evidence import flatten
+from .normalization import folded
 from .extraction import extract_tables, header_candidates, inline_taxes, table_regions
 
 
@@ -26,11 +27,16 @@ def extract_invoice(evidence: dict, *, kie_run_id: UUID) -> dict:
     fields["currency"] = currency_cell
     if fields["seller_name"]["value_status"] == "PRESENT" and any(
         c.value == fields["seller_name"]["predicted_value"]
-        and len(c.blocks) == 1
-        and c.blocks[0].text == c.value
+        and c.blocks[0].text in c.value
         for c in candidates["seller_name"]
     ):
         add_reason(fields["seller_name"], "SOURCE_ROLE_UNCLEAR")
+    if (
+        currency == "VND"
+        and currency_cell["raw_text"]
+        and "hoadon" in folded(currency_cell["raw_text"]).replace(" ", "")
+    ):
+        add_reason(currency_cell, "AMBIGUOUS_FORMAT")
     lines, taxes = extract_tables(regions, currency)
     taxes.extend(inline_taxes(blocks, excluded, currency))
     result = {
