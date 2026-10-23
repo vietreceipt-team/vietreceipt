@@ -1,0 +1,163 @@
+{
+  "annotation_schema_version": "2.0",
+  "receipt_id": "40c2be9a-ecde-54d9-832e-0d7f7d68bced",
+  "dataset_family": "vietreceipt_synthetic",
+  "dataset_snapshot": "v0.1",
+  "sample_id": "VRSYN-010",
+  "synthetic": true,
+  "split": "train",
+  "mapping_version": "vietreceipt-canonical-v2",
+  "template_id": "layout_a",
+  "parent_sample_id": null,
+  "fields": {
+    "seller_name": {
+      "annotation_status": "PRESENT",
+      "raw_value": "Cong ty Minh An",
+      "normalized_value": "Cong ty Minh An",
+      "source_block_ids": []
+    },
+    "buyer_name": {
+      "annotation_status": "PRESENT",
+      "raw_value": "Khach hang Thu Nghiem",
+      "normalized_value": "Khach hang Thu Nghiem",
+      "source_block_ids": []
+    },
+    "invoice_number": {
+      "annotation_status": "PRESENT",
+      "raw_value": "HD-0010",
+      "normalized_value": "HD-0010",
+      "source_block_ids": []
+    },
+    "invoice_date": {
+      "annotation_status": "PRESENT",
+      "raw_value": "2026-10-10",
+      "normalized_value": "2026-10-10",
+      "source_block_ids": []
+    },
+    "subtotal": {
+      "annotation_status": "PRESENT",
+      "raw_value": 709000,
+      "normalized_value": 709000,
+      "source_block_ids": []
+    },
+    "vat_rate": {
+      "annotation_status": "PRESENT",
+      "raw_value": "10%",
+      "normalized_value": "10%",
+      "source_block_ids": []
+    },
+    "tax_amount": {
+      "annotation_status": "PRESENT",
+      "raw_value": 70900,
+      "normalized_value": 70900,
+      "source_block_ids": []
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "raw_value": 779900,
+      "normalized_value": 779900,
+      "source_block_ids": []
+    }
+  },
+  "line_items": [
+    {
+      "line_id": "VRSYN-010-L01",
+      "description": {
+        "annotation_status": "PRESENT",
+        "raw_value": "Bia ho so",
+        "normalized_value": "Bia ho so",
+        "source_block_ids": []
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "raw_value": "cai",
+        "normalized_value": "cai",
+        "source_block_ids": []
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "raw_value": 2,
+        "normalized_value": 2,
+        "source_block_ids": []
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "raw_value": 7000,
+        "normalized_value": 7000,
+        "source_block_ids": []
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "raw_value": 14000,
+        "normalized_value": 14000,
+        "source_block_ids": []
+      }
+    },
+    {
+      "line_id": "VRSYN-010-L02",
+      "description": {
+        "annotation_status": "PRESENT",
+        "raw_value": "Muc may in",
+        "normalized_value": "Muc may in",
+        "source_block_ids": []
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "raw_value": "hop",
+        "normalized_value": "hop",
+        "source_block_ids": []
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "raw_value": 3,
+        "normalized_value": 3,
+        "source_block_ids": []
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "raw_value": 145000,
+        "normalized_value": 145000,
+        "source_block_ids": []
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "raw_value": 435000,
+        "normalized_value": 435000,
+        "source_block_ids": []
+      }
+    },
+    {
+      "line_id": "VRSYN-010-L03",
+      "description": {
+        "annotation_status": "PRESENT",
+        "raw_value": "Giay in A4",
+        "normalized_value": "Giay in A4",
+        "source_block_ids": []
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "raw_value": "ream",
+        "normalized_value": "ream",
+        "source_block_ids": []
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "raw_value": 4,
+        "normalized_value": 4,
+        "source_block_ids": []
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "raw_value": 65000,
+        "normalized_value": 65000,
+        "source_block_ids": []
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "raw_value": 260000,
+        "normalized_value": 260000,
+        "source_block_ids": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "annotation_schema_version": "2.0",
+  "receipt_id": "c7c07c3a-7d4e-5fe3-ba16-ba442c5e4947",
+  "dataset_family": "vietreceipt_synthetic",
+  "dataset_snapshot": "v0.1",
+  "sample_id": "VRSYN-021",
+  "synthetic": true,
+  "split": "test",
+  "mapping_version": "vietreceipt-canonical-v2",
+  "template_id": "layout_c",
+  "parent_sample_id": null,
+  "fields": {
+    "seller_name": {
+      "annotation_status": "PRESENT",
+      "raw_value": "Doanh nghiep Hoa Sen",
+      "normalized_value": "Doanh nghiep Hoa Sen",
+      "source_block_ids": []
+    },
+    "buyer_name": {
+      "annotation_status": "PRESENT",
+      "raw_value": "Van phong Mau",
+      "normalized_value": "Van phong Mau",
+      "source_block_ids": []
+    },
+    "invoice_number": {
+      "annotation_status": "PRESENT",
+      "raw_value": "HD-0021",
+      "normalized_value": "HD-0021",
+      "source_block_ids": []
+    },
+    "invoice_date": {
+      "annotation_status": "PRESENT",
+      "raw_value": "2026-09-21",
+      "normalized_value": "2026-09-21",
+      "source_block_ids": []
+    },
+    "subtotal": {
+      "annotation_status": "PRESENT",
+      "raw_value": 64000,
+      "normalized_value": 64000,
+      "source_block_ids": []
+    },
+    "vat_rate": {
+      "annotation_status": "PRESENT",
+      "raw_value": "10%",
+      "normalized_value": "10%",
+      "source_block_ids": []
+    },
+    "tax_amount": {
+      "annotation_status": "PRESENT",
+      "raw_value": 6400,
+      "normalized_value": 6400,
+      "source_block_ids": []
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "raw_value": 70400,
+      "normalized_value": 70400,
+      "source_block_ids": []
+    }
+  },
+  "line_items": [
+    {
+      "line_id": "VRSYN-021-L01",
+      "description": {
+        "annotation_status": "PRESENT",
+        "raw_value": "Dich vu in tai lieu",
+        "normalized_value": "Dich vu in tai lieu",
+        "source_block_ids": []
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "raw_value": "lan",
+        "normalized_value": "lan",
+        "source_block_ids": []
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "raw_value": 3,
+        "normalized_value": 3,
+        "source_block_ids": []
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "raw_value": 12000,
+        "normalized_value": 12000,
+        "source_block_ids": []
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "raw_value": 36000,
+        "normalized_value": 36000,
+        "source_block_ids": []
+      }
+    },
+    {
+      "line_id": "VRSYN-021-L02",
+      "description": {
+        "annotation_status": "PRESENT",
+        "raw_value": "Bia ho so",
+        "normalized_value": "Bia ho so",
+        "source_block_ids": []
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "raw_value": "cai",
+        "normalized_value": "cai",
+        "source_block_ids": []
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "raw_value": 4,
+        "normalized_value": 4,
+        "source_block_ids": []
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "raw_value": 7000,
+        "normalized_value": 7000,
+        "source_block_ids": []
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "raw_value": 28000,
+        "normalized_value": 28000,
+        "source_block_ids": []
+      }
+    }
+  ]
+}

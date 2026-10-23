@@ -1,0 +1,21 @@
+{
+  "dataset_family": "vietreceipt_synthetic",
+  "dataset_snapshot": "v0.1",
+  "sample_count": 30,
+  "unique_sample_ids": 30,
+  "duplicate_sample_ids": 0,
+  "schema_error_count": 0,
+  "schema_errors": [],
+  "arithmetic_error_count": 0,
+  "arithmetic_errors": [],
+  "checksum_algorithm": "SHA-256",
+  "checksum_columns": [
+    "document_sha256",
+    "ground_truth_sha256"
+  ],
+  "split_by_layout": {
+    "layout_a": "train",
+    "layout_b": "validation",
+    "layout_c": "test"
+  }
+}
