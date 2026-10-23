@@ -5,12 +5,16 @@ x-runtime: &runtime
     context: .
     dockerfile: infra/docker/backend-v2.Dockerfile
     target: runtime
+    args:
+      VIETRECEIPT_COMMIT: ${VIETRECEIPT_COMMIT:-unknown}
   environment: &environment
     DATABASE_URL: postgresql+psycopg://vietreceipt:local_dev_only@postgres:5432/vietreceipt
     CELERY_BROKER_URL: redis://redis:6379/0
     STORAGE_BACKEND: filesystem
     STORAGE_FILESYSTEM_ROOT: /data/sources
     V2_DOCUMENT_READER_CALLABLE: ${V2_DOCUMENT_READER_CALLABLE:-ai.document_reader.backend:read_document}
+    V2_READER_ISOLATION: ${V2_READER_ISOLATION:-subprocess}
+    V2_READER_TIMEOUT_SECONDS: ${V2_READER_TIMEOUT_SECONDS:-780}
     V2_KIE_CALLABLE: ${V2_KIE_CALLABLE:-ai.kie.v2:extract_invoice}
   volumes:
     - source_data:/data/sources
@@ -64,6 +68,8 @@ services:
       context: .
       dockerfile: infra/docker/backend-v2.Dockerfile
       target: worker
+      args:
+        VIETRECEIPT_COMMIT: ${VIETRECEIPT_COMMIT:-unknown}
     volumes:
       - source_data:/data/sources
       - reader_models:/app/.paddlex-cache

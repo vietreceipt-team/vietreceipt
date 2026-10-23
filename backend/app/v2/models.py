@@ -67,6 +67,7 @@ class Attempt(Base):
     created_at = Column(String(40), nullable=False, default=timestamp)
     finished_at = Column(String(40))
     error = Column(JSON)
+    provenance = Column(JSON)
 
 
 class MachineRun(Base):

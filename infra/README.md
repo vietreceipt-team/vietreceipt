@@ -106,3 +106,7 @@ PYTHON_BIN=.venv/bin/python ./infra/scripts/smoke-test.sh
 > volume và không thể hoàn tác.
 
 Chi tiết kịch bản kiểm tra nằm tại `../docs/test-plan-v1.md`.
+
+## V2 reproducible experiments and demo
+
+See [V2 runner, machine/review separation and ARM64 runtime handling](../docs/v2-reproducible-demo.md).

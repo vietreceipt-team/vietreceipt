@@ -1,7 +1,7 @@
 name: TV5 Backend V2
 on:
   pull_request:
-    paths: ['backend/**', 'ai/**', 'schemas/**', 'openapi/**', 'requirements-ocr-runtime.txt', 'docker-compose.v2.yml', 'infra/docker/backend-v2.Dockerfile', 'scripts/export_openapi_v2.py', 'infra/scripts/smoke-v2.py', '.github/workflows/backend-v2.yml']
+    paths: ['backend/**', 'ai/**', 'schemas/**', 'openapi/**', 'requirements-ocr-runtime.txt', 'docker-compose.v2.yml', 'infra/docker/backend-v2.Dockerfile', 'scripts/export_openapi_v2.py', 'scripts/evaluate_backend_v2.py', 'scripts/create_v2_demo.py', 'infra/scripts/smoke-v2.py', '.github/workflows/backend-v2.yml']
   push:
     branches: [main, 'feat/tv5-backend-v2']
   workflow_dispatch:
@@ -90,6 +90,10 @@ jobs:
           PY
           python infra/scripts/smoke-v2.py /tmp/smoke.png --url http://localhost:18000 --test-providers --database-url "$DATABASE_URL" --output evidence/image.json
           python infra/scripts/smoke-v2.py /tmp/smoke.pdf --url http://localhost:18000 --test-providers --database-url "$DATABASE_URL" --output evidence/pdf.json
+      - name: Reproducible JPG/text-PDF/scan-PDF workflow (test providers, not AI accuracy)
+        run: |
+          python -m scripts.create_v2_demo --output evidence/demo-inputs
+          python -m scripts.evaluate_backend_v2 --manifest evidence/demo-inputs/manifest.json --output evidence/evaluation --url http://localhost:18000 --mode test --review-synthetic
       - uses: actions/upload-artifact@v4
         if: always()
         with:
