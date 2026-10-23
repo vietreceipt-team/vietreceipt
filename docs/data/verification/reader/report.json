@@ -1,0 +1,55 @@
+{
+  "scope": "development integration only",
+  "runs": [
+    {
+      "route": "text_pdf",
+      "status": "PASSED",
+      "input": "documents/VRSYN2-00001.pdf",
+      "input_sha256": "b7ee8b50aacfec5765ec6708d92f351bb2d0f232f83123baaaa368dff38dd313",
+      "source_gold_sha256": "a9b1ce12c8488a5953a24c81ef72c9815ed5d8fa0a8c678c89ecc5c2cf8623b6",
+      "page_sources": [
+        "PDF_TEXT"
+      ],
+      "kie_schema_valid": true,
+      "accuracy": null
+    },
+    {
+      "route": "image",
+      "status": "PASSED",
+      "input": "rendered/VRSYN2-00001__clean.png",
+      "input_sha256": "394930960c8858b1e4e8d82f94fee9d1065cb54dfcd10677fb3e79a34c0bc03c",
+      "source_gold_sha256": "a9b1ce12c8488a5953a24c81ef72c9815ed5d8fa0a8c678c89ecc5c2cf8623b6",
+      "page_sources": [
+        "IMAGE_OCR"
+      ],
+      "kie_schema_valid": true,
+      "accuracy": null
+    },
+    {
+      "route": "scanned_pdf",
+      "status": "PASSED",
+      "input": "rendered/VRSYN2-00001__clean.pdf",
+      "input_sha256": "6d7968fcb085565aa890371f90bef0afef2dfc64aee63177a942c73aceb580be",
+      "source_gold_sha256": "a9b1ce12c8488a5953a24c81ef72c9815ed5d8fa0a8c678c89ecc5c2cf8623b6",
+      "page_sources": [
+        "PDF_OCR"
+      ],
+      "kie_schema_valid": true,
+      "accuracy": null
+    }
+  ],
+  "source_gold_evidence_linked": false,
+  "final_evaluation": false,
+  "manifest_sha256": "d3a77a4419a28433bd67db7cb1977d073537075565303001c2c117725a6016ee",
+  "executed_at": "2026-10-23T11:45:04.841376+00:00",
+  "git_commit": "1319801756fba16b5efdf5ab50da9c0aba6f4f33",
+  "git_dirty": true,
+  "packages": {
+    "paddleocr": "3.0.3",
+    "paddlepaddle": "3.0.0",
+    "paddlex": "3.0.3",
+    "pypdfium2": "5.12.1",
+    "Pillow": "10.4.0",
+    "reportlab": "5.1.0"
+  }
+}

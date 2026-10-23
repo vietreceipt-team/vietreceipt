@@ -1,0 +1,79 @@
+HÓA ĐƠN GIÁ TRỊ GIA TĂNG
+Mẫu số: 1
+Ký hiệu: C26T5A
+Số hóa đơn: 00000005
+Ngày lập: 2026-05-05
+Đơn vị bán hàng: CÔNG TY MẪU HOA SEN
+MST người bán: 0000000005
+Địa chỉ người bán: 5 Đường Mẫu, Thành phố Hà Nội
+Tên hàng / dịch vụ
+ĐVT
+SL
+Đơn giá
+Thành tiền
+Giấy in A4
+Ram
+5
+65.000
+325.000
+Dịch vụ in tài liệu
+Lần
+4
+12.000
+48.000
+Bìa hồ sơ
+Cái
+6
+7.000
+42.000
+Mực máy in
+Hộp
+3
+145.000
+435.000
+Bút bi xanh
+Cây
+3
+5.000
+15.000
+Sổ tay văn phòng
+Quyển
+5
+18.000
+90.000
+Bút bi xanh
+Cây
+2
+5.000
+10.000
+Bút bi xanh
+Cây
+1
+5.000
+5.000
+Sổ tay văn phòng
+Quyển
+6
+18.000
+108.000
+Sổ tay văn phòng
+Quyển
+4
+18.000
+72.000
+Giấy in A4
+Ram
+2
+65.000
+130.000
+Giấy in A4
+Ram
+5
+65.000
+325.000
+Thuế suất GTGT: 0%
+Cộng tiền hàng: 1.605.000
+Tiền thuế GTGT: 0
+Tổng thanh toán: 1.605.000
+Tiền tệ: VND
+DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN

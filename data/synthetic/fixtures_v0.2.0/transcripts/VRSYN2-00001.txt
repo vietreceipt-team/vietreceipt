@@ -1,0 +1,46 @@
+HÓA ĐƠN GIÁ TRỊ GIA TĂNG
+Mẫu số: 1
+Ký hiệu: C26T1A
+Số hóa đơn: 00000001
+Ngày lập: 2026-01-01
+Đơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT
+MST người bán: 0000000001
+Địa chỉ người bán: 1 Đường Mẫu, Thành phố Hà Nội
+Người mua: KHÁCH HÀNG THỬ NGHIỆM
+MST người mua: 0000003001
+Tên hàng / dịch vụ
+ĐVT
+SL
+Đơn giá
+Thành tiền
+Bìa hồ sơ
+Cái
+6
+7.000
+42.000
+Bút bi xanh
+Cây
+4
+5.000
+20.000
+Bút bi xanh
+Cây
+5
+5.000
+25.000
+Sổ tay văn phòng
+Quyển
+4
+18.000
+72.000
+Mực máy in
+Hộp
+5
+145.000
+725.000
+Thuế suất GTGT: 0%
+Cộng tiền hàng: 884.000
+Tiền thuế GTGT: 0
+Tổng thanh toán: 884.000
+Tiền tệ: VND
+DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN

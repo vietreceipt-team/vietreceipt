@@ -1,0 +1,41 @@
+HÓA ĐƠN GIÁ TRỊ GIA TĂNG
+Đơn vị bán hàng: CÔNG TY MẪU MINH AN
+MST người bán: 0000000003
+Địa chỉ người bán: 3 Đường Mẫu, Thành phố Hà Nội
+Người mua: KHÁCH HÀNG THỬ NGHIỆM
+MST người mua: 0000003003
+Mẫu số: 1
+Ký hiệu: C26T3A
+Số hóa đơn: 00000003
+Ngày lập: 2026-03-03
+Tên hàng / dịch vụ
+ĐVT
+SL
+Đơn giá
+Thành tiền
+Bìa hồ sơ
+Cái
+1
+7.000
+7.000
+Sổ tay văn phòng
+Quyển
+3
+18.000
+54.000
+Bìa hồ sơ
+Cái
+6
+7.000
+42.000
+Sổ tay văn phòng
+Quyển
+4
+18.000
+72.000
+Thuế suất GTGT: 8%
+Cộng tiền hàng: 175.000
+Tiền thuế GTGT: 14.000
+Tổng thanh toán: 189.000
+Tiền tệ: VND
+DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN

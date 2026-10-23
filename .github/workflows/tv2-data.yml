@@ -1,0 +1,29 @@
+name: TV2 data QA
+on:
+  pull_request:
+    paths: ['scripts/data/**', 'scripts/*synthetic*', 'scripts/validate_invoice_dataset_v2.py', 'tests/test_tv2_data.py', 'tests/test_validate_invoice_dataset_v2.py', 'data/registry/**', 'data/mappings/**', 'requirements-data.txt', '.github/workflows/tv2-data.yml']
+  push:
+    branches: [main]
+    paths: ['scripts/data/**', 'tests/test_tv2_data.py', 'tests/test_validate_invoice_dataset_v2.py', 'requirements-data.txt', '.github/workflows/tv2-data.yml']
+  workflow_dispatch:
+jobs:
+  source-gold-and-real-text-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-data.txt ruff==0.15.6
+      - run: python -m ruff check scripts/data tests/test_tv2_data.py tests/test_validate_invoice_dataset_v2.py scripts/generate_synthetic_v0.py scripts/build_synthetic_ocr_variants.py scripts/validate_invoice_dataset_v2.py
+      - run: python -m unittest tests.test_validate_invoice_dataset_v2 tests.test_tv2_data -v
+      - run: python -m scripts.data.generate_synthetic --out data/synthetic/v0.2.0 --count 30
+      - run: python -m scripts.data.augment_dataset --root data/synthetic/v0.2.0
+      - run: python -m scripts.data.validate_ground_truth --root data/synthetic/v0.2.0 --manifest data/synthetic/v0.2.0/rendered_manifest.csv --output results/tv2-local/qa.json
+      - run: python -m scripts.data.reader_smoke --root data/synthetic/v0.2.0 --output results/tv2-local/reader
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tv2-development-data-and-qa
+          path: |
+            data/synthetic/v0.2.0/
+            results/tv2-local/

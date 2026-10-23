@@ -1,0 +1,14 @@
+{
+  "repo": "naver-clova-ix/cord-v2",
+  "revision": "7f0115a4b758a71d6473b8d085751692da2fef98",
+  "source": "https://huggingface.co/datasets/naver-clova-ix/cord-v2/tree/7f0115a4b758a71d6473b8d085751692da2fef98",
+  "native_shard": "data/train-00000-of-00004-b4aaeceff1d90ecb.parquet",
+  "shard_sha256": "da3994eee1bf9bd3c57f0d53a72c3a6812c8696c5ba26245987949ddf73483cc",
+  "card_sha256": "835f3f7d88a86e05a882c6a6b6333da6ab874776385f85473798769d767c2fca",
+  "export_sha256": "302263f8d3c6af329307b8c675992d445a3b9a1ba98e3419c4e12c5a5b4d4baf",
+  "subset_size": 10,
+  "selection": "first N records of first native train shard",
+  "split": "train",
+  "final_eligible": false,
+  "scope": "development subset; not full dataset"
+}

@@ -1,0 +1,11 @@
+{
+  "family": "vietnamese_bill",
+  "snapshot": "d24586e71318dec13c69f5f35f3d8bc04c5e561c",
+  "source": "https://huggingface.co/datasets/minhduc168/dataset-origin-vlm-extract-bill",
+  "license_access": "MIT declared by publisher; original annotation retained",
+  "input_sha256": "fb4916e5a35f349c3bbcbcadf1c72204595810c936397a5da5df64c9f8ee2bd9",
+  "usable_samples": 10,
+  "rejected": [],
+  "status": "COMPLETED",
+  "metrics_eligible_fields_only": true
+}

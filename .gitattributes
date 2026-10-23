@@ -1,0 +1,13 @@
+# Text checksums are computed over UTF-8 LF bytes on every operating system.
+.gitattributes text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.csv text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.svg text eol=lf
+*.txt text eol=lf
+*.pdf binary
+*.png binary

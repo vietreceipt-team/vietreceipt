@@ -1,0 +1,28 @@
+{
+  "config": {
+    "dpi": 200,
+    "max_bytes": 31457280,
+    "max_pages": 30,
+    "max_pixels": 40000000,
+    "max_pdf_chars": 200000,
+    "min_pdf_chars": 20,
+    "orientation": "none",
+    "max_side": 0,
+    "contrast": 1.0,
+    "force_pdf_ocr": false
+  },
+  "pages": [
+    {
+      "source": "PDF_TEXT",
+      "confidence_semantics": "not_applicable_legacy_sentinel_1",
+      "page_index": 0,
+      "intrinsic_rotation": 0,
+      "renderer": "pypdfium2",
+      "renderer_version": "5.12.1",
+      "dpi": 200,
+      "color_mode": "RGB",
+      "canonical_rotation": 0
+    }
+  ],
+  "duration_ms": 298
+}

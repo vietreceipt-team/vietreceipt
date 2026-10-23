@@ -1,0 +1,17 @@
+{
+  "generator_version": "0.2.0",
+  "seed": 20261023,
+  "font_sha256": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a",
+  "font_name": "arial.ttf",
+  "count": 6,
+  "final_frozen": false,
+  "source_gold_verified_by_human": false,
+  "layouts": {
+    "corporate": "train",
+    "retail": "train",
+    "service": "train",
+    "table_heavy": "validation",
+    "long_invoice": "test",
+    "minimal": "test"
+  }
+}
