@@ -29,10 +29,10 @@ Mã nền: `main` tại `0f974abd1887f9f0bf9014eabb66cc3e48684cbb`.
 | `npm run typecheck` | Đạt |
 | `npm test` | 58/58 đạt |
 | `npm run lint`, `npm run build` | Đạt |
-| `npm run test:e2e` | 28/28 đạt; HTTP provider kiểm thử |
+| `npm run test:e2e` | 30/30 đạt; HTTP provider kiểm thử |
 | PDF trang 2, dòng 60 ở cuối trang, zoom/xoay | Đạt trong browser provider test; ảnh `v2-long-table-source.png` |
 | Bốn trạng thái null + PRESENT sai OCR | Đạt; không tự PATCH/xác nhận, không ghi đè machine |
-| Consent/rút đồng ý và bộ đếm chờ request chồng nhau | Đạt bằng unit/browser tests |
+| Consent/rút đồng ý, response mất và evidence tải chậm | Đạt bằng unit/browser tests |
 | Browser provider thật | Theo dõi workflow **TV6 real-provider browser review** của PR; chưa gán PASS trước khi chạy |
 
 Máy phát triển Windows dùng Node 24.19.0/Python 3.13.7, không có Docker/WSL hoặc Python 3.12. Lượt nghiệm thu thật được chạy trên GitHub Ubuntu x86_64/Python 3.12 với provider canonical và dịch vụ riêng. Kết quả, commit và link artifact được bổ sung sau khi workflow kết thúc; lỗi cũng giữ evidence. Không coi test provider là bằng chứng AI thật.
