@@ -146,3 +146,13 @@ raw evidence và provenance; các kiểm tra sau khi đồng bộ main được 
 TV3 tại thời điểm inference trước khi đồng bộ main, đối chiếu `061960f0…`;
 raw inputs/evidence nằm trong gói bàn giao riêng. Chưa đóng issue #48 vì TV2/TV4
 còn phải QA/alignment gold, và TV5 cần nghiệm thu môi trường demo.
+
+## Kiểm tra trước khi công bố
+
+Sau khi khôi phục Git và đồng bộ main `1319801`, commit code `2531ec4` đạt
+**109/109 tests**, Ruff và **54/54 provider contract checks** trên raw evidence
+đã lưu. [Bản ghi kiểm chứng](../results/dev/tv2-reader-v0/publication-checks-20261023.json)
+giữ Git commit thực, hash source hiện tại và hash handoff;
+[log test](../results/dev/tv2-reader-v0/tests-publication-20261023.log) lưu riêng.
+Đây là kiểm tra tương thích sau đồng bộ, không thay thế provenance hoặc số liệu
+inference trước đó và không tạo thêm tuyên bố accuracy.
