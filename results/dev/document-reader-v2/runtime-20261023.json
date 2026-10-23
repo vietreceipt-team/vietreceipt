@@ -1,0 +1,11 @@
+{
+  "native": {
+    "status": "see per-sample results",
+    "configuration": "ocr_all/config.json"
+  },
+  "docker": {
+    "cli_available": false,
+    "smoke_status": "not_tested",
+    "linux_arm64_scan_support": "not_verified"
+  }
+}

@@ -1,0 +1,1652 @@
+--- a/.gitignore
++++ b/.gitignore
+@@ -229,6 +229,9 @@
+ data/candidates/
+ data/test_set/images/
+ results/candidate_sheets/
++results/dev/document-reader-v2/local-*/
++results/dev/document-reader-v2/local-*.log
++.tv3-tmp/
+ results/.DS_Store
+ .DS_Store
+ Thumbs.db
+--- a/.github/workflows/document-reader-v2.yml
++++ b/.github/workflows/document-reader-v2.yml
+@@ -1,10 +1,10 @@
+ name: TV3 Document Reader V2
+ on:
+   pull_request:
+-    paths: ['ai/document_reader/**', 'ai/ocr/**', 'schemas/**', 'scripts/*document*', 'tests/test_document_reader.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
++    paths: ['ai/document_reader/**', 'ai/ocr/**', 'schemas/**', 'scripts/*document*', 'scripts/compare_pdf_routes.py', 'scripts/prepare_tv2_reader_manifest.py', 'scripts/verify_reader_handoff.py', 'tests/test_document_reader.py', 'tests/test_compare_pdf_routes.py', 'tests/test_prepare_tv2_reader_manifest.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
+   push:
+     branches: [main]
+-    paths: ['ai/document_reader/**', 'ai/ocr/**', 'tests/test_document_reader.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
++    paths: ['ai/document_reader/**', 'ai/ocr/**', 'scripts/*document*', 'scripts/compare_pdf_routes.py', 'scripts/prepare_tv2_reader_manifest.py', 'scripts/verify_reader_handoff.py', 'tests/test_document_reader.py', 'tests/test_compare_pdf_routes.py', 'tests/test_prepare_tv2_reader_manifest.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
+   workflow_dispatch:
+ jobs:
+   contract-and-pdf:
+@@ -16,8 +16,8 @@
+           python-version: '3.12'
+           cache: pip
+       - run: pip install -r requirements-document-reader-test.txt ruff==0.15.6
+-      - run: python -m ruff check ai/document_reader scripts/create_document_fixtures.py scripts/benchmark_document_reader.py scripts/demo_document_reader.py tests/test_document_reader.py
+-      - run: python -m unittest tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 -v
++      - run: python -m ruff check ai/document_reader scripts/create_document_fixtures.py scripts/benchmark_document_reader.py scripts/demo_document_reader.py scripts/compare_pdf_routes.py scripts/prepare_tv2_reader_manifest.py scripts/verify_reader_handoff.py tests/test_document_reader.py tests/test_compare_pdf_routes.py tests/test_prepare_tv2_reader_manifest.py
++      - run: python -m unittest tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 tests.test_compare_pdf_routes tests.test_prepare_tv2_reader_manifest -v
+       - run: python -m scripts.create_document_fixtures --output results/tv3-fixtures --font /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+       - uses: actions/upload-artifact@v4
+         with:
+--- a/ai/document_reader/pipeline.py
++++ b/ai/document_reader/pipeline.py
+@@ -228,7 +228,10 @@
+                         self._check_size(*source.size)
+                         image = ImageOps.exif_transpose(source).convert("RGB")
+                     evidence, meta = self._image(image, receipt_id, ocr_run_id)
+-                    pages, metadata = [evidence], [dict(meta, source="IMAGE_OCR")]
++                    pages, metadata = [evidence], [dict(
++                        meta, source="IMAGE_OCR", routing_reason="image_input", fallback=False,
++                        coordinate_system="normalized_exif_display_top_left",
++                    )]
+                 except (
+                     UnidentifiedImageError,
+                     OSError,
+@@ -270,6 +273,7 @@
+             )
+ 
+     def _image(self, image, receipt_id, run_id):
++        started = time.perf_counter()
+         width, height = image.size
+         self._check_size(width, height)
+         if self.config.max_side and max(image.size) > self.config.max_side:
+@@ -281,6 +285,7 @@
+             self._orientation(image) if self.config.orientation == "auto" else (0, None)
+         )
+         rotated = image.rotate(-angle, expand=True) if angle else image
++        ocr_started = time.perf_counter()
+         try:
+             result = self.ocr.run_ocr(rotated, receipt_id=receipt_id, ocr_run_id=run_id)
+         except Exception as exc:
+@@ -289,6 +294,7 @@
+                 "OCR engine failed; inspect worker diagnostics",
+                 retryable=True,
+             ) from exc
++        ocr_ms = (time.perf_counter() - ocr_started) * 1000
+         result["blocks"] = _reading_order(result["blocks"])
+         for block in result["blocks"]:
+             block["text"] = _clean_text(block["text"]).strip()
+@@ -308,6 +314,12 @@
+             "engine": result["engine"],
+             "width_px": width,
+             "height_px": height,
++            "confidence_semantics": "engine_score_not_calibrated_probability",
++            "stage_latency_ms": {
++                "preprocess_orientation": (ocr_started - started) * 1000,
++                "ocr": ocr_ms,
++                "geometry_order": (time.perf_counter() - ocr_started) * 1000 - ocr_ms,
++            },
+         }
+ 
+     def _orientation(self, image):
+@@ -374,7 +386,11 @@
+                         math.ceil(width * scale), math.ceil(height * scale)
+                     )
+                     start = time.perf_counter()
+-                    blocks, usable = self._pdf_text(page)
++                    # The OCR-all comparator must bypass text extraction entirely.
++                    # Otherwise a malformed/oversized text layer can prevent OCR.
++                    blocks, usable = ([], False) if self.config.force_pdf_ocr else self._pdf_text(page)
++                    text_ms = (time.perf_counter() - start) * 1000
++                    render_ms = 0.0
+                     if usable and not self.config.force_pdf_ocr:
+                         evidence = {
+                             "schema_version": "1.3",
+@@ -397,6 +413,7 @@
+                             "confidence_semantics": "not_applicable_legacy_sentinel_1",
+                         }
+                     else:
++                        render_started = time.perf_counter()
+                         try:
+                             with closing(page.render(scale=scale)) as bitmap:
+                                 image = bitmap.to_pil().convert("RGB")
+@@ -404,8 +421,19 @@
+                             raise ReaderError(
+                                 "PDF_RENDER_FAILED", "PDF page cannot be rendered"
+                             ) from exc
++                        render_ms = (time.perf_counter() - render_started) * 1000
+                         evidence, meta = self._image(image, receipt_id, run_id)
+                         meta["source"] = "PDF_OCR"
++                    stages = dict(meta.get("stage_latency_ms", {}))
++                    stages.update(pdf_text=text_ms, render=render_ms)
++                    meta.update(
++                        stage_latency_ms=stages,
++                        page_duration_ms=(time.perf_counter() - start) * 1000,
++                        routing_reason=("forced_ocr" if self.config.force_pdf_ocr else
++                                        "usable_text_layer" if usable else "unusable_text_layer"),
++                        fallback=not usable and not self.config.force_pdf_ocr,
++                        coordinate_system="normalized_crop_unrotated_top_left",
++                    )
+                     pages.append(evidence)
+                     metadata.append(
+                         dict(
+--- a/ai/document_reader/README.md
++++ b/ai/document_reader/README.md
+@@ -129,3 +129,43 @@
+ The CI suite uses a clearly labeled fake OCR engine and real PDF extraction and
+ rendering. Real-model results, if provided, are separate evidence; CI passing
+ does not demonstrate real OCR quality or the deployed end-to-end workflow.
++
++## Paired route experiment — issue #48 (23/10/2026)
++
++```sh
++python -m scripts.compare_pdf_routes --manifest results/tv3-fixtures/manifest.json --output results/dev/document-reader-v2/local-paired-run --orientation auto
++python -m scripts.verify_reader_handoff --run-dir results/dev/document-reader-v2/local-paired-run --output results/dev/document-reader-v2/local-handoff-check
++python -m unittest tests.test_compare_pdf_routes tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 -v
++```
++
++Both modes read identical bytes, with matching input SHA-256 and stable receipt
++identity but separate run UUIDs. `ocr_all` bypasses the PDF text layer completely;
++`route_aware` uses the existing per-page router. All images stay on the OCR path.
++The script accepts development/dev/validation only, never a final test manifest.
++Manifest sample paths must stay inside the manifest directory. Supply an optional
++`receipt_id` per sample to retain TV2's existing canonical UUID.
++
++Each mode keeps the complete predictions, page audit, frozen manifest, input
++hashes, package/configuration information and metrics. Top-level outputs:
++
++- `comparison.json/csv`: paired CER/WER, failure status, character deletions,
++  substitutions and insertions, timings and cold-start markers.
++- `pages.csv`: actual route, fallback, reason, PDF extraction/render/OCR/orientation
++  latency; PDF text confidence is empty (`N/A`), while its wire sentinel remains 1.
++- `handoff.json`: exact receipt/run IDs, source/evidence hashes and prediction
++  locations for TV2/TV4. Ground-truth alignment remains pending TV2 QA.
++- `error_examples.json`: text differences with contexts and actual page/block IDs,
++  polygons and reading order. These are review candidates; geometry and order
++  cannot be diagnosed from CER alone. Never treat an absent block as ground-truth
++  `NOT_PRESENT`.
++- `runtime.json`: native results pointer and explicit Docker smoke status.
++
++Each mode runs serially in a fresh reader; the first OCR request includes lazy
++model startup and is marked `cold_start_candidate`. Do not mix that request with
++warm inference for a speedup claim. One pass is a diagnostic, not a latency
++distribution. The command exits nonzero on any unexpected read failure while
++preserving that sample in denominators (empty prediction when referenced).
++
++The generator v1.1 adds tilted image, two-page text PDF and two-page scan PDF to
++the existing single-template diagnostics. It does not replace TV2's independent
++development set. See [handoff and runtime notes](../../docs/tv3-issue48-handoff.md).
+--- a/scripts/benchmark_document_reader.py
++++ b/scripts/benchmark_document_reader.py
+@@ -7,11 +7,12 @@
+ import mimetypes
+ import platform
+ import subprocess
++import time
+ from collections import defaultdict
+ from datetime import datetime, timezone
+ from importlib.metadata import PackageNotFoundError, version
+ from pathlib import Path
+-from uuid import uuid4
++from uuid import NAMESPACE_URL, uuid4, uuid5
+ 
+ import jiwer
+ 
+@@ -25,7 +26,7 @@
+     )
+ 
+ 
+-def benchmark(manifest_path, output, config):
++def load_manifest(manifest_path):
+     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+     samples = manifest["samples"]
+     if not samples or len({s["id"] for s in samples}) != len(samples):
+@@ -36,9 +37,23 @@
+             for c in sample["id"]
+         ):
+             raise ValueError("Unsafe sample ID")
++        source = (manifest_path.parent / sample["path"]).resolve()
++        if not source.is_relative_to(manifest_path.parent.resolve()):
++            raise ValueError("Sample path escapes manifest directory")
++        expected_hash = sample.get("input_sha256")
++        if expected_hash and hashlib.sha256(source.read_bytes()).hexdigest() != expected_hash:
++            raise ValueError(f"Input checksum mismatch: {sample['id']}")
++    if not manifest.get("dataset") or not manifest.get("version") or not manifest.get("split"):
++        raise ValueError("Manifest requires dataset, version and split")
++    return manifest
++
++
++def benchmark(manifest_path, output, config, *, reader_factory=None):
++    manifest = load_manifest(manifest_path)
++    samples = manifest["samples"]
+     output.mkdir(parents=True, exist_ok=False)
+     (output / "predictions").mkdir()
+-    reader = DocumentReader(config=config)
++    reader = (reader_factory or DocumentReader)(config=config)
+     packages = {}
+     for package in (
+         "paddleocr",
+@@ -67,11 +82,13 @@
+             "git_dirty": bool(dirty.stdout.strip()) if dirty.returncode == 0 else None,
+             "source_sha256": {
+                 str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+-                for folder in (Path("ai/document_reader"), Path("ai/ocr"))
++                for folder in (Path("ai/document_reader"), Path("ai/ocr"), Path("scripts"))
+                 for p in sorted(folder.glob("*.py"))
+             },
+             "python": platform.python_version(),
+             "platform": platform.platform(),
++            "machine": platform.machine(),
++            "timing_policy": "serial, includes lazy model initialization on first OCR call; inspect cold_start_candidate",
+             "created_at": datetime.now(timezone.utc).isoformat(),
+             "manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+             "ocr_model": "PP-OCRv3",
+@@ -83,6 +100,13 @@
+             "metric_policy": "micro CER/WER; collapse whitespace only; failed reads scored as empty predictions when reference exists",
+         },
+     )
++    dump(output / "inputs.json", [
++        {"id": s["id"], "path": s["path"], "sha256":
++         hashlib.sha256((manifest_path.parent / s["path"]).read_bytes()).hexdigest()
++         if (manifest_path.parent / s["path"]).is_file() else None}
++        for s in samples
++    ])
++    ocr_seen = False
+     rows, aggregates = (
+         [],
+         defaultdict(
+@@ -107,14 +131,24 @@
+             "cer": None,
+             "wer": None,
+             "duration_ms": None,
++            "char_deletions": None,
++            "char_substitutions": None,
++            "char_insertions": None,
++            "reference_chars": None,
++            "cold_start_candidate": False,
+         }
+         predicted = ""
++        started = time.perf_counter()
+         try:
+             data = source.read_bytes()
++            row["input_sha256"] = hashlib.sha256(data).hexdigest()
++            receipt_id = sample.get("receipt_id") or uuid5(
++                NAMESPACE_URL, f"{manifest['dataset']}:{manifest['version']}:{sample['id']}:{row['input_sha256']}"
++            )
+             evidence, metadata = reader.process_with_metadata(
+                 data,
+                 content_type=mimetypes.guess_type(source)[0],
+-                receipt_id=uuid4(),
++                receipt_id=receipt_id,
+                 ocr_run_id=uuid4(),
+             )
+             dump(output / "predictions" / (sample["id"] + ".json"), evidence)
+@@ -126,6 +160,9 @@
+                 b["text"] for p in evidence["pages"] for b in p["evidence"]["blocks"]
+             )
+             row["duration_ms"] = metadata["duration_ms"]
++            has_ocr = any(p["source"] != "PDF_TEXT" for p in metadata["pages"])
++            row["cold_start_candidate"] = has_ocr and not ocr_seen
++            ocr_seen |= has_ocr
+             if sample.get("expected_error"):
+                 row.update(
+                     status="unexpected_success", error="Expected failure did not occur"
+@@ -138,12 +175,16 @@
+                 else "failed",
+                 error=code,
+             )
++        row["wall_duration_ms"] = (time.perf_counter() - started) * 1000
++        row.setdefault("input_sha256", None)
+         reference = sample.get("reference")
+         counts = None
+         if reference is not None and reference.strip():
+             ref, hyp = " ".join(reference.split()), " ".join(predicted.split())
+             c, w = jiwer.process_characters(ref, hyp), jiwer.process_words(ref, hyp)
+-            row.update(cer=c.cer, wer=w.wer)
++            row.update(cer=c.cer, wer=w.wer, char_deletions=c.deletions,
++                       char_substitutions=c.substitutions, char_insertions=c.insertions,
++                       reference_chars=len(ref))
+             counts = (
+                 c.substitutions + c.deletions + c.insertions,
+                 len(ref),
+--- a/scripts/create_document_fixtures.py
++++ b/scripts/create_document_fixtures.py
+@@ -75,6 +75,7 @@
+     image.save(output / "clean.png")
+     image.save(output / "photo.jpg", quality=65)
+     image.filter(ImageFilter.GaussianBlur(1.3)).save(output / "blur.png")
++    image.rotate(7, expand=True, fillcolor="white").save(output / "tilt.png")
+     pixels = np.asarray(image).astype(np.float32)
+     noise = np.random.default_rng(48).normal(0, 12, pixels.shape)
+     Image.fromarray(np.clip(pixels + noise, 0, 255).astype(np.uint8)).save(
+@@ -91,6 +92,10 @@
+         image.rotate(-angle, expand=True).save(output / f"rotation-{angle}.png")
+     scan = scan_pdf(image)
+     (output / "scan.pdf").write_bytes(scan)
++    (output / "text-multipage.pdf").write_bytes(make_text_pdf(font_path=font_path, pages=2))
++    with pdfium.PdfDocument(scan) as doc, pdfium.PdfDocument(scan) as second:
++        doc.import_pages(second)
++        doc.save(output / "scan-multipage.pdf")
+     with pdfium.PdfDocument(text) as doc, pdfium.PdfDocument(scan) as scanned:
+         doc.import_pages(scanned)
+         doc.save(output / "mixed.pdf")
+@@ -101,9 +106,12 @@
+         ("clean.png", "clean"),
+         ("photo.jpg", "photo_like"),
+         ("blur.png", "blur"),
++        ("tilt.png", "tilt"),
+         ("noise.png", "noise"),
+         ("perspective.png", "perspective"),
+         ("scan.pdf", "scan_like"),
++        ("text-multipage.pdf", "text_pdf_multipage"),
++        ("scan-multipage.pdf", "scan_multipage"),
+         ("mixed.pdf", "mixed_pdf"),
+     ]:
+         rows.append(
+@@ -111,7 +119,7 @@
+                 "id": name.replace(".", "-"),
+                 "path": name,
+                 "condition": condition,
+-                "reference": " ".join(LINES * (2 if name == "mixed.pdf" else 1)),
++                "reference": " ".join(LINES * (2 if name in {"mixed.pdf", "text-multipage.pdf", "scan-multipage.pdf"} else 1)),
+             }
+         )
+     for angle in (90, 180, 270):
+@@ -133,7 +141,7 @@
+     )
+     manifest = {
+         "dataset": "tv3-synthetic-diagnostics",
+-        "version": "1.0",
++        "version": "1.1",
+         "split": "development",
+         "provenance": "Generated fictional invoice; all variants share one template. Not final test or generalization evidence.",
+         "samples": rows,
+--- /dev/null
++++ b/scripts/compare_pdf_routes.py
+@@ -0,0 +1,203 @@
++"""Paired OCR-all vs route-aware diagnostics on identical manifest bytes (TV3 #48)."""
++
++import argparse
++import csv
++import hashlib
++import json
++import os
++import shutil
++import unicodedata
++from dataclasses import replace
++from difflib import SequenceMatcher
++from pathlib import Path
++
++from ai.document_reader import ReaderConfig
++from ai.document_reader.contract import validate_document
++from scripts.benchmark_document_reader import benchmark, dump, load_manifest
++
++
++def read_json(path):
++    return json.loads(path.read_text(encoding="utf-8"))
++
++
++def write_csv(path, rows):
++    if not rows:
++        path.write_text("", encoding="utf-8")
++        return
++    with path.open("w", encoding="utf-8", newline="") as handle:
++        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
++        writer.writeheader()
++        writer.writerows(rows)
++
++
++def unaccent(text):
++    return "".join(c for c in unicodedata.normalize("NFD", text)
++                   if not unicodedata.combining(c)).replace("đ", "d").replace("Đ", "D")
++
++
++def error_examples(reference, document, *, limit=5):
++    """Text differences are candidates; never infer order/geometry from CER alone."""
++    reference = " ".join(reference.split())
++    tokens, spans, offset = [], [], 0
++    for page in document["pages"]:
++        for block in page["evidence"]["blocks"]:
++            text = " ".join(block["text"].split())
++            if not text:
++                continue
++            if tokens:
++                offset += 1
++            spans.append((offset, offset + len(text), page["page_index"], block))
++            offset += len(text)
++            tokens.append(text)
++    hypothesis = " ".join(tokens)
++    examples = []
++    for tag, a, b, c, d in SequenceMatcher(None, reference, hypothesis, autojunk=False).get_opcodes():
++        if tag == "equal":
++            continue
++        expected, actual = reference[a:b], hypothesis[c:d]
++        category = {"delete": "omission", "insert": "insertion", "replace": "substitution"}[tag]
++        if expected != actual and unaccent(expected) == unaccent(actual):
++            category = "diacritics"
++        linked = [
++            {"page_index": page, "block_id": block["block_id"],
++             "reading_order": block["reading_order"], "text": block["text"],
++             "polygon": block["polygon"]}
++            for start, end, page, block in spans
++            if start < max(c + 1, d) and end > c
++        ]
++        examples.append({
++            "category": category, "reference_span": [a, b], "prediction_span": [c, d],
++            "expected": expected, "actual": actual,
++            "reference_context": reference[max(0, a - 35):b + 35],
++            "prediction_context": hypothesis[max(0, c - 35):d + 35],
++            "evidence": linked, "review_status": "text_diff_candidate",
++        })
++        if len(examples) >= limit:
++            break
++    return examples
++
++
++def summarize(output, manifest, reports, *, manifest_path=None):
++    pairs, pages, handoff, examples = [], [], [], []
++    by_mode = {mode: {r["id"]: r for r in report["samples"]}
++               for mode, report in reports.items()}
++    for sample in manifest["samples"]:
++        sid = sample["id"]
++        a, b = by_mode["ocr_all"][sid], by_mode["route_aware"][sid]
++        if a["input_sha256"] != b["input_sha256"]:
++            raise ValueError(f"Paired input changed: {sid}")
++        row = {"id": sid, "condition": sample.get("condition", "unspecified"),
++               "input_sha256": a["input_sha256"]}
++        for mode, result in (("ocr_all", a), ("route_aware", b)):
++            for key in ("status", "error", "cer", "wer", "char_deletions",
++                        "char_substitutions", "char_insertions", "duration_ms",
++                        "wall_duration_ms", "cold_start_candidate"):
++                row[f"{mode}_{key}"] = result[key]
++            path = output / mode / "predictions" / f"{sid}.json"
++            if not path.exists():
++                continue
++            document = read_json(path)
++            validate_document(document)
++            metadata = read_json(path.with_suffix(".metadata.json"))
++            for page, meta in zip(document["pages"], metadata["pages"]):
++                stages = meta.get("stage_latency_ms", {})
++                pages.append({
++                    "id": sid, "mode": mode, "page_index": page["page_index"],
++                    "route": meta["source"], "routing_reason": meta["routing_reason"],
++                    "fallback": meta["fallback"],
++                    "orientation_clockwise": meta.get("orientation_clockwise", 0),
++                    "pdf_text_ms": stages.get("pdf_text", 0),
++                    "render_ms": stages.get("render", 0),
++                    "preprocess_orientation_ms": stages.get("preprocess_orientation", 0),
++                    "ocr_ms": stages.get("ocr", 0), "geometry_order_ms": stages.get("geometry_order", 0),
++                    "confidence": None if meta["source"] == "PDF_TEXT" else page["evidence"]["average_confidence"],
++                    "confidence_semantics": meta["confidence_semantics"],
++                })
++            handoff.append({
++                "id": sid, "mode": mode, "receipt_id": document["receipt_id"],
++                "ocr_run_id": document["ocr_run_id"], "input_sha256": result["input_sha256"],
++                "source_path": sample["path"],
++                "evidence_path": path.relative_to(output).as_posix(),
++                "evidence_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
++                "metadata_path": path.with_suffix(".metadata.json").relative_to(output).as_posix(),
++                "alignment_status": "awaiting_TV2_source_gold_and_QA",
++                "source_provenance": {
++                    key: sample[key] for key in (
++                        "sample_id", "parent_sample_id", "variant_id", "layout_id", "source_split",
++                        "source_commit", "ground_truth_path", "ground_truth_sha256",
++                        "source_svg_path", "source_svg_sha256", "reference_status",
++                    ) if key in sample
++                },
++            })
++            if sample.get("reference"):
++                examples.extend(dict(e, id=sid, mode=mode, evidence_path=path.relative_to(output).as_posix())
++                                for e in error_examples(sample["reference"], document))
++        row["cer_delta_route_minus_ocr"] = b["cer"] - a["cer"] if a["cer"] is not None and b["cer"] is not None else None
++        pairs.append(row)
++    dump(output / "comparison.json", {
++        "dataset": manifest["dataset"], "version": manifest["version"], "split": manifest["split"],
++        "interpretation": "development diagnostics; not final accuracy or KIE scores",
++        "source_provenance": manifest.get("source_provenance"),
++        "reference_policy": manifest.get("reference_policy"),
++        "slices": {mode: report["slices"] for mode, report in reports.items()}, "samples": pairs,
++    })
++    write_csv(output / "comparison.csv", pairs)
++    write_csv(output / "pages.csv", pages)
++    dump(output / "handoff.json", {
++        "dataset": manifest["dataset"], "version": manifest["version"], "split": manifest["split"],
++        "source_provenance": manifest.get("source_provenance"),
++        "input_manifest_path": os.path.relpath(manifest_path.resolve(), output.resolve()).replace("\\", "/")
++        if manifest_path else None,
++        "source_paths_relative_to": "input_manifest_path parent directory",
++        "samples": handoff,
++    })
++    dump(output / "error_examples.json", {
++        "policy": "Character diffs only; order/geometry/PDF rendering require source-overlay review. Omission can have no predicted block.",
++        "examples": examples,
++    })
++    dump(output / "runtime.json", {
++        "native": {"status": "see per-sample results", "configuration": "ocr_all/config.json"},
++        "docker": {"cli_available": shutil.which("docker") is not None,
++                   "smoke_status": "not_tested", "linux_arm64_scan_support": "not_verified"},
++    })
++    return pairs
++
++
++def compare(manifest_path, output, config, *, reader_factory=None):
++    manifest = load_manifest(manifest_path)
++    if manifest["split"].lower() not in {"development", "dev", "validation"}:
++        raise ValueError("Use a development/validation manifest; final test is locked")
++    if not any(Path(s["path"]).suffix.lower() == ".pdf" for s in manifest["samples"]):
++        raise ValueError("Paired PDF comparison requires PDF samples")
++    output.mkdir(parents=True, exist_ok=False)
++    reports = {}
++    # Freeze and hash the same input files; verify again after both passes.
++    frozen = {s["id"]: hashlib.sha256((manifest_path.parent / s["path"]).read_bytes()).hexdigest()
++              for s in manifest["samples"] if (manifest_path.parent / s["path"]).is_file()}
++    for mode, forced in (("ocr_all", True), ("route_aware", False)):
++        reports[mode] = benchmark(manifest_path, output / mode, replace(config, force_pdf_ocr=forced),
++                                  reader_factory=reader_factory)
++        for row in reports[mode]["samples"]:
++            if row["input_sha256"] != frozen.get(row["id"]):
++                raise ValueError("Input bytes changed during comparison")
++    return summarize(output, manifest, reports, manifest_path=manifest_path)
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--manifest", type=Path, required=True)
++    parser.add_argument("--output", type=Path, required=True)
++    parser.add_argument("--orientation", choices=["auto", "none"], default="auto")
++    parser.add_argument("--dpi", type=int, default=200)
++    parser.add_argument("--max-side", type=int, default=0)
++    parser.add_argument("--contrast", type=float, default=1)
++    args = parser.parse_args()
++    rows = compare(args.manifest, args.output, ReaderConfig(
++        orientation=args.orientation, dpi=args.dpi, max_side=args.max_side, contrast=args.contrast))
++    if any(row[f"{mode}_status"] in {"failed", "unexpected_success"}
++           for row in rows for mode in ("ocr_all", "route_aware")):
++        raise SystemExit(1)
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/scripts/verify_reader_handoff.py
+@@ -0,0 +1,62 @@
++"""Check saved real Reader evidence with TV4/TV5, without rewriting any IDs."""
++
++import argparse
++import hashlib
++from pathlib import Path
++from uuid import uuid4
++
++from ai.document_reader.contract import validate_document
++from ai.kie.v2 import extract_invoice
++from backend.app.v2.contracts import validate_evidence, validate_result
++from scripts.benchmark_document_reader import dump
++from scripts.compare_pdf_routes import read_json
++
++
++def verify(run_dir, output):
++    handoff = read_json(run_dir / "handoff.json")
++    output.mkdir(parents=True, exist_ok=False)
++    rows = []
++    for sample in handoff["samples"]:
++        path = (run_dir / sample["evidence_path"]).resolve()
++        if not path.is_relative_to(run_dir.resolve()):
++            raise ValueError("Evidence path escapes run directory")
++        if hashlib.sha256(path.read_bytes()).hexdigest() != sample["evidence_sha256"]:
++            raise ValueError("Evidence checksum mismatch")
++        document = read_json(path)
++        validate_document(document)
++        receipt_id, ocr_run_id = document["receipt_id"], document["ocr_run_id"]
++        if (receipt_id, ocr_run_id) != (sample["receipt_id"], sample["ocr_run_id"]):
++            raise ValueError("Handoff identity mismatch")
++        validate_evidence(document, receipt_id, ocr_run_id)
++        kie_run_id = uuid4()
++        result = extract_invoice(document, kie_run_id=kie_run_id)
++        validate_result(result, document, receipt_id, str(kie_run_id), ocr_run_id)
++        filename = f"{sample['mode']}-{sample['id']}.json"
++        if Path(filename).name != filename:
++            raise ValueError("Unsafe handoff sample name")
++        dump(output / filename, result)
++        rows.append({
++            "id": sample["id"], "mode": sample["mode"], "receipt_id": receipt_id,
++            "ocr_run_id": ocr_run_id, "kie_run_id": str(kie_run_id),
++            "reader_contract": "pass", "tv5_evidence_contract": "pass",
++            "tv4_kie_contract": "pass", "tv5_kie_contract": "pass",
++            "kie_result": filename, "accuracy": None,
++            "note": "Provider/schema check only; no independent gold or accuracy claim",
++        })
++    report = {"dataset": handoff["dataset"], "samples": rows,
++              "gold_alignment": "pending_TV2_QA", "id_rewriting": False}
++    dump(output / "verification.json", report)
++    return report
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--run-dir", type=Path, required=True)
++    parser.add_argument("--output", type=Path, required=True)
++    args = parser.parse_args()
++    report = verify(args.run_dir, args.output)
++    print(f"Validated {len(report['samples'])} evidence/KIE runs; gold alignment still pending")
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/scripts/prepare_tv2_reader_manifest.py
+@@ -0,0 +1,299 @@
++"""Import only TV2 validation variants for reproducible Reader diagnostics.
++
++The reference is original SVG text, never OCR output or KIE labels. SVG text
++baselines define a provisional row-major order that still needs visual QA. This importer
++does not produce independently reviewed transcripts or aligned KIE gold.
++"""
++
++import argparse
++import csv
++import hashlib
++import json
++import math
++import re
++import shutil
++import xml.etree.ElementTree as ET
++from collections import Counter
++from pathlib import Path, PurePosixPath
++from uuid import UUID
++
++
++LAYOUT_SPLITS = {"layout_a": "train", "layout_b": "validation", "layout_c": "test"}
++TYPES = {"rendered_png": ".png", "png_image": ".png", "image_only_pdf": ".pdf", "vector_pdf": ".pdf"}
++DEGRADATIONS = {"clean", "blur", "noise", "skew"}
++SAFE_ID = re.compile(r"[A-Za-z0-9_-]+\Z")
++SHA256 = re.compile(r"[0-9a-fA-F]{64}\Z")
++COMMIT = re.compile(r"[0-9a-fA-F]{40}\Z")
++REQUIRED = {
++    "sample_id", "parent_sample_id", "variant_id", "dataset_family",
++    "dataset_snapshot", "document_path", "ground_truth_path", "source_type",
++    "synthetic", "split", "layout_id", "mapping_version", "input_type",
++    "degradation", "document_sha256", "ground_truth_sha256", "provenance",
++}
++
++
++def sha256(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def source_path(root, value):
++    """TV2 CSV paths are repository-relative, not CSV-directory-relative."""
++    relative = PurePosixPath(value)
++    if not value or "\\" in value or ":" in value or relative.is_absolute() or ".." in relative.parts:
++        raise ValueError(f"Unsafe repository-relative path: {value}")
++    path = (root / Path(*relative.parts)).resolve()
++    if not path.is_relative_to(root):
++        raise ValueError(f"Source path escapes source root: {value}")
++    return path
++
++
++def visible_svg_text(path):
++    """Read the v0 flat SVG text by baseline y, then anchor x.
++
++    The TV2 generator uses plain text elements with inherited styling. Reject
++    hidden/scripted or alternative embedded text so a future generator change
++    cannot silently become a trustworthy-looking transcript.
++    """
++    data = path.read_bytes()
++    if b"<!DOCTYPE" in data.upper() or b"<!ENTITY" in data.upper():
++        raise ValueError("SVG declarations/entities are unsupported")
++    root = ET.fromstring(data)
++    if root.tag != "{http://www.w3.org/2000/svg}svg":
++        raise ValueError("Expected an SVG source document")
++    unsupported = {"script", "foreignObject", "use", "switch", "textPath", "tspan"}
++    for element in root.iter():
++        tag = element.tag.rsplit("}", 1)[-1]
++        style = element.get("style", "").replace(" ", "").lower()
++        if tag in unsupported or tag == "style":
++            raise ValueError(f"Unsupported SVG transcript element: {tag}")
++        if "transform" in element.attrib:
++            raise ValueError("SVG transforms require manual transcript review")
++        if (element.get("display") == "none" or element.get("visibility") in {"hidden", "collapse"}
++                or "display:none" in style or "visibility:hidden" in style
++                or element.get("opacity") in {"0", "0.0"} or "opacity:0;" in style):
++            raise ValueError("Hidden SVG content requires manual transcript review")
++    lines = []
++    for element in root.iter("{http://www.w3.org/2000/svg}text"):
++        try:
++            x, y = float(element.attrib["x"]), float(element.attrib["y"])
++        except (KeyError, ValueError) as exc:
++            raise ValueError("Expected simple numeric x/y coordinates on SVG text") from exc
++        if not math.isfinite(x) or not math.isfinite(y):
++            raise ValueError("Expected finite SVG text coordinates")
++        text = " ".join("".join(element.itertext()).split())
++        if text:
++            lines.append((y, x, text))
++    text = "\n".join(line for _, _, line in sorted(lines, key=lambda line: line[:2]))
++    if not text:
++        raise ValueError("SVG source contains no visible text")
++    return text
++
++
++def read_rows(path, root):
++    with path.open(encoding="utf-8-sig", newline="") as handle:
++        reader = csv.DictReader(handle)
++        if not REQUIRED <= set(reader.fieldnames or []):
++            raise ValueError("TV2 rendered manifest is missing required columns")
++        rows = list(reader)
++    if not rows:
++        raise ValueError("TV2 rendered manifest is empty")
++    variants, parents = set(), {}
++    for row in rows:
++        if any(not row.get(key) for key in REQUIRED):
++            raise ValueError("TV2 manifest has an empty required value")
++        sid, parent, variant = row["sample_id"], row["parent_sample_id"], row["variant_id"]
++        if any(not SAFE_ID.fullmatch(value) for value in (sid, parent, variant)):
++            raise ValueError("Unsafe TV2 sample/variant ID")
++        if sid != parent:
++            raise ValueError("Variant sample_id must identify its parent source document")
++        if variant in variants:
++            raise ValueError(f"Duplicate variant ID: {variant}")
++        variants.add(variant)
++        if row["layout_id"] not in LAYOUT_SPLITS or LAYOUT_SPLITS[row["layout_id"]] != row["split"]:
++            raise ValueError("TV2 layout split leakage or unknown layout")
++        if row["synthetic"].lower() != "true" or row["source_type"] != "synthetic_svg":
++            raise ValueError("Only the fictional TV2 synthetic SVG source family is supported")
++        kind, degradation = row["input_type"], row["degradation"]
++        if kind not in TYPES or degradation not in DEGRADATIONS:
++            raise ValueError("Unknown TV2 input type or degradation")
++        if ((kind in {"rendered_png", "vector_pdf"} and degradation != "clean")
++                or (kind == "png_image" and degradation == "clean")):
++            raise ValueError("Inconsistent TV2 input type/degradation")
++        document = source_path(root, row["document_path"])
++        label = source_path(root, row["ground_truth_path"])
++        if document.suffix.lower() != TYPES[kind] or label.suffix.lower() != ".json":
++            raise ValueError("TV2 input type/path extension mismatch")
++        if label.name != parent + ".json" or label.parent.name != "labels":
++            raise ValueError("Expected the matching source label under labels/")
++        if not all(SHA256.fullmatch(row[key]) for key in ("document_sha256", "ground_truth_sha256")):
++            raise ValueError("Invalid TV2 SHA-256 checksum")
++        identity = tuple(row[key] for key in ("split", "layout_id", "ground_truth_path",
++                         "ground_truth_sha256", "dataset_family", "dataset_snapshot", "mapping_version"))
++        if parent in parents and parents[parent] != identity:
++            raise ValueError("Parent metadata or split differs across variants")
++        parents[parent] = identity
++    if len({(r["dataset_family"], r["dataset_snapshot"], r["mapping_version"]) for r in rows}) != 1:
++        raise ValueError("Mixed dataset provenance in TV2 manifest")
++    return rows
++
++
++def read_base_manifest(path, root):
++    """Check upstream SVG hashes without reading held-out source documents."""
++    with path.open(encoding="utf-8-sig", newline="") as handle:
++        rows = list(csv.DictReader(handle))
++    by_id = {}
++    for row in rows:
++        parent = row.get("sample_id", "")
++        if not SAFE_ID.fullmatch(parent) or parent in by_id:
++            raise ValueError("Invalid or duplicate base sample ID")
++        if LAYOUT_SPLITS.get(row.get("layout_id")) != row.get("split"):
++            raise ValueError("Base source layout split leakage")
++        for key in ("document_path", "ground_truth_path"):
++            source_path(root, row.get(key, ""))
++        if not all(SHA256.fullmatch(row.get(key, "")) for key in ("document_sha256", "ground_truth_sha256")):
++            raise ValueError("Invalid base source checksum")
++        by_id[parent] = row
++    return by_id
++
++
++def prepare(source_root, manifest_path, source_commit, output, sample_ids=None):
++    root, manifest_path, output = Path(source_root).resolve(), Path(manifest_path).resolve(), Path(output).resolve()
++    if not COMMIT.fullmatch(source_commit):
++        raise ValueError("source_commit must be a full 40-character Git commit SHA")
++    if not manifest_path.is_relative_to(root):
++        raise ValueError("TV2 manifest must be inside the source root mirror")
++    if output.exists():
++        raise FileExistsError(output)
++    if output == root or root.is_relative_to(output):
++        raise ValueError("Output cannot contain the source root")
++    rows = read_rows(manifest_path, root)
++    validation_ids = {r["parent_sample_id"] for r in rows if r["split"] == "validation"}
++    selected_ids = validation_ids if sample_ids is None else set(sample_ids)
++    if not selected_ids or not selected_ids <= validation_ids:
++        raise ValueError("Only existing validation parent sample IDs may be selected; final test is locked")
++    selected = [r for r in rows if r["parent_sample_id"] in selected_ids]
++    prepared, sources, base_manifests = [], {}, {}
++    for row in selected:
++        parent, variant = row["parent_sample_id"], row["variant_id"]
++        document = source_path(root, row["document_path"])
++        label_path = source_path(root, row["ground_truth_path"])
++        if sha256(document) != row["document_sha256"].lower() or sha256(label_path) != row["ground_truth_sha256"].lower():
++            raise ValueError(f"TV2 document/label checksum mismatch: {variant}")
++        if parent not in sources:
++            label = json.loads(label_path.read_text(encoding="utf-8"))
++            if (label.get("sample_id") != parent or label.get("template_id") != row["layout_id"]
++                    or any(label.get(key) != row[key] for key in ("dataset_family", "dataset_snapshot", "split", "mapping_version"))
++                    or label.get("synthetic") is not True):
++                raise ValueError(f"Source label identity/provenance mismatch: {parent}")
++            try:
++                receipt_id = str(UUID(label["receipt_id"]))
++            except (KeyError, ValueError, TypeError, AttributeError) as exc:
++                raise ValueError(f"Invalid source receipt_id: {parent}") from exc
++            svg = source_path(root, (PurePosixPath(row["ground_truth_path"]).parent.parent / "documents" / (parent + ".svg")).as_posix())
++            base_manifest = label_path.parent.parent / "manifest.csv"
++            upstream_verified = False
++            if base_manifest.exists():
++                if base_manifest not in base_manifests:
++                    base_manifests[base_manifest] = read_base_manifest(base_manifest, root)
++                base_row = base_manifests[base_manifest].get(parent)
++                if (not base_row or any(base_row.get(key) != row[key] for key in (
++                        "dataset_family", "dataset_snapshot", "layout_id", "split",
++                        "ground_truth_path", "ground_truth_sha256", "mapping_version"))
++                        or source_path(root, base_row["document_path"]) != svg):
++                    raise ValueError(f"Base/rendered manifest provenance mismatch: {parent}")
++                if sha256(svg) != base_row["document_sha256"].lower():
++                    raise ValueError(f"Source SVG checksum mismatch: {parent}")
++                upstream_verified = True
++            sources[parent] = {"svg": svg, "label": label_path, "receipt_id": receipt_id,
++                               "reference": visible_svg_text(svg), "svg_sha256": sha256(svg),
++                               "upstream_svg_verified": upstream_verified}
++        source = sources[parent]
++        prepared.append({
++            "id": variant, "path": f"inputs/{variant}{document.suffix.lower()}",
++            "condition": f"{row['input_type']}_{row['degradation']}",
++            "input_sha256": row["document_sha256"].lower(),
++            "sample_id": row["sample_id"], "parent_sample_id": parent,
++            "variant_id": variant, "layout_id": row["layout_id"],
++            "source_split": row["split"], "source_commit": source_commit.lower(),
++            "ground_truth_path": f"sources/labels/{parent}.json",
++            "ground_truth_sha256": row["ground_truth_sha256"].lower(),
++            "source_svg_path": f"sources/documents/{parent}.svg",
++            "source_svg_sha256": source["svg_sha256"],
++            "receipt_id": source["receipt_id"], "reference": source["reference"],
++            "reference_status": "synthetic_source_transcript_unreviewed",
++            "reference_provenance": {
++                "method": "original_svg_text_sorted_by_numeric_baseline_y_then_x",
++                "source_path": f"sources/documents/{parent}.svg",
++                "source_sha256": source["svg_sha256"], "human_verified": False,
++                "reading_order_assumption": "Flat v0 SVG only: baseline y then anchor x; transforms/tspan unsupported; source/render visual QA is still required",
++                "not_derived_from": ["OCR", "KIE labels", "PDF direct text"],
++            },
++            "source": {**row, "source_commit": source_commit.lower(),
++                       "source_svg_sha256": source["svg_sha256"],
++                       "copied_label_path": f"sources/labels/{parent}.json"},
++        })
++    imported = {
++        "dataset": rows[0]["dataset_family"], "version": rows[0]["dataset_snapshot"] + "-rendered",
++        "split": "validation", "synthetic": True,
++        "provenance": {
++            "source_commit": source_commit.lower(),
++            "source_manifest": manifest_path.relative_to(root).as_posix(),
++            "source_manifest_sha256": sha256(manifest_path),
++            "base_manifests": [{"path": path.relative_to(root).as_posix(), "sha256": sha256(path)}
++                               for path in sorted(base_manifests)],
++            "reference_policy": "Synthetic source diagnostics only; not independently reviewed OCR ground truth or aligned KIE gold",
++            "test_policy": "Only validation selected; train/test documents and labels are not copied or read",
++        },
++        "samples": prepared,
++    }
++    imported["source_provenance"] = imported["provenance"]
++    imported["reference_policy"] = imported["provenance"]["reference_policy"]
++    output.mkdir(parents=True, exist_ok=False)
++    for directory in ("inputs", "sources/documents", "sources/labels"):
++        (output / directory).mkdir(parents=True)
++    for row, sample in zip(selected, prepared):
++        target = output / sample["path"]
++        shutil.copyfile(source_path(root, row["document_path"]), target)
++        if sha256(target) != row["document_sha256"].lower():
++            raise ValueError("Source input changed while copying")
++    for parent, source in sources.items():
++        for kind, key, suffix in (("documents", "svg", ".svg"), ("labels", "label", ".json")):
++            target = output / "sources" / kind / (parent + suffix)
++            shutil.copyfile(source[key], target)
++            expected = source["svg_sha256"] if key == "svg" else next(r["ground_truth_sha256"].lower() for r in selected if r["parent_sample_id"] == parent)
++            if sha256(target) != expected:
++                raise ValueError("Source transcription/label changed while copying")
++    for name, value in (("manifest.json", imported), ("prepare-report.json", {
++        "source_commit": source_commit.lower(), "metadata_rows_checked": len(rows),
++        "source_split_counts": dict(Counter(r["split"] for r in rows)),
++        "selected_parent_ids": sorted(selected_ids), "selected_samples": len(prepared),
++        "selected_split": "validation", "document_and_label_checksums": "pass",
++        "reference_human_verified": False, "kie_gold_alignment": "pending_TV2_QA",
++        "source_svg_upstream_checksum": "verified_against_base_manifest" if all(s["upstream_svg_verified"] for s in sources.values()) else "not supplied for every source; computed hash preserved",
++    })):
++        (output / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
++    with (output / "selected-source-manifest.csv").open("w", encoding="utf-8", newline="") as handle:
++        writer = csv.DictWriter(handle, fieldnames=list(selected[0]))
++        writer.writeheader()
++        writer.writerows(selected)
++    return imported
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--source-root", type=Path, required=True)
++    parser.add_argument("--manifest", type=Path, required=True)
++    parser.add_argument("--source-commit", required=True)
++    parser.add_argument("--output", type=Path, required=True)
++    parser.add_argument("--sample-ids", help="Comma-separated validation parent IDs; default: all validation parents")
++    args = parser.parse_args()
++    sample_ids = None if args.sample_ids is None else [part.strip() for part in args.sample_ids.split(",")]
++    if sample_ids is not None and (not all(sample_ids) or len(set(sample_ids)) != len(sample_ids)):
++        parser.error("--sample-ids requires nonempty unique parent IDs")
++    result = prepare(args.source_root, args.manifest, args.source_commit, args.output, sample_ids)
++    print(f"Prepared {len(result['samples'])} validation variants: {args.output / 'manifest.json'}")
++    print("References are unreviewed synthetic SVG source transcriptions; final test remains locked.")
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/tests/test_compare_pdf_routes.py
+@@ -0,0 +1,121 @@
++"""Test paired accounting with a fake OCR; these are not OCR quality scores."""
++
++import json
++import hashlib
++import tempfile
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++from ai.document_reader import DocumentReader, ReaderConfig
++from ai.ocr.pipeline import OCRPipeline
++from scripts.compare_pdf_routes import compare, error_examples, read_json
++from scripts.benchmark_document_reader import load_manifest
++from scripts.create_document_fixtures import make_text_pdf
++from tests.test_document_reader import Engine
++
++
++class CompareTests(unittest.TestCase):
++    def manifest(self, root):
++        (root / "text.pdf").write_bytes(make_text_pdf(["INVOICE DEMONSTRATION ABCDEFG 123456789"]))
++        (root / "bad.pdf").write_bytes(b"%PDF-1.7 broken")
++        manifest = {"dataset": "test-only-fake-ocr", "version": "1", "split": "development",
++                    "samples": [{"id": "text", "path": "text.pdf", "condition": "text_pdf",
++                                 "reference": "INVOICE DEMONSTRATION ABCDEFG 123456789"},
++                                {"id": "bad", "path": "bad.pdf", "reference": "ABC"}]}
++        path = root / "manifest.json"
++        path.write_text(json.dumps(manifest), encoding="utf-8")
++        return path
++
++    def test_pair_routes_failures_identity_and_confidence(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            manifest = self.manifest(root)
++            source = read_json(manifest)
++            source["source_provenance"] = {"source_commit": "example-upstream-commit"}
++            source["samples"][0].update(
++                sample_id="parent-1", source_split="validation", reference_status="synthetic_unreviewed")
++            manifest.write_text(json.dumps(source), encoding="utf-8")
++            output = root / "run"
++            rows = compare(manifest, output, ReaderConfig(orientation="none"),
++                           reader_factory=lambda config: DocumentReader(config=config, ocr=OCRPipeline(Engine())))
++            self.assertEqual(rows[0]["route_aware_cer"], 0)
++            self.assertGreater(rows[0]["ocr_all_cer"], 0)
++            self.assertEqual(rows[1]["route_aware_cer"], 1)
++            self.assertEqual(rows[1]["ocr_all_cer"], 1)
++            handoff = read_json(output / "handoff.json")["samples"]
++            self.assertEqual(handoff[0]["receipt_id"], handoff[1]["receipt_id"])
++            self.assertNotEqual(handoff[0]["ocr_run_id"], handoff[1]["ocr_run_id"])
++            self.assertEqual(handoff[0]["source_provenance"]["sample_id"], "parent-1")
++            envelope = read_json(output / "handoff.json")
++            self.assertEqual(envelope["source_provenance"], source["source_provenance"])
++            self.assertEqual((output / envelope["input_manifest_path"]).resolve(), manifest.resolve())
++            metadata = read_json(output / "route_aware/predictions/text.metadata.json")["pages"][0]
++            self.assertEqual(metadata["source"], "PDF_TEXT")
++            self.assertFalse(metadata["fallback"])
++            self.assertEqual(metadata["confidence_semantics"], "not_applicable_legacy_sentinel_1")
++            self.assertTrue(all(v >= 0 for v in metadata["stage_latency_ms"].values()))
++            report = read_json(output / "comparison.json")
++            self.assertEqual(report["slices"]["route_aware"]["all"]["failures"], 1)
++            with self.assertRaises(FileExistsError):
++                compare(manifest, output, ReaderConfig(orientation="none"))
++
++    def test_ocr_all_bypasses_unreadable_text_layer(self):
++        reader = DocumentReader(config=ReaderConfig(orientation="none", force_pdf_ocr=True),
++                                ocr=OCRPipeline(Engine()))
++        from uuid import uuid4
++        with patch.object(reader, "_pdf_text", side_effect=AssertionError("must not extract")):
++            _, audit = reader.process_with_metadata(make_text_pdf(), content_type="application/pdf",
++                                                    receipt_id=uuid4(), ocr_run_id=uuid4())
++        page = audit["pages"][0]
++        self.assertEqual(page["routing_reason"], "forced_ocr")
++        self.assertFalse(page["fallback"])
++
++    def test_scan_fallback_is_explicit(self):
++        from scripts.create_document_fixtures import scan_pdf
++        from PIL import Image
++        from uuid import uuid4
++        reader = DocumentReader(config=ReaderConfig(orientation="none"), ocr=OCRPipeline(Engine()))
++        _, audit = reader.process_with_metadata(scan_pdf(Image.new("RGB", (640, 820), "white")),
++                                                content_type="application/pdf", receipt_id=uuid4(), ocr_run_id=uuid4())
++        self.assertTrue(audit["pages"][0]["fallback"])
++        self.assertEqual(audit["pages"][0]["routing_reason"], "unusable_text_layer")
++
++    def test_manifest_escape_and_final_test_are_rejected(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            path = self.manifest(root)
++            data = read_json(path)
++            data["samples"][0]["path"] = "../private.pdf"
++            path.write_text(json.dumps(data), encoding="utf-8")
++            with self.assertRaises(ValueError):
++                load_manifest(path)
++            data["samples"][0]["path"] = "text.pdf"
++            data["split"] = "test"
++            path.write_text(json.dumps(data), encoding="utf-8")
++            with self.assertRaises(ValueError):
++                compare(path, root / "run", ReaderConfig())
++            self.assertFalse((root / "run").exists())
++
++    def test_diacritic_diff_keeps_actual_block_reference(self):
++        block = {"text": "Hoa", "block_id": "p0_b000000", "reading_order": 0,
++                 "polygon": [{"x": 0, "y": 0}] * 4}
++        errors = error_examples("Hoá", {"pages": [{"page_index": 0, "evidence": {"blocks": [block]}}]})
++        self.assertEqual(errors[0]["category"], "diacritics")
++        self.assertEqual(errors[0]["evidence"][0]["block_id"], block["block_id"])
++
++    def test_manifest_checksum_detects_changed_source_before_output(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            path = self.manifest(root)
++            data = read_json(path)
++            data["samples"][0]["input_sha256"] = hashlib.sha256((root / "text.pdf").read_bytes()).hexdigest()
++            path.write_text(json.dumps(data), encoding="utf-8")
++            (root / "text.pdf").write_bytes(b"changed")
++            with self.assertRaisesRegex(ValueError, "checksum mismatch"):
++                compare(path, root / "run", ReaderConfig())
++            self.assertFalse((root / "run").exists())
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- /dev/null
++++ b/tests/test_prepare_tv2_reader_manifest.py
+@@ -0,0 +1,201 @@
++"""TV2 import integrity, split isolation and independent-reference checks."""
++
++import csv
++import hashlib
++import json
++import tempfile
++import unittest
++from pathlib import Path
++from uuid import uuid4
++
++from scripts.prepare_tv2_reader_manifest import prepare, visible_svg_text
++
++
++COMMIT = "5e5b871dd1c7413f2d74acc175aad0f0186486f7"
++
++
++class PrepareTV2Tests(unittest.TestCase):
++    def setUp(self):
++        self.temp = tempfile.TemporaryDirectory()
++        self.addCleanup(self.temp.cleanup)
++        self.root = Path(self.temp.name) / "mirror"
++        self.base = self.root / "data/synthetic"
++        for directory in ("documents", "labels", "rendered"):
++            (self.base / directory).mkdir(parents=True)
++        self.manifest = self.base / "rendered/manifest.csv"
++        self.output = Path(self.temp.name) / "reader-inputs"
++        self.rows = []
++        self.receipt = {}
++        for number, layout, split in ((1, "layout_a", "train"), (2, "layout_b", "validation"), (3, "layout_c", "test")):
++            parent = f"VRSYN-{number:03d}"
++            self.receipt[parent] = str(uuid4())
++            label_path = self.base / "labels" / (parent + ".json")
++            label_path.write_text(json.dumps({
++                "receipt_id": self.receipt[parent], "sample_id": parent,
++                "template_id": layout, "dataset_family": "vietreceipt_synthetic",
++                "dataset_snapshot": "v0.1", "split": split, "synthetic": True,
++                "mapping_version": "vietreceipt-canonical-v2",
++                "fields": {"seller_name": {"raw_value": "THIS IS NOT THE TRANSCRIPT"}},
++            }), encoding="utf-8")
++            (self.base / "documents" / (parent + ".svg")).write_text(
++                '<svg xmlns="http://www.w3.org/2000/svg"><title>Not printed title</title>'
++                '<text x="10" y="10">HOA DON &amp; INVOICE</text>'
++                '<text x="10" y="30">Hang mot</text><text x="100" y="30">12.000</text>'
++                '<text x="10" y="50">Tong: 12.000 VND</text></svg>', encoding="utf-8")
++            for kind, degradation, suffix in (("vector_pdf", "clean", ".pdf"), ("png_image", "blur", ".png")):
++                variant = parent + ("__vector_pdf" if kind == "vector_pdf" else "__blur")
++                document = self.base / "rendered" / (variant + suffix)
++                document.write_bytes(b"fake fixture bytes; importer performs no OCR")
++                self.rows.append({
++                    "sample_id": parent, "parent_sample_id": parent, "variant_id": variant,
++                    "dataset_family": "vietreceipt_synthetic", "dataset_snapshot": "v0.1",
++                    "document_path": document.relative_to(self.root).as_posix(),
++                    "ground_truth_path": label_path.relative_to(self.root).as_posix(),
++                    "source_type": "synthetic_svg", "synthetic": "true", "split": split,
++                    "layout_id": layout, "mapping_version": "vietreceipt-canonical-v2",
++                    "input_type": kind, "degradation": degradation, "quality": "clean",
++                    "document_sha256": hashlib.sha256(document.read_bytes()).hexdigest(),
++                    "ground_truth_sha256": hashlib.sha256(label_path.read_bytes()).hexdigest(),
++                    "provenance": "unit fixture only",
++                })
++        self.write_manifest()
++
++    def write_manifest(self):
++        with self.manifest.open("w", encoding="utf-8", newline="") as handle:
++            writer = csv.DictWriter(handle, fieldnames=list(self.rows[0]))
++            writer.writeheader()
++            writer.writerows(self.rows)
++
++    def run_prepare(self, **kwargs):
++        return prepare(self.root, self.manifest, COMMIT, self.output, **kwargs)
++
++    def test_validation_only_independent_transcript_and_provenance(self):
++        # Locked/train source assets may be unavailable and must never be read.
++        for parent in ("VRSYN-001", "VRSYN-003"):
++            (self.base / "documents" / (parent + ".svg")).unlink()
++            (self.base / "labels" / (parent + ".json")).unlink()
++        manifest = self.run_prepare()
++        self.assertEqual(manifest["split"], "validation")
++        self.assertEqual(len(manifest["samples"]), 2)
++        self.assertEqual(manifest["provenance"]["source_commit"], COMMIT)
++        self.assertEqual(manifest["provenance"]["source_manifest_sha256"], hashlib.sha256(self.manifest.read_bytes()).hexdigest())
++        for sample in manifest["samples"]:
++            self.assertEqual(sample["receipt_id"], self.receipt["VRSYN-002"])
++            self.assertEqual(sample["reference"], "HOA DON & INVOICE\nHang mot\n12.000\nTong: 12.000 VND")
++            self.assertNotIn("THIS IS NOT THE TRANSCRIPT", sample["reference"])
++            self.assertFalse(sample["reference_provenance"]["human_verified"])
++            self.assertIn("unreviewed", sample["reference_status"])
++            self.assertEqual(sample["source"]["split"], "validation")
++            self.assertEqual(hashlib.sha256((self.output / sample["path"]).read_bytes()).hexdigest(), sample["source"]["document_sha256"])
++            self.assertEqual(sample["condition"], sample["source"]["input_type"] + "_" + sample["source"]["degradation"])
++        self.assertEqual(len(list((self.output / "sources/labels").glob("*.json"))), 1)
++        self.assertFalse(any("VRSYN-003" in p.name for p in self.output.rglob("*")))
++        with self.assertRaises(FileExistsError):
++            self.run_prepare()
++
++    def test_document_and_label_tampering_fail_before_output(self):
++        for key in ("document_path", "ground_truth_path"):
++            with self.subTest(key=key):
++                path = self.root / self.rows[2][key]
++                original = path.read_bytes()
++                path.write_bytes(original + b"tampered")
++                with self.assertRaisesRegex(ValueError, "checksum mismatch"):
++                    self.run_prepare()
++                self.assertFalse(self.output.exists())
++                path.write_bytes(original)
++
++    def test_duplicates_and_split_leakage_anywhere_are_rejected(self):
++        cases = (
++            (0, "variant_id", self.rows[2]["variant_id"], "Duplicate variant"),
++            (4, "split", "validation", "split leakage"),
++            (1, "ground_truth_sha256", "0" * 64, "Parent metadata"),
++        )
++        for index, key, value, error in cases:
++            with self.subTest(key=key):
++                original = self.rows[index][key]
++                self.rows[index][key] = value
++                self.write_manifest()
++                with self.assertRaisesRegex(ValueError, error):
++                    self.run_prepare()
++                self.assertFalse(self.output.exists())
++                self.rows[index][key] = original
++
++    def test_final_test_train_and_missing_ids_cannot_be_selected(self):
++        for parent in ("VRSYN-001", "VRSYN-003", "VRSYN-999"):
++            with self.subTest(parent=parent), self.assertRaisesRegex(ValueError, "final test is locked"):
++                self.run_prepare(sample_ids=[parent])
++        self.assertFalse(self.output.exists())
++
++    def test_path_escape_unknown_type_and_invalid_commit_are_rejected(self):
++        for key, value in (("document_path", "../outside.pdf"), ("ground_truth_path", "C:/secret.json"), ("input_type", "svg")):
++            with self.subTest(key=key):
++                original = self.rows[0][key]
++                self.rows[0][key] = value
++                self.write_manifest()
++                with self.assertRaises(ValueError):
++                    self.run_prepare()
++                self.rows[0][key] = original
++        self.write_manifest()
++        with self.assertRaisesRegex(ValueError, "full 40-character"):
++            prepare(self.root, self.manifest, "main", self.output)
++        self.assertFalse(self.output.exists())
++
++    def test_label_identity_and_receipt_uuid_require_real_source(self):
++        path = self.root / self.rows[2]["ground_truth_path"]
++        original = json.loads(path.read_text(encoding="utf-8"))
++        for key, value in (("split", "test"), ("receipt_id", "placeholder")):
++            with self.subTest(key=key):
++                label = dict(original, **{key: value})
++                path.write_text(json.dumps(label), encoding="utf-8")
++                digest = hashlib.sha256(path.read_bytes()).hexdigest()
++                for row in self.rows[2:4]:
++                    row["ground_truth_sha256"] = digest
++                self.write_manifest()
++                with self.assertRaises(ValueError):
++                    self.run_prepare()
++                self.assertFalse(self.output.exists())
++
++    def test_hidden_or_scripted_svg_requires_manual_review(self):
++        path = self.base / "documents/VRSYN-002.svg"
++        for content in ('<text display="none">hidden</text>', '<script>bad()</script>', '<style>text{display:none}</style>', '<g transform="rotate(90)"><text x="1" y="1">transformed</text></g>', '<text x="1" y="1"><tspan>nested</tspan></text>'):
++            path.write_text('<svg xmlns="http://www.w3.org/2000/svg">' + content + '</svg>', encoding="utf-8")
++            with self.subTest(content=content), self.assertRaises(ValueError):
++                visible_svg_text(path)
++
++    def test_row_major_order_comes_from_source_baselines_not_dom_order(self):
++        path = self.base / "documents/VRSYN-002.svg"
++        path.write_text('<svg xmlns="http://www.w3.org/2000/svg">'
++                        '<text x="48" y="76">Seller</text>'
++                        '<text x="48" y="118">Date</text>'
++                        '<text x="430" y="76">Buyer</text></svg>', encoding="utf-8")
++        self.assertEqual(visible_svg_text(path), "Seller\nBuyer\nDate")
++
++    def test_original_svg_matches_upstream_base_manifest_checksum(self):
++        base_manifest = self.base / "manifest.csv"
++        base_rows = []
++        for row in self.rows[::2]:
++            source = dict(row)
++            parent = row["sample_id"]
++            svg = self.base / "documents" / (parent + ".svg")
++            source["document_path"] = svg.relative_to(self.root).as_posix()
++            source["document_sha256"] = hashlib.sha256(svg.read_bytes()).hexdigest()
++            base_rows.append(source)
++        with base_manifest.open("w", encoding="utf-8", newline="") as handle:
++            writer = csv.DictWriter(handle, fieldnames=list(base_rows[0]))
++            writer.writeheader()
++            writer.writerows(base_rows)
++        svg = self.base / "documents/VRSYN-002.svg"
++        original = svg.read_bytes()
++        svg.write_bytes(original.replace(b"Hang mot", b"Hang gia"))
++        with self.assertRaisesRegex(ValueError, "Source SVG checksum mismatch"):
++            self.run_prepare()
++        self.assertFalse(self.output.exists())
++        svg.write_bytes(original)
++        manifest = self.run_prepare()
++        self.assertEqual(len(manifest["provenance"]["base_manifests"]), 1)
++        report = json.loads((self.output / "prepare-report.json").read_text(encoding="utf-8"))
++        self.assertEqual(report["source_svg_upstream_checksum"], "verified_against_base_manifest")
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- /dev/null
++++ b/docs/tv3-issue48-handoff.md
+@@ -0,0 +1,127 @@
++# TV3 — Issue #48: OCR / PDF comparison and evidence handoff
++
++Prepared locally on 23/10/2026, Asia/Saigon. Scope: issue [#48](https://github.com/vietreceipt-team/vietreceipt/issues/48)
++and its 23/10 comment, following [#59](https://github.com/vietreceipt-team/vietreceipt/issues/59).
++Reader V2 from PR #55 is reused. No push, PR, issue update or message to teammates
++is performed by this local delivery.
++
++## Inputs and provenance
++
++The current workspace is a source archive without `.git`. Run configuration
++therefore records `git_commit: unavailable` and SHA-256 of the actual Python
++sources rather than inventing a local commit. GitHub main inspected on 23/10 was
++`061960f0e38549f27b3183ebc3008c58ef0e5570`; that is remote context, not a claim
++that the modified archive has that commit. Before publishing later, apply/review
++the local changes on a real Git checkout and rerun with its actual commit.
++
++The earlier inspection of PR #60 at `c3d04d1679bf246f6e1cc253fd58c8e3d5675913`
++was SVG-only. The later head `5e5b871dd1c7413f2d74acc175aad0f0186486f7`
++includes PNG, vector PDF and degraded image-only PDF variants. A selected TV2
++validation subset is now imported locally; see the [TV2 follow-up](tv3-tv2-synthetic-v0.md)
++for source hashes, the explicit LF/CRLF transfer ledger and the real Reader run.
++It remains a draft development dataset with incomplete/unaligned KIE labels.
++PR #61 QA tooling was draft at `3d0e955b23b9acec68b1310c6e2679bdba9463b8`
++when originally inspected; it is not silently merged into this work. The earlier
++local fixture family below remains a separate fictional one-template diagnostic.
++
++## Reproduce the experiment
++
++Use pinned Python 3.12 dependencies in `requirements-document-reader.txt` and
++`requirements-document-reader-test.txt`. This machine retains a working runtime at
++`C:/Users/ADMIN/Downloads/vietreceipt_ocr_probe/.venv/Scripts/python.exe`.
++The model cache for these runs is the current workspace's `.paddlex-cache`.
++
++```powershell
++python -m scripts.create_document_fixtures --output results/dev/document-reader-v2/local-fixtures-20261023 --font C:/Windows/Fonts/arial.ttf
++python -m scripts.compare_pdf_routes --manifest results/dev/document-reader-v2/local-fixtures-20261023/manifest.json --output results/dev/document-reader-v2/local-paired-native-20261023 --orientation auto
++```
++
++Use a new output directory for every run. Both modes use the same source files
++and config except `force_pdf_ocr`. Keep all failures. CER/WER collapse whitespace
++only and retain Vietnamese accents/case. `char_deletions` measures deletions in
++the optimal character alignment, not a semantic missing-field count.
++
++Generated inputs: text PDF, clean PNG, JPEG, blur, 7-degree tilt, noise,
++perspective, scan PDF, two-page text PDF, two-page scan PDF, mixed two-page PDF,
++90/180/270-degree image rotation, corrupt PDF. Corrupt PDF has an expected typed
++failure and no reference text. Source transcriptions are diagnostics, not an
++oracle-text score presented as real OCR.
++
++## TV2 / TV4 handoff contract
++
++Open `handoff.json`, select a sample/mode and load its `evidence_path` relative to
++the run directory. Each strict document envelope contains:
++
++- `receipt_id`, `ocr_run_id`, `schema_version: document-2.0`;
++- zero-based `page_index`;
++- exact block `block_id`, `text`, `polygon`, `reading_order` inside `page.evidence`.
++
++IDs are unique inside a run; the durable reference is
++`(receipt_id, ocr_run_id, page_index, block_id)`. A block ID by itself is not a
++cross-run identity. The two comparison modes have separate run IDs and can have
++different segmentation. Do not reuse alignment IDs between modes.
++
++TV2 must keep source gold independent of OCR, then align gold to the **actual**
++selected evidence run and QA it. Do not synthesize placeholder block IDs, infer
++ground-truth absence from OCR omissions, or copy OCR predictions into gold.
++TV4 can pass the envelope directly to `ai.kie.v2.extract_invoice` without ID
++rewriting. Provider/schema acceptance does not establish extraction accuracy.
++
++## Coordinate transformations and confidence
++
++Polygons are normalized top-left coordinates, in TL/TR/BR/BL order.
++
++| Input | Coordinate frame |
++| --- | --- |
++| PNG/JPEG | Display orientation after EXIF, before OCR rotation/resize |
++| PDF text | Crop box, unrotated PDF.js viewport (`rotation=0`) |
++| PDF OCR | Same crop/unrotated frame, RGB PDFium render at configured DPI |
++
++PDF's intrinsic page rotation is recorded and reset to 0 for both extraction and
++rendering. Pixel dimensions are `ceil(page_points * dpi / 72)`. Aspect-preserving
++resize keeps normalized coordinates. For OCR clockwise correction angle `a`,
++the normalized OCR point `(x,y)` is restored to source as follows:
++
++| a | Source x | Source y |
++| --- | --- | --- |
++| 0 | x | y |
++| 90 | y | 1-x |
++| 180 | 1-x | 1-y |
++| 270 | 1-y | x |
++
++Points are then ordered/clamped to the source frame. Evidence is ordered using
++overlapping baselines and left-to-right position in the OCR reading frame;
++this does not reconstruct semantic table rows. All transformations/configuration
++are carried in the metadata sidecar, without changing the strict wire envelope.
++
++PDF direct text retains numeric confidence `1.0` only for transport compatibility.
++Its confidence is **N/A**, not 100% correctness. OCR engine confidence is an
++uncalibrated engine score; neither value is a KIE field confidence.
++
++## Runtime profiles and remaining acceptance
++
++The native Windows CPU run is a Reader/KIE provider check, not a full frontend /
++queue / database demo. Paddle's first use also needs its auxiliary font; prewarm
++models and fonts on the demo machine. Preserve the first restricted run log,
++which shows initialization failure, separately from the native rerun.
++
++Docker CLI is absent on this machine. Docker smoke and a native-vs-Docker timing
++comparison cannot be claimed here. Existing `docs/backend-v2-integration.md`
++reports text-PDF success on Docker Desktop ARM64 and native Paddle SIGSEGV for
++image/scan in Linux ARM64, even with one OpenMP thread. Changing Celery's pool
++does not establish a fix. The reported native macOS worker is historical
++evidence; this delivery adds a separate Windows native check. Keep ARM64
++image/scan support explicitly unverified until a real smoke succeeds.
++
++Still requires team input:
++
++1. TV2 has delivered rendered development inputs. Independently reviewed source
++   transcriptions and corrected source gold are still required; keep final test locked.
++2. The [TV2 follow-up](tv3-tv2-synthetic-v0.md) records the selected validation run,
++   overlays and representative errors. Expand only on eligible development inputs.
++3. TV2 independently QA-aligns source gold to the chosen run; TV4 confirms its
++   evaluator consumes those IDs. This has not happened merely because KIE runs.
++4. TV5 verifies the deployment's actual CPU/OS architecture and end-to-end demo.
++
++These dependencies prevent marking the entire GitHub issue DONE. The local
++scripts, diagnostic results and evidence package are deliverable now.
+--- /dev/null
++++ b/docs/tv3-issue48-results-20261023.md
+@@ -0,0 +1,111 @@
++# TV3 — Kết quả cục bộ cho issue #48, ngày 23/10/2026
++
++Đã hoàn thiện công cụ so sánh và chạy OCR thật trên Windows CPU. **Chưa push,
++chưa tạo PR và chưa cập nhật issue GitHub.** Báo cáo bên dưới giữ kết quả diagnostic
++TV3 ban đầu. Đã tiếp nhận dữ liệu render mới của TV2 ở PR60 và thực hiện
++[lượt tiếp theo riêng](tv3-tv2-synthetic-v0.md); nghiệm thu gold liên thành viên
++vẫn cần hoàn tất, không đánh dấu toàn bộ #48 là DONE.
++
++## Phạm vi đã làm
++
++- `scripts/compare_pdf_routes.py`: chạy `ocr_all` và `route_aware` trên cùng byte
++  đầu vào, kiểm tra SHA-256, giữ mọi mẫu lỗi và ghi CER/WER, số ký tự mất/thay/chèn.
++- Reader ghi route, lý do fallback, thời gian đọc PDF/render/orientation/OCR và
++  phép biến đổi tọa độ trong metadata riêng, giữ nguyên contract evidence.
++- `ocr_all` bỏ qua hẳn lớp chữ PDF. PDF direct text được báo confidence `N/A`;
++  giá trị 1.0 trong wire payload chỉ là sentinel tương thích.
++- Bổ sung ảnh nghiêng 7°, PDF chữ hai trang và PDF scan hai trang vào fixture
++  development. Giữ cả PDF mixed, ảnh mờ/nhiễu/phối cảnh và xoay 90/180/270°.
++- `scripts/verify_reader_handoff.py`: đưa evidence thật qua Reader contract,
++  TV5 evidence validator, TV4 KIE và TV5 KIE validator, không sửa ID thủ công.
++- Xuất sáu ví dụ lỗi được phân loại, hai evidence mẫu PDF chữ/ảnh, metadata,
++  phiên bản package, hash nguồn/dữ liệu/model và hướng dẫn bàn giao.
++
++## Kết quả chẩn đoán thật
++
++Dữ liệu `tv3-synthetic-diagnostics` **v1.1, development**: 14 tài liệu đọc được
++và 1 PDF hỏng có chủ đích. Tất cả biến thể dùng **một mẫu bố cục giả lập**,
++không phải tập TV2 hay đánh giá cuối. Mẫu số micro: 5.545 ký tự, 1.088 từ sau
++gộp khoảng trắng. Giữ nguyên dấu tiếng Việt và chữ hoa/thường.
++
++| Nhóm đầu vào | Số tài liệu | CER OCR all | CER route aware | WER route aware |
++| --- | ---: | ---: | ---: | ---: |
++| PDF chữ 1 trang | 1 | 16,26% | 0,00% | 0,00% |
++| PDF chữ 2 trang | 1 | 16,23% | 0,00% | 0,00% |
++| PNG sạch | 1 | 15,95% | 15,95% | 64,06% |
++| JPEG nén | 1 | 19,63% | 19,63% | 71,88% |
++| Ảnh mờ | 1 | 16,87% | 16,87% | 68,75% |
++| Ảnh nghiêng 7° | 1 | 30,06% | 30,06% | 76,56% |
++| Nhiễu | 1 | 15,95% | 15,95% | 64,06% |
++| Phối cảnh | 1 | 15,34% | 15,34% | 62,50% |
++| PDF scan 1 trang | 1 | 16,26% | 16,26% | 64,06% |
++| PDF scan 2 trang | 1 | 16,23% | 16,23% | 64,06% |
++| PDF mixed 2 trang | 1 | 16,23% | 8,12% | 32,03% |
++| Xoay 90/180/270° | 3 | 15,95% | 15,95% | 64,06% |
++| Toàn bộ tài liệu có tham chiếu | 14 | **17,15%** | **13,33%** | **50,37%** |
++
++WER của `ocr_all` toàn bộ là 65,44%. Cả hai chế độ đọc thành công 14/14 tài liệu
++hợp lệ; PDF hỏng trả đúng `PDF_READ_FAILED` ở cả hai. Mẫu PDF hỏng không có
++transcription nên không đưa vào mẫu số CER/WER. Lần chạy đầu trong sandbox lỗi
++khởi tạo font Paddle, được giữ riêng trong `local-paired-20261023`; các con số
++trên chỉ lấy từ lần chạy native thành công `local-paired-native-20261023`.
++
++Thời gian một lượt: PDF chữ 1 trang 26.806 ms OCR all (có khởi tạo model) so
++với 35 ms đọc trực tiếp; PDF chữ 2 trang 30.970 ms so với 52 ms; PDF mixed
++30.375 ms so với 15.213 ms. Các thời gian này mô tả lần chạy cục bộ, không phải
++ước lượng speedup ổn định hay phân phối latency. Có hoạt động kiểm thử song song
++trên máy; cần nhiều lần chạy và kiểm soát tải khi báo cáo hiệu năng chính thức.
++
++## Lỗi điển hình bàn giao TV4
++
++Chi tiết actual text, receipt/run UUID, page, block ID, reading order và polygon
++nằm trong [failure-examples-20261023.json](../results/dev/document-reader-v2/failure-examples-20261023.json).
++
++| ID | Mẫu | Loại lỗi | Ảnh hưởng cần kiểm tra |
++| --- | --- | --- | --- |
++| E01 | PNG sạch | Mất dấu tên người bán | Đối chiếu seller name; không suy ra text đúng vì số tiền đúng |
++| E02 | JPEG | Dính nhãn thuế/dấu phân cách/số tiền | KIE có thể không nhận ra nhãn thuế |
++| E03 | Ảnh mờ | Nhận nhầm nhãn ngày thành ký tự `@` | Chữ số ngày còn đúng nhưng nhãn lỗi |
++| E04 | Ảnh nghiêng | Đảo thứ tự header bảng | “Thành tiền” xuất hiện trước “Tên hàng” |
++| E05 | Ảnh nghiêng | Đảo thứ tự ô dòng hàng | Giá xuất hiện trước mô tả, ảnh hưởng ghép hàng |
++| E06 | PDF scan | Sai dấu nhãn số hóa đơn | Số `00001234` còn nguyên, nhãn bị hỏng |
++
++Đã nhìn nguồn ảnh nghiêng để xác nhận thứ tự bảng. Chưa xác lập lỗi geometry;
++không gán nguyên nhân sai tọa độ chỉ từ CER. Mở
++`results/dev/document-reader-v2/local-review-tilt-20261023/index.html` để đối chiếu
++nguồn, polygon và danh sách block. Giữ nguyên raw OCR khi bàn giao.
++
++## Kiểm chứng
++
++- **81/81** test Reader, OCR contract, OCR W2, paired comparison và KIE V2 đạt.
++  Log: `results/dev/document-reader-v2/local-tests-20261023.log`.
++- **28/28** evidence/KIE run (14 mẫu × 2 chế độ) qua cả validator TV3/TV4/TV5,
++  không đổi ID. Đây là xác minh provider/contract, **không phải KIE accuracy**.
++  [Log cấu trúc](../results/dev/document-reader-v2/handoff-verification-20261023.json).
++- Khi mở rộng sang bộ test KIE evaluator, có 2 test không đạt vì evaluator bắt
++  buộc `git rev-parse HEAD` nhưng archive hiện tại không có `.git`. Không sửa
++  evaluator hay giả commit để né điều kiện provenance. Bộ mở rộng đó đạt 53/55.
++- Git commit cục bộ: không có. Remote main đã đọc là
++  `061960f0e38549f27b3183ebc3008c58ef0e5570`. Hash thực tế và source snapshot
++  của lần inference được lưu riêng; không nhận remote commit làm commit của
++  code đã sửa. [Provenance](../results/dev/document-reader-v2/provenance-20261023.json).
++- Docker CLI không có trên máy, nên chưa chạy Docker smoke. Giới hạn Paddle
++  SIGSEGV ảnh/scan trên Linux ARM64 đã được tài liệu backend ghi nhận và vẫn
++  phải coi là chưa giải quyết.
++
++## File để xem và chạy tiếp
++
++- [Script so sánh](../scripts/compare_pdf_routes.py).
++- [Bảng paired JSON](../results/dev/document-reader-v2/paired-comparison-20261023.json)
++  và [CSV](../results/dev/document-reader-v2/paired-comparison-20261023.csv).
++- [Route và stage latency từng trang](../results/dev/document-reader-v2/page-routes-20261023.csv).
++- [Evidence PDF chữ](../results/dev/document-reader-v2/evidence-pdf-text-20261023.json)
++  và [evidence ảnh OCR](../results/dev/document-reader-v2/evidence-image-ocr-20261023.json).
++- [Quy trình bàn giao, tọa độ và runtime](tv3-issue48-handoff.md).
++- `results/dev/document-reader-v2/tv3-issue48-local.patch`: bản thay đổi cục bộ
++  so với remote main để review/áp dụng lại trên checkout Git sau này.
++
++Để hoàn tất nghiệm thu #48, cần TV2 bàn giao PNG/PDF development cùng manifest,
++transcription/source gold đã QA; sau đó chạy lại script, TV2 liên kết gold với
++evidence thật và TV4 xác nhận evaluator. Final test vẫn giữ khóa. Docker và demo
++toàn hệ thống cần TV5 kiểm tra trên môi trường triển khai thực tế.
+--- /dev/null
++++ b/docs/tv3-tv2-synthetic-v0.md
+@@ -0,0 +1,143 @@
++# TV3 — tiếp nhận TV2 synthetic v0, 23/10/2026
++
++Đầu vào lấy từ PR [#60](https://github.com/vietreceipt-team/vietreceipt/pull/60),
++commit `5e5b871dd1c7413f2d74acc175aad0f0186486f7`. Phần mô tả PR còn nói SVG-only,
++nhưng commit này có 270 biến thể được kê trong `rendered/manifest.csv`:
++30 mẫu gốc × (4 PNG + 4 PDF image-only + 1 PDF vector).
++
++Phần TV3 tiếp tục issue [#48](https://github.com/vietreceipt-team/vietreceipt/issues/48)
++bằng Reader hiện có, không thay generator hoặc nhãn của TV2. Lần chạy này chọn
++`VRSYN-002`, `VRSYN-005`, `VRSYN-008`: 27 tài liệu validation của `layout_b`,
++gồm 3/2/1 dòng hàng. Không tải hoặc chạy các chứng từ/nhãn train/test. Chỉ đọc
++metadata toàn manifest để kiểm tra split và duplicate. Ba mẫu gốc cùng một layout
++không chứng minh khả năng tổng quát hóa, và các biến thể không phải mẫu độc lập.
++
++## Tiếp nhận dữ liệu và transcript
++
++`scripts/prepare_tv2_reader_manifest.py` chuyển manifest CSV đường dẫn tương đối
++repo thành manifest JSON tương đối thư mục thí nghiệm; dùng `variant_id` duy nhất,
++`input_type + degradation` làm slice (cột `quality` của TV2 vẫn ghi clean cả khi
++ảnh mờ/nhiễu/nghiêng). Công cụ giữ receipt UUID của nhãn nguồn, xác minh SHA-256,
++khóa train/test, và chép chứng từ cùng SVG/JSON nguồn vào gói độc lập.
++
++PNG/PDF tải từ GitHub khớp hash manifest. Riêng SVG/JSON trong commit có LF,
++nhưng hash nguồn của TV2 được tính với CRLF. Bản Git nguyên byte được giữ trong
++`results/dev/tv2-reader-v0/git-source-text/`; bản checkout riêng chuyển LF → CRLF
++khớp đúng hash đã khai báo. Không sửa nội dung nhãn hoặc bỏ qua checksum.
++[Bảng hash trước/sau](../results/dev/tv2-reader-v0/source-transfer-20261023.json)
++ghi rõ phép chuyển xuống dòng. Khi tái lập từ Git, cần giữ nhất quán newline hoặc
++kiểm tra trước/sau theo bảng này; không tự thay hash để hợp thức hóa dữ liệu.
++
++Transcript chẩn đoán được lấy từ phần tử `<text>` của SVG nguồn, sắp baseline y
++rồi x. Nó không lấy từ OCR, kết quả PDF text hay KIE gold. Bản này **chưa được
++người độc lập duyệt đầy đủ**. Đã xem ảnh sạch 002 để xác nhận seller/buyer cùng
++hàng và nội dung bảng/tổng không bị cắt. Ba PDF vector đều có lớp chữ; 12 PDF
++image-only của tập con không có lớp chữ. Nguồn hoàn toàn không dấu tiếng Việt,
++nên không đo được chất lượng nhận dạng dấu tiếng Việt.
++
++## Chạy lại
++
++Runtime native dùng Python 3.12 và các dependency đã ghim trong
++`requirements-document-reader.txt` / `requirements-document-reader-test.txt`.
++Trên máy này runtime đã có model tại
++`C:/Users/ADMIN/Downloads/vietreceipt_ocr_probe/.venv/Scripts/python.exe`.
++
++```powershell
++python -m scripts.prepare_tv2_reader_manifest --source-root <checkout-PR60> --manifest <checkout-PR60>/data/vietreceipt_synthetic_v0/rendered/manifest.csv --source-commit 5e5b871dd1c7413f2d74acc175aad0f0186486f7 --output results/dev/tv2-reader-v0/inputs-new --sample-ids VRSYN-002,VRSYN-005,VRSYN-008
++python -m scripts.compare_pdf_routes --manifest results/dev/tv2-reader-v0/inputs-new/manifest.json --output results/dev/tv2-reader-v0/paired-new --orientation auto
++python -m scripts.verify_reader_handoff --run-dir results/dev/tv2-reader-v0/paired-new --output results/dev/tv2-reader-v0/contracts-new
++```
++
++Mỗi lượt dùng thư mục mới. Gói `inputs-20261023` đã tiếp nhận sẵn có thể dùng trực
++tiếp làm manifest chạy lại. `source-snapshot/` lưu code thực tế trước inference;
++config mỗi mode lưu package versions, source hashes, config, thời điểm và hash
++manifest. Workspace hiện là archive không có `.git`, nên local commit là
++`unavailable`; commit PR60 chỉ định nguồn dữ liệu, không giả làm commit Reader.
++
++## Giới hạn nhãn và nghiệm thu
++
++Ba nhãn nguồn chỉ có 8 header (7 canonical và `vat_rate`), thiếu 6 header chuẩn;
++`currency` chưa gán dù VND in rõ trên các tổng. Sáu đơn vị dòng hàng ghi PRESENT
++nhưng không in trên nguồn; mọi `source_block_ids` đều rỗng. Schema annotation
++hiện tại vẫn chấp nhận, nhưng evaluator KIE V2 thực từ chối cả ba nhãn vì tập
++header không khớp. Không dùng những nhãn này để báo KIE accuracy hay verified gold.
++
++TV3 cung cấp raw evidence và contract checks cho TV2 liên kết source gold với đúng
++receipt/run/page/block; TV2/TV4 vẫn cần sửa/QA nhãn, alignment và xác nhận evaluator.
++PDF text dùng confidence N/A trong báo cáo; số 1 ở wire payload là sentinel.
++Docker CLI chưa có trên máy; Linux ARM64 image/scan vẫn chưa được xác minh.
++Các thử nghiệm xoay 90/180/270° và nhiều trang đã làm trên bộ diagnostic TV3 cũ,
++không được gán nhầm là biến thể do TV2 bàn giao.
++
++## Kiểm chứng phần mềm
++
++91/91 test Reader, OCR contract, OCR W2, paired comparison, importer TV2 và KIE V2
++đạt; Ruff đạt. [Log](../results/dev/tv2-reader-v0/tests-20261023.log).
++CI Reader được bổ sung trigger và chạy test importer/paired comparison.
++Test dùng OCR double để kiểm tra hành vi phần mềm; kết quả OCR thực được lưu riêng.
++
++
++## Kết quả OCR thực
++
++| Loại đầu vào | n | CER OCR all | CER route aware | WER route aware |
++| --- | ---: | ---: | ---: | ---: |
++| image_only_pdf_blur | 3 | 10.29% | 10.29% | 54.29% |
++| image_only_pdf_clean | 3 | 7.57% | 7.57% | 48.10% |
++| image_only_pdf_noise | 3 | 7.86% | 7.86% | 51.43% |
++| image_only_pdf_skew | 3 | 33.11% | 33.11% | 62.86% |
++| png_image_blur | 3 | 4.76% | 4.76% | 33.81% |
++| png_image_noise | 3 | 0.97% | 0.97% | 8.10% |
++| png_image_skew | 3 | 29.71% | 29.71% | 48.10% |
++| rendered_png_clean | 3 | 0.78% | 0.78% | 5.71% |
++| vector_pdf_clean | 3 | 0.97% | 0.00% | 0.00% |
++| all | 27 | 10.67% | 10.56% | 34.71% |
++
++Hai chế độ chạy trên cùng byte của 27 tài liệu đã khóa hash. Mẫu số micro mỗi chế độ:
++9,270 ký tự và 1,890 từ,
++gộp khoảng trắng, giữ case/ký tự. Cả hai mode đọc thành công 27/27 tài liệu.
++Route aware có 3 trang PDF_TEXT;
++PDF text confidence là N/A. Xem [comparison.json](../results/dev/tv2-reader-v0/paired-20261023/comparison.json),
++[CSV](../results/dev/tv2-reader-v0/paired-20261023/comparison.csv) và
++[route/timing từng trang](../results/dev/tv2-reader-v0/paired-20261023/pages.csv).
++
++Đây là một lượt serial mỗi chế độ trên Windows CPU; lần OCR đầu có khởi tạo
++model. Thời gian từng mẫu là số đo cục bộ, chưa phải phân phối latency hoặc
++bằng chứng speedup ổn định. Sai khác PNG và PDF image-only còn gồm rasterization,
++resampling và encoding của tài liệu; không quy hết cho thuật toán routing.
++
++[Handoff](../results/dev/tv2-reader-v0/paired-20261023/handoff.json) giữ receipt/run IDs,
++source label/SVG paths và hash, split, layout, commit dữ liệu và đường dẫn
++manifest tương đối. [Contract verification](../results/dev/tv2-reader-v0/contracts-20261023/verification.json)
++chạy evidence thật qua Reader, TV5 evidence validator, TV4 KIE và TV5 KIE validator.
++Đây là kiểm tra provider/contract, không báo KIE accuracy.
++
++
++## Ví dụ lỗi bàn giao TV4
++
++Sáu ví dụ có receipt/run/page/block IDs, text và polygon đầy đủ trong
++[failure-examples-20261023.json](../results/dev/tv2-reader-v0/failure-examples-20261023.json).
++Đã đối chiếu source và xem ảnh nghiêng; chưa xác lập lỗi polygon. Các lỗi dấu câu
++không tự chứng minh KIE sai; chưa thấy sai giá trị tiền/ngày/mã hóa đơn trong
++các ví dụ đã chọn. E01/E02 cùng nguyên nhân thứ tự đọc, không phải hai lỗi
++độc lập ở cấp dataset.
++
++| ID | Mẫu / loại | Nội dung |
++| --- | --- | --- |
++| E01 | 002 skew / thứ tự header | SL, Don gia, Thanh tien xuất trước Mat hang |
++| E02 | 002 skew / thứ tự dòng hàng | 72.000 xuất trước mô tả 1. So tay |
++| E03 | 002 clean image-only PDF / dấu câu | Mất dấu hai chấm ở nhãn Ma hoa don |
++| E04 | 002 blur image-only PDF / dấu câu | Mất dấu hai chấm ở nhãn Ngay |
++| E05 | 005 clean image-only PDF / dấu câu | Mất ngoặc ở Thue VAT (10%) |
++| E06 | 002 blur PNG / ký tự footer | layout_b thành 1ayout_b |
++
++
++54/54 evidence/KIE runs qua cả bốn contract checks, không sửa receipt/run/block IDs.
++Xem overlay [ảnh nghiêng](../results/dev/tv2-reader-v0/preview-skew-20261023/index.html),
++[PDF scan](../results/dev/tv2-reader-v0/preview-scan-20261023/index.html),
++[PDF text](../results/dev/tv2-reader-v0/preview-pdf-text-20261023/index.html).
++
++Toàn bộ lượt chạy này là local: chưa push, chưa mở PR, chưa gửi comment GitHub.
++[Patch source](../results/dev/tv2-reader-v0/tv3-source-changes.patch) có cả phần
++TV3 cục bộ trước đó và cập nhật tiếp nhận TV2, đối chiếu main `061960f0…`;
++raw inputs/evidence nằm trong gói bàn giao riêng. Chưa đóng issue #48 vì TV2/TV4
++còn phải QA/alignment gold, và TV5 cần nghiệm thu môi trường demo.

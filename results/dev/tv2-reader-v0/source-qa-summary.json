@@ -1,0 +1,77 @@
+[
+  {
+    "sample_id": "VRSYN-002",
+    "visible_elements": 28,
+    "block_count": 28,
+    "source_has_non_ascii": false,
+    "canonical_missing": [
+      "buyer_tax_id",
+      "currency",
+      "invoice_symbol",
+      "invoice_template_number",
+      "seller_address",
+      "seller_tax_id"
+    ],
+    "canonical_extra": [
+      "vat_rate"
+    ],
+    "units": [
+      "quyen",
+      "lan",
+      "cai"
+    ],
+    "source_transcript_equal_ignoring_whitespace": true,
+    "route": [
+      "PDF_TEXT"
+    ]
+  },
+  {
+    "sample_id": "VRSYN-005",
+    "visible_elements": 24,
+    "block_count": 24,
+    "source_has_non_ascii": false,
+    "canonical_missing": [
+      "buyer_tax_id",
+      "currency",
+      "invoice_symbol",
+      "invoice_template_number",
+      "seller_address",
+      "seller_tax_id"
+    ],
+    "canonical_extra": [
+      "vat_rate"
+    ],
+    "units": [
+      "hop",
+      "ream"
+    ],
+    "source_transcript_equal_ignoring_whitespace": true,
+    "route": [
+      "PDF_TEXT"
+    ]
+  },
+  {
+    "sample_id": "VRSYN-008",
+    "visible_elements": 20,
+    "block_count": 20,
+    "source_has_non_ascii": false,
+    "canonical_missing": [
+      "buyer_tax_id",
+      "currency",
+      "invoice_symbol",
+      "invoice_template_number",
+      "seller_address",
+      "seller_tax_id"
+    ],
+    "canonical_extra": [
+      "vat_rate"
+    ],
+    "units": [
+      "quyen"
+    ],
+    "source_transcript_equal_ignoring_whitespace": true,
+    "route": [
+      "PDF_TEXT"
+    ]
+  }
+]

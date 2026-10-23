@@ -75,6 +75,7 @@ def generate(output, font_path):
     image.save(output / "clean.png")
     image.save(output / "photo.jpg", quality=65)
     image.filter(ImageFilter.GaussianBlur(1.3)).save(output / "blur.png")
+    image.rotate(7, expand=True, fillcolor="white").save(output / "tilt.png")
     pixels = np.asarray(image).astype(np.float32)
     noise = np.random.default_rng(48).normal(0, 12, pixels.shape)
     Image.fromarray(np.clip(pixels + noise, 0, 255).astype(np.uint8)).save(
@@ -91,6 +92,10 @@ def generate(output, font_path):
         image.rotate(-angle, expand=True).save(output / f"rotation-{angle}.png")
     scan = scan_pdf(image)
     (output / "scan.pdf").write_bytes(scan)
+    (output / "text-multipage.pdf").write_bytes(make_text_pdf(font_path=font_path, pages=2))
+    with pdfium.PdfDocument(scan) as doc, pdfium.PdfDocument(scan) as second:
+        doc.import_pages(second)
+        doc.save(output / "scan-multipage.pdf")
     with pdfium.PdfDocument(text) as doc, pdfium.PdfDocument(scan) as scanned:
         doc.import_pages(scanned)
         doc.save(output / "mixed.pdf")
@@ -101,9 +106,12 @@ def generate(output, font_path):
         ("clean.png", "clean"),
         ("photo.jpg", "photo_like"),
         ("blur.png", "blur"),
+        ("tilt.png", "tilt"),
         ("noise.png", "noise"),
         ("perspective.png", "perspective"),
         ("scan.pdf", "scan_like"),
+        ("text-multipage.pdf", "text_pdf_multipage"),
+        ("scan-multipage.pdf", "scan_multipage"),
         ("mixed.pdf", "mixed_pdf"),
     ]:
         rows.append(
@@ -111,7 +119,7 @@ def generate(output, font_path):
                 "id": name.replace(".", "-"),
                 "path": name,
                 "condition": condition,
-                "reference": " ".join(LINES * (2 if name == "mixed.pdf" else 1)),
+                "reference": " ".join(LINES * (2 if name in {"mixed.pdf", "text-multipage.pdf", "scan-multipage.pdf"} else 1)),
             }
         )
     for angle in (90, 180, 270):
@@ -133,7 +141,7 @@ def generate(output, font_path):
     )
     manifest = {
         "dataset": "tv3-synthetic-diagnostics",
-        "version": "1.0",
+        "version": "1.1",
         "split": "development",
         "provenance": "Generated fictional invoice; all variants share one template. Not final test or generalization evidence.",
         "samples": rows,

@@ -1,0 +1,3 @@
+# Frozen benchmark artifacts retain the exact bytes used by their checksum ledgers.
+results/dev/document-reader-v2/** -text
+results/dev/tv2-reader-v0/** -text

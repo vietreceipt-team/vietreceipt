@@ -1,0 +1,67 @@
+INFO: Could not find files for the given pattern(s).
+C:\Users\ADMIN\Downloads\vietreceipt_ocr_probe\.venv\Lib\site-packages\paddle\utils\cpp_extension\extension_utils.py:711: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md
+  warnings.warn(warning_message)
+Using official model (PP-LCNet_x1_0_doc_ori), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+Creating model: ('PP-OCRv3_mobile_det', None)
+Using official model (PP-OCRv3_mobile_det), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+Creating model: ('latin_PP-OCRv3_mobile_rec', None)
+Using official model (latin_PP-OCRv3_mobile_rec), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+VRSYN-002__clean: ok CER=0.010638297872340425 WER=0.07692307692307693
+VRSYN-002__clean_image_only: ok CER=0.07446808510638298 WER=0.47435897435897434
+VRSYN-002__blur: ok CER=0.047872340425531915 WER=0.34615384615384615
+VRSYN-002__blur_image_only: ok CER=0.0851063829787234 WER=0.46153846153846156
+VRSYN-002__noise: ok CER=0.007978723404255319 WER=0.0641025641025641
+VRSYN-002__noise_image_only: ok CER=0.07180851063829788 WER=0.48717948717948717
+VRSYN-002__skew: ok CER=0.2978723404255319 WER=0.48717948717948717
+VRSYN-002__skew_image_only: ok CER=0.3324468085106383 WER=0.6282051282051282
+VRSYN-002__vector_pdf: ok CER=0.007978723404255319 WER=0.0641025641025641
+VRSYN-005__clean: ok CER=0.005763688760806916 WER=0.04285714285714286
+VRSYN-005__clean_image_only: ok CER=0.07780979827089338 WER=0.5
+VRSYN-005__blur: ok CER=0.043227665706051875 WER=0.3
+VRSYN-005__blur_image_only: ok CER=0.10662824207492795 WER=0.5714285714285714
+VRSYN-005__noise: ok CER=0.008645533141210375 WER=0.07142857142857142
+VRSYN-005__noise_image_only: ok CER=0.08357348703170028 WER=0.5285714285714286
+VRSYN-005__skew: ok CER=0.30835734870317005 WER=0.4714285714285714
+VRSYN-005__skew_image_only: ok CER=0.34293948126801155 WER=0.6285714285714286
+VRSYN-005__vector_pdf: ok CER=0.008645533141210375 WER=0.07142857142857142
+VRSYN-008__clean: ok CER=0.006514657980456026 WER=0.04838709677419355
+VRSYN-008__clean_image_only: ok CER=0.0749185667752443 WER=0.46774193548387094
+VRSYN-008__blur: ok CER=0.05211726384364821 WER=0.3709677419354839
+VRSYN-008__blur_image_only: ok CER=0.12052117263843648 WER=0.6129032258064516
+VRSYN-008__noise: ok CER=0.013029315960912053 WER=0.11290322580645161
+VRSYN-008__noise_image_only: ok CER=0.08143322475570032 WER=0.532258064516129
+VRSYN-008__skew: ok CER=0.28338762214983715 WER=0.4838709677419355
+VRSYN-008__skew_image_only: ok CER=0.31596091205211724 WER=0.6290322580645161
+VRSYN-008__vector_pdf: ok CER=0.013029315960912053 WER=0.08064516129032258
+Using official model (PP-LCNet_x1_0_doc_ori), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+Creating model: ('PP-OCRv3_mobile_det', None)
+Using official model (PP-OCRv3_mobile_det), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+Creating model: ('latin_PP-OCRv3_mobile_rec', None)
+Using official model (latin_PP-OCRv3_mobile_rec), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+VRSYN-002__clean: ok CER=0.010638297872340425 WER=0.07692307692307693
+VRSYN-002__clean_image_only: ok CER=0.07446808510638298 WER=0.47435897435897434
+VRSYN-002__blur: ok CER=0.047872340425531915 WER=0.34615384615384615
+VRSYN-002__blur_image_only: ok CER=0.0851063829787234 WER=0.46153846153846156
+VRSYN-002__noise: ok CER=0.007978723404255319 WER=0.0641025641025641
+VRSYN-002__noise_image_only: ok CER=0.07180851063829788 WER=0.48717948717948717
+VRSYN-002__skew: ok CER=0.2978723404255319 WER=0.48717948717948717
+VRSYN-002__skew_image_only: ok CER=0.3324468085106383 WER=0.6282051282051282
+VRSYN-002__vector_pdf: ok CER=0.0 WER=0.0
+VRSYN-005__clean: ok CER=0.005763688760806916 WER=0.04285714285714286
+VRSYN-005__clean_image_only: ok CER=0.07780979827089338 WER=0.5
+VRSYN-005__blur: ok CER=0.043227665706051875 WER=0.3
+VRSYN-005__blur_image_only: ok CER=0.10662824207492795 WER=0.5714285714285714
+VRSYN-005__noise: ok CER=0.008645533141210375 WER=0.07142857142857142
+VRSYN-005__noise_image_only: ok CER=0.08357348703170028 WER=0.5285714285714286
+VRSYN-005__skew: ok CER=0.30835734870317005 WER=0.4714285714285714
+VRSYN-005__skew_image_only: ok CER=0.34293948126801155 WER=0.6285714285714286
+VRSYN-005__vector_pdf: ok CER=0.0 WER=0.0
+VRSYN-008__clean: ok CER=0.006514657980456026 WER=0.04838709677419355
+VRSYN-008__clean_image_only: ok CER=0.0749185667752443 WER=0.46774193548387094
+VRSYN-008__blur: ok CER=0.05211726384364821 WER=0.3709677419354839
+VRSYN-008__blur_image_only: ok CER=0.12052117263843648 WER=0.6129032258064516
+VRSYN-008__noise: ok CER=0.013029315960912053 WER=0.11290322580645161
+VRSYN-008__noise_image_only: ok CER=0.08143322475570032 WER=0.532258064516129
+VRSYN-008__skew: ok CER=0.28338762214983715 WER=0.4838709677419355
+VRSYN-008__skew_image_only: ok CER=0.31596091205211724 WER=0.6290322580645161
+VRSYN-008__vector_pdf: ok CER=0.0 WER=0.0

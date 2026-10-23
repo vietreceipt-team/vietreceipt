@@ -1,0 +1,89 @@
+Connecting to https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf ...
+Downloading PingFang-SC-Regular.ttf ...
+
+[                                                  ] 0.04%
+[                                                  ] 0.79%
+[=                                                 ] 2.59%
+[===                                               ] 6.18%
+[======                                            ] 13.38%
+[============                                      ] 24.02%
+[==================                                ] 37.21%
+[============================                      ] 56.40%
+[====================================              ] 72.59%
+[==============================================    ] 92.68%
+[==================================================] 100.00%
+Connecting to https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/simfang.ttf ...
+Downloading simfang.ttf ...
+
+[                                                  ] 0.04%
+[                                                  ] 0.81%
+[=                                                 ] 2.05%
+[==                                                ] 5.77%
+[======                                            ] 12.43%
+[==========                                        ] 21.57%
+[==================                                ] 36.29%
+[============================                      ] 57.90%
+[==========================================        ] 85.55%
+[================================================= ] 98.10%
+[==================================================] 100.00%
+INFO: Could not find files for the given pattern(s).
+C:\Users\ADMIN\Downloads\vietreceipt_ocr_probe\.venv\Lib\site-packages\paddle\utils\cpp_extension\extension_utils.py:711: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md
+  warnings.warn(warning_message)
+Using official model (PP-LCNet_x1_0_doc_ori), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 285.04it/s]
+Creating model: ('PP-OCRv3_mobile_det', None)
+Using official model (PP-OCRv3_mobile_det), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 574.79it/s]
+Creating model: ('latin_PP-OCRv3_mobile_rec', None)
+Using official model (latin_PP-OCRv3_mobile_rec), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 439.46it/s]
+text-pdf: ok CER=0.16257668711656442 WER=0.640625
+clean-png: ok CER=0.15950920245398773 WER=0.640625
+photo-jpg: ok CER=0.19631901840490798 WER=0.71875
+blur-png: ok CER=0.1687116564417178 WER=0.6875
+tilt-png: ok CER=0.3006134969325153 WER=0.765625
+noise-png: ok CER=0.15950920245398773 WER=0.640625
+perspective-png: ok CER=0.15337423312883436 WER=0.625
+scan-pdf: ok CER=0.16257668711656442 WER=0.640625
+text-multipage-pdf: ok CER=0.16232771822358347 WER=0.640625
+scan-multipage-pdf: ok CER=0.16232771822358347 WER=0.640625
+mixed-pdf: ok CER=0.16232771822358347 WER=0.640625
+rotation-90: ok CER=0.15950920245398773 WER=0.640625
+rotation-180: ok CER=0.15950920245398773 WER=0.640625
+rotation-270: ok CER=0.15950920245398773 WER=0.640625
+corrupt: expected_failure CER=None WER=None
+text-pdf: ok CER=0.0 WER=0.0
+Using official model (PP-LCNet_x1_0_doc_ori), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 424.33it/s]
+Creating model: ('PP-OCRv3_mobile_det', None)
+Using official model (PP-OCRv3_mobile_det), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 329.89it/s]
+Creating model: ('latin_PP-OCRv3_mobile_rec', None)
+Using official model (latin_PP-OCRv3_mobile_rec), the model files will be automatically downloaded and saved in E:\vietreceipt\vietreceipt-main\.paddlex-cache\official_models.
+
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]
+Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 463.71it/s]
+clean-png: ok CER=0.15950920245398773 WER=0.640625
+photo-jpg: ok CER=0.19631901840490798 WER=0.71875
+blur-png: ok CER=0.1687116564417178 WER=0.6875
+tilt-png: ok CER=0.3006134969325153 WER=0.765625
+noise-png: ok CER=0.15950920245398773 WER=0.640625
+perspective-png: ok CER=0.15337423312883436 WER=0.625
+scan-pdf: ok CER=0.16257668711656442 WER=0.640625
+text-multipage-pdf: ok CER=0.0 WER=0.0
+scan-multipage-pdf: ok CER=0.16232771822358347 WER=0.640625
+mixed-pdf: ok CER=0.08116385911179173 WER=0.3203125
+rotation-90: ok CER=0.15950920245398773 WER=0.640625
+rotation-180: ok CER=0.15950920245398773 WER=0.640625
+rotation-270: ok CER=0.15950920245398773 WER=0.640625
+corrupt: expected_failure CER=None WER=None

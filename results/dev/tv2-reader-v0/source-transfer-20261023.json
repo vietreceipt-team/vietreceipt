@@ -1,0 +1,43 @@
+{
+  "source_commit": "5e5b871dd1c7413f2d74acc175aad0f0186486f7",
+  "transport": "GitHub connector fetch_file; binary bytes decoded from base64, Git blob hashes verified",
+  "reason": "TV2 manifest source text hashes were created on CRLF working tree; committed Git blobs are LF",
+  "files": [
+    {
+      "path": "data/vietreceipt_synthetic_v0/documents/VRSYN-002.svg",
+      "git_blob_bytes_sha256": "407944712d2feff78a2dc66500e423de5fb18023e8e7d0eccc0a37ebe0568d15",
+      "checkout_bytes_sha256": "3037dc64980b035f06685f4c385560cbe7d97e3c911d9ff912eff77de57c1a61",
+      "transform": "LF to CRLF; no semantic text edits"
+    },
+    {
+      "path": "data/vietreceipt_synthetic_v0/labels/VRSYN-002.json",
+      "git_blob_bytes_sha256": "828c7451ced1c54c0b918e3ef860b771dd023bf6d2c36c33435602e3cca4f859",
+      "checkout_bytes_sha256": "525987239cec5254d5c9d1f9f0f304192c10d334920d570fcfd7159a9e0ab9e6",
+      "transform": "LF to CRLF; no semantic text edits"
+    },
+    {
+      "path": "data/vietreceipt_synthetic_v0/documents/VRSYN-005.svg",
+      "git_blob_bytes_sha256": "2e16508df1d3036a835aa81c94ff718d7f0d827bd4ddca6dd754bdc8e2671012",
+      "checkout_bytes_sha256": "d7a75e7cd96813fd77e9c70ebdb4e77ee62f3f4d03dc1310a72d39fbcf278830",
+      "transform": "LF to CRLF; no semantic text edits"
+    },
+    {
+      "path": "data/vietreceipt_synthetic_v0/labels/VRSYN-005.json",
+      "git_blob_bytes_sha256": "413d9eeef31940696d7f377f80d4294a6601077c9e98c05ae087d1a2542d4cbe",
+      "checkout_bytes_sha256": "9a6fbb8fd176d1804b00a13af0945b11cd692e7440a8f925ee3018e006255da7",
+      "transform": "LF to CRLF; no semantic text edits"
+    },
+    {
+      "path": "data/vietreceipt_synthetic_v0/documents/VRSYN-008.svg",
+      "git_blob_bytes_sha256": "834bbebfd2bdfb3a18d91edde56054dd88c10f09dd0a79b9a7d96b3c06e84fdc",
+      "checkout_bytes_sha256": "e22395348db6516970e8cc85f7b43d76d037008e9810cd744c22cdeb3d9ca2c4",
+      "transform": "LF to CRLF; no semantic text edits"
+    },
+    {
+      "path": "data/vietreceipt_synthetic_v0/labels/VRSYN-008.json",
+      "git_blob_bytes_sha256": "fb8827b842b7ed82a73d0002fae328d872d3331c6ed24f20a59c91ea0118fad0",
+      "checkout_bytes_sha256": "c790f347d187bb342248280a0046f232f429a368f240b7944efa752a797e8f96",
+      "transform": "LF to CRLF; no semantic text edits"
+    }
+  ]
+}

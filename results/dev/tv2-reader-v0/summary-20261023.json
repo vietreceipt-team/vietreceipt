@@ -1,0 +1,62 @@
+{
+  "dataset": "vietreceipt_synthetic",
+  "version": "v0.1-rendered",
+  "split": "validation",
+  "source_commit": "5e5b871dd1c7413f2d74acc175aad0f0186486f7",
+  "parents": [
+    "VRSYN-002",
+    "VRSYN-005",
+    "VRSYN-008"
+  ],
+  "samples": 27,
+  "layout": "layout_b",
+  "reference_status": "synthetic source text, unreviewed; no human QA gold claim",
+  "local_git_commit": null,
+  "modes": {
+    "ocr_all": {
+      "all": {
+        "char_errors": 989,
+        "chars": 9270,
+        "word_errors": 671,
+        "words": 1890,
+        "referenced": 27,
+        "failures": 0,
+        "samples": 27,
+        "cer": 0.10668824163969795,
+        "wer": 0.355026455026455
+      },
+      "statuses": {
+        "ok": 27
+      },
+      "routes": {
+        "IMAGE_OCR": 12,
+        "PDF_OCR": 15
+      },
+      "single_pass_duration_ms_median": 12572,
+      "latency_interpretation": "One serial pass per mode, first OCR call includes model initialization; no stable speedup claim"
+    },
+    "route_aware": {
+      "all": {
+        "char_errors": 979,
+        "chars": 9270,
+        "word_errors": 656,
+        "words": 1890,
+        "referenced": 27,
+        "failures": 0,
+        "samples": 27,
+        "cer": 0.10560949298813377,
+        "wer": 0.3470899470899471
+      },
+      "statuses": {
+        "ok": 27
+      },
+      "routes": {
+        "IMAGE_OCR": 12,
+        "PDF_OCR": 12,
+        "PDF_TEXT": 3
+      },
+      "single_pass_duration_ms_median": 12333,
+      "latency_interpretation": "One serial pass per mode, first OCR call includes model initialization; no stable speedup claim"
+    }
+  }
+}
