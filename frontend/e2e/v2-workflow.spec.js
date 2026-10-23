@@ -65,6 +65,21 @@ test("pilot: không đo trước consent, tải aggregate không có nội dung,
  expect(text).not.toContain("SECRET-CONTENT");expect(text).not.toContain(RID);expect(createHash("sha256").update(text).digest("hex")).toHaveLength(64);
  await page.locator("#pilot-withdraw").click();await expect(page.locator("#pilot-download")).toHaveCount(0);
 });
+
+test("mất response PATCH: khóa ghi tiếp, giữ draft, tải lại trước khi lưu",async({page})=>{
+ const state=await provider(page);let attempts=0;
+ await page.route(/\/fields\/seller_name\/correction$/,async route=>{
+  attempts++;const data=route.request().postDataJSON();
+  Object.assign(state.record.fields.seller_name,{effective_value:data.value,corrected_value:data.value,has_correction:true,reviewed:true,effective_needs_review:false});state.record.version++;
+  await route.abort();
+ });
+ await page.goto(`${ORIGIN}/receipts/${RID}/`);const cell=page.locator('[data-cell="header||seller_name"]');
+ await cell.locator("[data-input]").fill("Đã tới server nhưng mất response");await cell.getByRole("button",{name:"Lưu",exact:true}).click();
+ await expect(page.locator("#stale-banner")).toBeVisible();await expect(page.locator("#verify")).toBeDisabled();
+ await expect(cell.locator("[data-input]")).toBeDisabled();expect(attempts).toBe(1);
+ await page.locator("#reload-detail").click();await expect(page.locator("#stale-banner")).toBeHidden();
+ await expect(cell.locator("[data-input]")).toHaveValue("Đã tới server nhưng mất response");expect(attempts).toBe(1);
+});
 const ORIGIN="http://127.0.0.1:3103", RID="00000000-0000-4000-8000-000000000051";
 const photo=readFileSync("assets/fixtures/R001.jpg"), pdf=readFileSync("tests/fixtures/two-page.pdf");
 const block=(id)=>({block_id:id,text:id,confidence:.9,reading_order:0,polygon:[{x:.1,y:.1},{x:.3,y:.1},{x:.3,y:.2},{x:.1,y:.2}]});

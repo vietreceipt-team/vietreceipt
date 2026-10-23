@@ -42,7 +42,10 @@ for (const sample of manifest.samples) test(`${sample.condition}: real upload �
     await page.locator("#file-input").setInputFiles({name: sample.path, mimeType: mime[sample.path.split(".").pop()], buffer: source});
     const uploaded = page.waitForResponse(r => r.request().method() === "POST" && /\/api\/v2\/receipts$/.test(r.url()));
     await page.getByRole("button", {name: "Tải lên và xử lý"}).click();
-    const response = await uploaded; expect(response.status()).toBe(201); rid = (await response.json()).receipt_id;
+    const response = await uploaded; expect(response.status()).toBe(201);
+    // Upload immediately navigates; Chromium can discard that response body.
+    await expect(page).toHaveURL(/\/receipts\/[0-9a-f-]{36}\/$/);
+    rid = new URL(page.url()).pathname.split("/").filter(Boolean).at(-1);
     record.receipt_id = rid;
     await expect.poll(async () => (await get("")).status, {timeout: 840_000, intervals: [2000, 5000]}).toMatch(/NEEDS_REVIEW|FAILED/);
     let detail = await get(""); expect(detail.status).toBe("NEEDS_REVIEW");
