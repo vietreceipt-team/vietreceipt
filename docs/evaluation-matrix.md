@@ -119,7 +119,7 @@ RQ1 and E1 use a paired design. For binary per-document completion, report paire
 
 No gate is passed by unit-test success, generator output alone, PR merge, or a synthetic smoke test. Only record a gate as passed after its evidence is attached and owner review is explicit.
 
-G4 stays blocked until the linked owners deliver and test all three gaps. For UNKNOWN, test PRESENT, NOT_PRESENT, UNREADABLE, AMBIGUOUS and UNKNOWN separately; UNKNOWN must not enter value denominators, and final manifests with UNKNOWN in required cells must either fail closed or exclude affected documents from strict complete metrics while reporting eligible and scoreable counts. Row detection precision/F1 must be emitted with counts and zero-denominator behavior. Source-level row matching must use independently annotated source regions and a frozen spatial rule on the original-file end-to-end path; `source_block_ids` intersection is not a substitute for that result.
+G4 stays blocked until the linked owners deliver and test all three gaps. For UNKNOWN, test PRESENT, NOT_PRESENT, UNREADABLE, AMBIGUOUS and UNKNOWN separately. Until the evaluator implements this policy, the final runner must fail closed on any required UNKNOWN in the manifest. After alignment, UNKNOWN must not enter value denominators; exclude documents with any required UNKNOWN from strict complete metrics and report eligible and scoreable counts separately. Row detection precision/F1 must be emitted with counts and zero-denominator behavior. Source-level row matching must use independently annotated source regions and a frozen spatial rule on the original-file end-to-end path; `source_block_ids` intersection is not a substitute for that result.
 
 ## 7. Result-to-claim traceability
 
@@ -136,9 +136,9 @@ All result cells stay “not run” until a run artifact is checked. The final r
 | Role | Approval needed | State |
 |---|---|---|
 | TV1 | Research question, metric and claim protocol | Drafted; final run-owner signoff still pending |
-| TV2 | Source-gold representation, labels, split, independent QA and eligibility | Pending |
-| TV4 | Aligned-gold mapping, row matching and metric implementation | Pending |
-| TV5 | Source-file runner, machine snapshot and failure/latency fields | Pending |
+| TV2 | Source-gold representation, labels, split, independent QA and eligibility | Co-sign requested on draft PR #64; pending |
+| TV4 | Aligned-gold mapping, row matching and metric implementation | Co-sign requested on draft PR #64; pending |
+| TV5 | Source-file runner, machine snapshot and failure/latency fields | Co-sign requested on draft PR #64; pending |
 | TV6 | Human-review observations kept distinct from machine metrics | Pending for E7 |
 
 Do not read the sealed test outputs or claim final acceptance until G1–G5 are recorded as approved/passed.
