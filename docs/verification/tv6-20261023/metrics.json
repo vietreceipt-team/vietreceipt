@@ -1,0 +1,10 @@
+{
+  "schema_version": "tv6-review-workflow-1.0",
+  "input_files": 4,
+  "passed": 4,
+  "failed": 0,
+  "independent_document_count": null,
+  "accuracy": null,
+  "user_study_participants": 0,
+  "note": "Three format variants of one synthetic invoice plus a related two-page challenge. Browser automation, not human study."
+}

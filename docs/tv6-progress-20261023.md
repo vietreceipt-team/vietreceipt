@@ -33,9 +33,30 @@ Mã nền: `main` tại `0f974abd1887f9f0bf9014eabb66cc3e48684cbb`.
 | PDF trang 2, dòng 60 ở cuối trang, zoom/xoay | Đạt trong browser provider test; ảnh `v2-long-table-source.png` |
 | Bốn trạng thái null + PRESENT sai OCR | Đạt; không tự PATCH/xác nhận, không ghi đè machine |
 | Consent/rút đồng ý, response mất và evidence tải chậm | Đạt bằng unit/browser tests |
-| Browser provider thật | Theo dõi workflow **TV6 real-provider browser review** của PR; chưa gán PASS trước khi chạy |
+| Browser provider thật | **4/4 đạt**: JPG, PDF chữ, PDF scan, PDF challenge hai trang; [run 39968756494](https://github.com/vietreceipt-team/vietreceipt/actions/runs/39968756494) |
 
-Máy phát triển Windows dùng Node 24.19.0/Python 3.13.7, không có Docker/WSL hoặc Python 3.12. Lượt nghiệm thu thật được chạy trên GitHub Ubuntu x86_64/Python 3.12 với provider canonical và dịch vụ riêng. Kết quả, commit và link artifact được bổ sung sau khi workflow kết thúc; lỗi cũng giữ evidence. Không coi test provider là bằng chứng AI thật.
+Máy phát triển Windows dùng Node 24.19.0/Python 3.13.7, không có Docker/WSL hoặc Python 3.12. Lượt nghiệm thu thật chạy trên GitHub Ubuntu x86_64/Python **3.12.15**, PostgreSQL/Redis/Celery riêng, reader `ai.document_reader.backend:read_document` và KIE `ai.kie.v2:extract_invoice`. Provider/callable, package/model/config và source hash có trong machine attempts. Không coi test provider là bằng chứng AI thật.
+
+## Kết quả trình duyệt trên provider thật
+
+| Đầu vào | Nguồn → đối chiếu → 409 thật → sửa → VERIFIED | JSON / CSV ZIP / XLSX | Machine trước/sau |
+|---|---|---|---|
+| JPG | Đạt; 1 dòng hàng | Nội dung đã parse, giữ `00001234` | Giữ nguyên |
+| PDF chữ | Đạt; 1 dòng hàng | Nội dung đã parse, giữ `00001234` | Giữ nguyên |
+| PDF scan | Đạt; 1 dòng hàng | Nội dung đã parse, giữ `00001234` | Giữ nguyên |
+| PDF challenge 2 trang | Đạt; 12 dòng, chọn dòng chuyển trang 2 | Giữ UNREADABLE/null và số đã sửa | Giữ nguyên |
+
+Challenge có lỗi **thực từ KIE**: `invoice_number` là PRESENT với `00001234 COPY`, người dùng đối chiếu ghi chú bản sao trên nguồn rồi sửa thành `00001234`. `invoice_symbol` là UNREADABLE/null, được đối chiếu và giữ nguyên trạng thái này qua verify và cả ba định dạng xuất; không đoán phần bị che. `buyer_tax_id` là NOT_PRESENT/null, tách rõ khỏi trường không đọc được. Các correction header/dòng/thuế đi qua UI; request cạnh tranh của phiên thứ hai cố ý tạo 409, UI giữ draft, reload rồi lưu version mới.
+
+Runner và worker ghi merge commit `207e93e7b1f7269afe6604b2d8fe8254c3464172`, `git_dirty=false`, source hash `0521bf3fff26604557f2c5be20afd0274e3e0b86d88b8123a0460864fb5581cd`; PR branch head lúc chạy là `d39f07c14334a4c677523fb154e783aa698a1204`. Không gán ngược commit báo cáo cho inference đã chạy.
+
+- [Artifact CI, ảnh/video và service logs](https://github.com/vietreceipt-team/vietreceipt/actions/runs/39968756494/artifacts/12508132228).
+- [Bản lưu lâu dài 75 file nguồn/bằng chứng](verification/tv6-20261023/browser-evidence.zip), [index/hash ledger](verification/tv6-20261023/index.json), [bảng 4 mẫu](verification/tv6-20261023/samples.csv), [metrics](verification/tv6-20261023/metrics.json).
+- [JPG](verification/tv6-20261023/jpg-review.png), [PDF chữ](verification/tv6-20261023/text_pdf-review.png), [PDF scan](verification/tv6-20261023/scan_pdf-review.png), [lỗi PRESENT và UNREADABLE của challenge](verification/tv6-20261023/challenge-review.png).
+
+ZIP SHA-256: `ac02de95a3c4c299bae035f9dd7e1d86fc72155d06e2e600c586cc8e645fcd0d`. Đã kiểm tra CRC, mọi hash nguồn, machine trước/sau, JSON, CSV và cấu trúc XLSX sau khi tải từ CI. ZIP giữ nguyên byte của artifacts; chỉ có dữ liệu giả. CI frontend trên cùng head: [run 39968756287](https://github.com/vietreceipt-team/vietreceipt/actions/runs/39968756287), 58 unit + 30 browser tests đạt.
+
+Lịch sử nghiệm thu giữ nguyên: [run đầu](https://github.com/vietreceipt-team/vietreceipt/actions/runs/39967076512) thất bại vì test đọc upload body sau navigation; [run tiếp](https://github.com/vietreceipt-team/vietreceipt/actions/runs/39967561163) được hủy để sửa chờ UI không giới hạn. Run đạt bên trên chạy mới cả 4 mẫu sau sửa, không lấy mẫu thành công của các lượt khác ghép thành 4/4. Video là browser tự động, **không phải người tham gia nghiên cứu**.
 
 ## Còn mở trên issue #51
 

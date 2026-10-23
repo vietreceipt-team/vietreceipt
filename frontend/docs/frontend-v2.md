@@ -19,7 +19,11 @@
 - `GET /source`: JPEG/PNG/PDF bytes; `GET /evidence`: OCRResult 1.3 hoặc `document-2.0`; `GET /export?format=json|csv|xlsx`: JSON, ZIP CSV, XLSX.
 - 409 chặn mutation. UI giữ bản soạn, yêu cầu người dùng tải phiên bản mới và xem lại trước khi lưu. Không tự tính totals hoặc tự xác nhận dữ liệu AI.
 
-## Điểm chờ nghiệm thu
+## Kiểm chứng bổ sung ngày 23/10/2026
+
+TV6 đã chạy 58 unit tests, 30 browser provider tests và 4 browser tests trên Backend + Reader + KIE thật: JPG, PDF chữ, PDF scan, PDF challenge hai trang. Gồm sửa header/dòng/thuế, 409 thật, verify, parse JSON/CSV ZIP/XLSX, giữ machine snapshot bất biến và xử lý PRESENT sai/UNREADABLE. Xem [báo cáo và ảnh/video](../../docs/tv6-progress-20261023.md), [lệnh chạy lại](../../docs/tv6-review-demo.md), [pilot dự thảo](../../docs/tv6-pilot-protocol.md). Chưa có nghiên cứu người dùng hoặc kết luận accuracy/thời gian.
+
+## Mốc nghiệm thu ban đầu tại PR #54 (đã được bổ sung ở trên)
 
 PR #53 hiện dùng test providers để chứng minh backend plumbing. Reader PDF/OCR TV3 và KIE V2 TV4 phải trả evidence/schema đúng, rồi cần chạy UI với backend thật cho ảnh, PDF text, PDF scan. Cần lưu trạng thái API/worker/beat, response, screenshot/video và export; test hiện tại của frontend chỉ là contract/provider test. Leader cần nghiệm thu trên dữ liệu cho phép. Issue #51 chưa nên đóng chỉ dựa trên UI và test provider.
 
