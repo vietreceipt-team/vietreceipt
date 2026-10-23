@@ -1,0 +1,12 @@
+{
+  "family": "cord",
+  "revision": "7f0115a4b758a71d6473b8d085751692da2fef98",
+  "shard_sha256": "da3994eee1bf9bd3c57f0d53a72c3a6812c8696c5ba26245987949ddf73483cc",
+  "native_rows": 200,
+  "exported": 200,
+  "broken_records": [],
+  "export_sha256": "9cb30457a9a087ee6dbe40c1e40e962b136c320e06392b5edfec39418a2c420b",
+  "selection": "all rows of pinned first native train shard",
+  "final_test_included": false,
+  "annotation_review": "NOT_INDEPENDENTLY_REVIEWED"
+}

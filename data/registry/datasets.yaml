@@ -1,16 +1,23 @@
-registry_version: "1.0"
-audited_at: "2026-10-23"
+registry_version: '1.0'
+audited_at: '2026-10-23'
 datasets:
   vietreceipt_synthetic:
     name: VietReceipt Synthetic
-    version: "0.2.0"
+    version: 0.2.0
     source: scripts/data/generate_synthetic.py
-    license_access: Fictional team-generated development samples; font is supplied locally.
+    license_access: Fictional team-generated development samples; font is supplied
+      locally.
     language: vi
-    roles: [development, robustness, invoice_v2]
+    roles:
+    - development
+    - robustness
+    - invoice_v2
     usable_base_samples: 30
     layouts: 6
-    native_split: {train: 15, validation: 5, test: 10}
+    native_split:
+      train: 15
+      validation: 5
+      test: 10
     status: AUTOMATED_QA_ONLY
     final_frozen: false
   cord:
@@ -18,23 +25,33 @@ datasets:
     version: cord-v2
     source: https://huggingface.co/datasets/naver-clova-ix/cord-v2
     upstream_docs: https://github.com/clovaai/cord
-    license_access: CC-BY-4.0; preserve attribution; do not confuse public 1000 samples with full collection.
+    license_access: CC-BY-4.0; preserve attribution; do not confuse public 1000 samples
+      with full collection.
     language: id
-    roles: [line_items, external_benchmark]
+    roles:
+    - line_items
+    - external_benchmark
     upstream_sample_count: 1000
-    native_split: {train: 800, validation: 100, test: 100}
-    imported_sample_count: 7
-    audited_native_samples: 10
-    rejected_samples: 3
+    native_split:
+      train: 800
+      validation: 100
+      test: 100
+    imported_sample_count: 176
+    audited_native_samples: 200
+    rejected_samples: 24
     snapshot_commit: 7f0115a4b758a71d6473b8d085751692da2fef98
-    status: SMALL_TRAIN_SUBSET_MAPPED_REVIEW_PENDING
+    status: TRAIN_DATA_AUTOMATED_AUDIT_COMPLETE; INDEPENDENT_REVIEW_PENDING
     mapping: data/mappings/cord_v1.yaml
+    mapping_version: public-mapping-0.2
   sroie:
     name: ICDAR 2019 SROIE
-    version: "2019; exact authorized archive pending"
+    version: 2019; exact authorized archive pending
     source: https://rrc.cvc.uab.es/?ch=13
-    license_access: Obtain official access/terms; no permissive redistribution license assumed.
-    roles: [ocr_benchmark, kie_benchmark]
+    license_access: Obtain official access/terms; no permissive redistribution license
+      assumed.
+    roles:
+    - ocr_benchmark
+    - kie_benchmark
     native_split: preserve_authorized_archive
     imported_sample_count: 0
     snapshot_commit: null
@@ -44,14 +61,21 @@ datasets:
     name: Vietnamese Bill Extraction
     version: d24586e71318dec13c69f5f35f3d8bc04c5e561c
     source: https://huggingface.co/datasets/minhduc168/dataset-origin-vlm-extract-bill
-    license_access: MIT declared on publisher card; retain attribution and native annotation. Do not redistribute source images in this repository.
-    roles: [vietnamese_extraction, line_items]
-    imported_sample_count: 10
+    license_access: MIT declared on publisher card; retain attribution and native
+      annotation. Do not redistribute source images in this repository.
+    roles:
+    - vietnamese_extraction
+    - line_items
+    imported_sample_count: 969
     upstream_sample_count: 982
-    native_split: {train: 982}
+    native_split:
+      train: 982
     snapshot_commit: d24586e71318dec13c69f5f35f3d8bc04c5e561c
-    status: SMALL_TRAIN_SUBSET_MAPPED_REVIEW_PENDING
+    status: TRAIN_DATA_AUTOMATED_AUDIT_COMPLETE; INDEPENDENT_REVIEW_PENDING
     mapping: data/mappings/vietnamese_bill_v1.yaml
+    audited_native_samples: 982
+    rejected_samples: 13
+    mapping_version: public-mapping-0.2
   independent_mock:
     name: VietReceipt Independent Mock Test
     version: null
@@ -59,3 +83,20 @@ datasets:
     imported_sample_count: 0
     status: INDEPENDENT_AUTHOR_AND_REVIEW_REQUIRED
     final_frozen: false
+  sroie_curated:
+    name: SROIE curated by jsdnrs
+    version: bffe40c26759f3376ec2b3ae9031dbba54cd587c
+    source: https://huggingface.co/datasets/jsdnrs/ICDAR2019-SROIE
+    license_access: CC-BY-4.0 as declared by curator; NOTICE retained in audit; not
+      claimed as organizer archive
+    imported_sample_count: 625
+    audited_native_samples: 626
+    rejected_samples: 1
+    native_split:
+      train: 626
+      test: untouched
+    roles:
+    - native_ocr_benchmark
+    - external_kie
+    mapping_version: public-mapping-0.2
+    status: PROPOSED_CURATED_SOURCE; AUTOMATED_TRAIN_QA_COMPLETE; LEAD_SOURCE_SIGNOFF_PENDING

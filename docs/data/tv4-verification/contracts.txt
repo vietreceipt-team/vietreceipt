@@ -1,0 +1,12 @@
+PASS: Invoice V2: 2 positive cases, 25 negative cases rejected (synthetic)
+PASS: JSON Schemas are valid Draft 2020-12 schemas
+PASS: OpenAPI 3.1 document is valid
+PASS: OpenAPI, state machine, KIE reasons and canonical fields are consistent
+PASS: field-specific public API types and embedded field_name invariants
+PASS: correction path/value types reject mismatches
+PASS: scheduling, retry and queue-failure semantics are consistent
+PASS: correction APPLY/CLEAR and verification concurrency contracts are consistent
+PASS: 9 positive schema cases
+PASS: 23 negative schema cases rejected
+PASS: cross-record receipt, OCR run and block linkage checks
+PASS: OCR block_id and zero-based reading_order are unique within one OCR run

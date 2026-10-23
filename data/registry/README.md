@@ -1,3 +1,5 @@
+> Latest follow-up: see `docs/data/tv4-handoff.md`, `docs/data/coordination-required.md`, and `docs/data/tv2-followup-status.md`. The initial 10-sample audits below are historical; current registry/audits include 982 Vietnamese, 200 CORD and 626 curated-SROIE native train records.
+
 # Public dataset selection and audit (23 October 2026)
 
 Recommended working sources, now recorded in datasets.yaml:

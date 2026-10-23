@@ -1,0 +1,22 @@
+{
+  "checked_commit": "e64fbf5e513c1e406339cfbecc1d01c3d1be4c21",
+  "evaluator_path": "scripts\\evaluate_invoice_kie.py",
+  "evaluator_sha256": "6239e62acb286f0eb5966df3239fd7a8a8238d68fae0ecff4a51ca818eda7395",
+  "supports_output_cli": false,
+  "grouping_test_available": false,
+  "requested_command": "python scripts/evaluate_invoice_kie.py --manifest DEV_MANIFEST --output OUTPUT_DIR",
+  "status": "WAITING_FOR_TV4_PUBLISHED_CONTRACT",
+  "changes_to_tv4_runtime": false,
+  "experiment_proposal": {
+    "baseline": "geometry_grouping_v2",
+    "variant": "relation_grouping_v2_1",
+    "status": "NOT_CO_SIGNED"
+  },
+  "final_scope_proposal": "13 header fields + 5 cells per line; tax_breakdown excluded; UNKNOWN and failed-source denominators require TV1/TV4 confirmation",
+  "requirements_contracts_versions": {
+    "jsonschema": "4.26.0",
+    "openapi-spec-validator": "0.9.0",
+    "PyYAML": "6.0.2"
+  },
+  "shared_contract_tests": "PASS with python -X utf8"
+}

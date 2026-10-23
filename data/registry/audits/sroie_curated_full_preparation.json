@@ -1,0 +1,17 @@
+{
+  "family": "sroie_curated",
+  "mapping_version": "public-mapping-0.2",
+  "snapshot": "bffe40c26759f3376ec2b3ae9031dbba54cd587c",
+  "source": "https://huggingface.co/datasets/jsdnrs/ICDAR2019-SROIE",
+  "license_access": "CC-BY-4.0 curator NOTICE; source labels retained; original organizer archive not claimed",
+  "input_sha256": "c94d49dfebd9d1b431bae0c24cd0aef551504c74b5fb08e96e847c3cd24c8a06",
+  "usable_samples": 625,
+  "rejected": [
+    {
+      "line": 348,
+      "error": "Unsupported numeric value: -1.73"
+    }
+  ],
+  "status": "NEEDS_REVIEW",
+  "metrics_eligible_fields_only": true
+}

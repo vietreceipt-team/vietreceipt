@@ -1,4 +1,4 @@
-version: public-mapping-0.1
+version: public-mapping-0.2
 family: cord
 native_format: ground_truth JSON, gt_parse.menu list
 rules:
@@ -11,3 +11,4 @@ note: "menu.price is a line total, not unit_price. Submenus and discounted total
 quantity_suffix: "cnt accepts a numeric quantity optionally followed by x; other formats rejected"
 unsupported: [seller_tax_id, buyer_tax_id, invoice_symbol, invoice_template_number]
 metric_policy: "Only supported_fields for each sample are eligible. UNKNOWN is unavailable, not extraction failure."
+raw_policy: "Preserve native raw_value; support leading/trailing x on quantity, reject ambiguous price notation for review."

@@ -1,0 +1,14 @@
+{
+  "source": "https://huggingface.co/datasets/jsdnrs/ICDAR2019-SROIE/blob/main/NOTICE",
+  "notice_sha256": "c2684a420dacbd6db6f310004f2024523c3d570af2c636d77a800d47fdcb2283",
+  "declared_license": "CC-BY-4.0 for incorporated source material",
+  "attribution": "Huang et al., ICDAR 2019; modifications by jsdnrs",
+  "modifications": [
+    "image metadata removed",
+    "quadrilateral reduced to axis-aligned boxes",
+    "14 extra task-3 test labels; not downloaded in this train audit",
+    "UTF-8 cleanup for a named sample"
+  ],
+  "source_decision": "PROPOSED_CURATED_BENCHMARK; NOT ORIGINAL ORGANIZER ARCHIVE",
+  "revision": "bffe40c26759f3376ec2b3ae9031dbba54cd587c"
+}

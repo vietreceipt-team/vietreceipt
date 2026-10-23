@@ -1,0 +1,39 @@
+{
+  "reader_configuration": {
+    "dpi": 200,
+    "max_bytes": 31457280,
+    "max_pages": 30,
+    "max_pixels": 40000000,
+    "max_pdf_chars": 200000,
+    "min_pdf_chars": 20,
+    "orientation": "none",
+    "max_side": 0,
+    "contrast": 1.0,
+    "force_pdf_ocr": false
+  },
+  "input_routes": {
+    "IMAGE_OCR": 40,
+    "PDF_OCR": 20,
+    "PDF_TEXT": 20
+  },
+  "model_files_sha256": {
+    "latin_PP-OCRv3_mobile_rec/config.json": "c82fc54a5c8e8d80c946f1302e70cf91d31fb1b787702f3ef2264102affc3819",
+    "latin_PP-OCRv3_mobile_rec/inference.json": "022b9fd837182ee83bb699d3d1cee7d05811997c887cae179a8c128ea29da3fa",
+    "latin_PP-OCRv3_mobile_rec/inference.pdiparams": "fa6f22a8b2a669c7d5b4dfd2607491abd4cd2467adf7077c9cc70ce8c47b61d9",
+    "latin_PP-OCRv3_mobile_rec/inference.yml": "f193ba660245a417090b757722f955930a2af750ac9258166cc006fe147e6794",
+    "PP-OCRv3_mobile_det/config.json": "c9d07ea65624c3df541a634a302fe76d53baecf98b5ee9678910b955638d7d80",
+    "PP-OCRv3_mobile_det/inference.json": "26c59bd5c5bea8b63efecb9115c35b7eea300081bd8703dc464da4aa19825b98",
+    "PP-OCRv3_mobile_det/inference.pdiparams": "7e9518c6ab706fe87842a8de1c098f990e67f9212b67c9ef8bc4bca6dc17b91a",
+    "PP-OCRv3_mobile_det/inference.yml": "ccfc8b069bb0d5505ecefa6defc54140c10bf0194fde5395aba0a1a99e5ea90f",
+    "latin_PP-OCRv3_mobile_rec/.cache/huggingface/trees/d90a4c51cd2c2a4cf1237426c220330bbe698198.json": "909e26a6ad3c149f9c43b76b3bd935a334c15ce0c96e7be19117bfa2f2dbd72b",
+    "PP-OCRv3_mobile_det/.cache/huggingface/trees/58f4e5b132e34e516486fb0d0266c662feb48ca1.json": "d8ea37b7d4ce41966db2889b27ae34066051cd1a3a56851adf94f62019c00403"
+  },
+  "source": "Actual cache files loaded by logged PaddleOCR execution; model weights are not redistributed",
+  "installed_versions": {
+    "paddleocr": "3.0.3",
+    "paddlepaddle": "3.0.0",
+    "paddlex": "3.0.3",
+    "pypdfium2": "5.12.1",
+    "Pillow": "10.4.0"
+  }
+}

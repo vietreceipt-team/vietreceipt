@@ -8,12 +8,13 @@ No OCR transcription is fabricated from sparse KIE annotations.
 
 import argparse
 import json
+import re
 import shutil
 import uuid
 from pathlib import Path
 from .common import HEADERS, LINE_FIELDS, cell, dump, resolve, sha, write_csv
 
-VERSION = "public-mapping-0.1"
+VERSION = "public-mapping-0.2"
 
 
 def vnd_money(value):
@@ -21,6 +22,7 @@ def vnd_money(value):
     import re
 
     text = str(value).strip().replace(" ", "")
+    text = re.sub(r"(?:VNĐ|VND|đ)$", "", text, flags=re.IGNORECASE)
     if re.fullmatch(r"\d+", text):
         return int(text)
     if re.fullmatch(r"\d{1,3}(?:\.\d{3})+", text):
@@ -61,7 +63,8 @@ def map_native(family, native):
     fields = {k: cell() for k in HEADERS}
     lines = []
     supported = []
-    if family == "sroie":
+    if family in ("sroie", "sroie_curated"):
+        native = native.get("entities", native)
         for source, target in (
             ("company", "seller_name"),
             ("address", "seller_address"),
@@ -70,8 +73,12 @@ def map_native(family, native):
                 fields[target] = cell(native[source])
                 supported.append(target)
         # Date format/currency are not inferred from a dataset's country.
-        if native.get("total") is not None:
-            fields["total_amount"] = cell(amount(native["total"]))
+        if native.get("total") is not None and str(native["total"]).strip():
+            numeric_total = re.sub(
+                r"^\s*(?:\$|RM)\s*", "", str(native["total"]), flags=re.IGNORECASE
+            )
+            fields["total_amount"] = cell(amount(numeric_total))
+            fields["total_amount"]["raw_value"] = native["total"]
             supported.append("total_amount")
     elif family == "cord":
         native = json.loads(native) if isinstance(native, str) else native
@@ -90,14 +97,15 @@ def map_native(family, native):
                 if row.get(source) is not None:
                     raw = row[source]
                     if target == "quantity":
-                        import re
-
-                        match = re.fullmatch(r"\s*(\d+(?:\.\d+)?)\s*[xX]?\s*", str(raw))
+                        match = re.fullmatch(
+                            r"\s*[xX]?\s*(\d+(?:\.\d+)?)\s*[xX]?\s*", str(raw)
+                        )
                         if not match:
                             raise ValueError("Unsupported CORD quantity: " + str(raw))
                         raw = match[1]
                     value = raw if target == "description" else amount(raw)
                     mapped[target] = cell(value)
+                    mapped[target]["raw_value"] = row[source]
                     supported.append("line_items." + target)
             lines.append(dict(line_id=f"L{index + 1}", **mapped))
         # CORD's menu.price is line TOTAL, never unit_price. Keep ambiguous
@@ -111,7 +119,11 @@ def map_native(family, native):
             if len(answers) != 1:
                 raise ValueError("Expected one native assistant annotation")
             native_rows = json.loads(answers[0])
+        if not isinstance(native_rows, list):
+            raise ValueError("Native row annotation must be a list")
         for index, row in enumerate(native_rows):
+            if not isinstance(row, dict):
+                raise ValueError("Native row annotation must contain objects")
             mapped = {k: cell() for k in LINE_FIELDS}
             for source, target in (
                 ("ten_dich_vu", "description"),
@@ -126,9 +138,15 @@ def map_native(family, native):
                         if target in ("description", "unit")
                         else vnd_money(row[source])
                         if target in ("unit_price", "amount")
-                        else amount(row[source], decimal_mark=",")
+                        else amount(
+                            row[source],
+                            decimal_mark="."
+                            if re.fullmatch(r"\d+\.\d{1,2}", str(row[source]).strip())
+                            else ",",
+                        )
                     )
                     mapped[target] = cell(value)
+                    mapped[target]["raw_value"] = row[source]
                     supported.append("line_items." + target)
             lines.append(dict(line_id=f"L{index + 1}", **mapped))
     else:
@@ -175,6 +193,8 @@ def prepare(family, input_path, source_root, out, snapshot, source, license_note
                 )
             image_splits[image_hash] = record["split"]
             fields, items, supported = map_native(family, record["annotation"])
+            if not supported:
+                raise ValueError("No supported annotated fields in native record")
             sid = str(
                 uuid.uuid5(
                     uuid.NAMESPACE_URL,
@@ -212,6 +232,7 @@ def prepare(family, input_path, source_root, out, snapshot, source, license_note
                     document_path=document,
                     ground_truth_path=label,
                     native_annotation_path=f"native/{sid}.json",
+                    native_annotation_sha256=sha(out / f"native/{sid}.json"),
                     document_sha256=sha(out / document),
                     ground_truth_sha256=sha(out / label),
                     supported_fields=json.dumps(supported),
@@ -229,6 +250,7 @@ def prepare(family, input_path, source_root, out, snapshot, source, license_note
         out / "preparation_report.json",
         dict(
             family=family,
+            mapping_version=VERSION,
             snapshot=snapshot,
             source=source,
             license_access=license_note,
@@ -246,7 +268,9 @@ def main(family=None):
     p = argparse.ArgumentParser(description=__doc__)
     if family is None:
         p.add_argument(
-            "--family", choices=("cord", "sroie", "vietnamese_bill"), required=True
+            "--family",
+            choices=("cord", "sroie", "vietnamese_bill", "sroie_curated"),
+            required=True,
         )
     for k in ("input", "source-root", "out"):
         p.add_argument("--" + k, type=Path, required=True)

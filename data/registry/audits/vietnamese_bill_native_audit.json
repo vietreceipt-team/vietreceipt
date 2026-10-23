@@ -1,0 +1,12 @@
+{
+  "family": "vietnamese_bill",
+  "revision": "d24586e71318dec13c69f5f35f3d8bc04c5e561c",
+  "shard_sha256": "f97e62eaa9b9417cd0bfe2c27802a45b708166f22a7d35c88770c3e72e72a6a4",
+  "native_rows": 982,
+  "exported": 982,
+  "broken_records": [],
+  "export_sha256": "d0d5d3219754d3c5da666f052b2ac4feac7c04f13f3d024d496396b16c569c1d",
+  "selection": "all rows of pinned first native train shard",
+  "final_test_included": false,
+  "annotation_review": "NOT_INDEPENDENTLY_REVIEWED"
+}

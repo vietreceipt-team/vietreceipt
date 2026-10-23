@@ -14,6 +14,7 @@ from .common import dump, sha, write_text
 REPOS = {
     "cord": "naver-clova-ix/cord-v2",
     "vietnamese_bill": "minhduc168/dataset-origin-vlm-extract-bill",
+    "sroie_curated": "jsdnrs/ICDAR2019-SROIE",
 }
 
 
@@ -70,10 +71,14 @@ def download(family, out, limit=10, revision=None, max_mb=600):
                 raise ValueError(
                     "Embedded native image bytes required; no image-path guessing"
                 )
-            original = native.get("source_image")
+            original = native.get("source_image", native.get("key"))
             annotation = (
                 {"master_data": native["master_data"]}
                 if family == "vietnamese_bill"
+                else {
+                    k: native[k] for k in ("entities", "words", "bboxes", "image_size")
+                }
+                if family == "sroie_curated"
                 else json.loads(native["ground_truth"])
             )
             if original is None:

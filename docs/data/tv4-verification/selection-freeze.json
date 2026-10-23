@@ -1,0 +1,9 @@
+{
+  "purpose": "development validation membership freeze, not final test",
+  "selection_sha256": "d9f09fed1396f647295a320cfc19aa3d0183d794a65cb4e9b57267e7a9a8f6f5",
+  "created_at": "2026-10-23T12:18:38.936070+00:00",
+  "policy": "all train/validation bases, clean three routes + blur PNG; never select by OCR success",
+  "base_limit": null,
+  "record_count": 80,
+  "final_test_included": false
+}

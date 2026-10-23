@@ -1,0 +1,14 @@
+{
+  "repo": "jsdnrs/ICDAR2019-SROIE",
+  "revision": "bffe40c26759f3376ec2b3ae9031dbba54cd587c",
+  "source": "https://huggingface.co/datasets/jsdnrs/ICDAR2019-SROIE/tree/bffe40c26759f3376ec2b3ae9031dbba54cd587c",
+  "native_shard": "data/train-00000-of-00001.parquet",
+  "shard_sha256": "b18c16b4d8481e5e4537a1700e4616907fe4acd92d6362a7e430b0e866213887",
+  "card_sha256": "5378251883667a341bd6cdf5e8a4dab7139a0fd9f653de8286001a5294fa3066",
+  "export_sha256": "c94d49dfebd9d1b431bae0c24cd0aef551504c74b5fb08e96e847c3cd24c8a06",
+  "subset_size": 626,
+  "selection": "first N records of first native train shard",
+  "split": "train",
+  "final_eligible": false,
+  "scope": "development subset; not full dataset"
+}
