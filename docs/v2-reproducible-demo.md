@@ -153,3 +153,8 @@ PR #63 is merged, but required UNKNOWN/strict-completion policy, row precision/F
 and a source-region matcher remain separate gates. This capture runner neither
 reruns KIE on prepared OCR and calls it end-to-end nor substitutes corrected
 values for machine predictions. See [TV5 incremental status](tv5-progress-20261023.md).
+
+
+## TV4 source metric integration
+
+[Source-evaluation runner](tv5-source-evaluation.md) documents the new one-command gate/capture/scoring path, separate pending QA plan and per-worker input hash. It supersedes the earlier statement that UNKNOWN/row P/R/F1/source matcher code is unavailable. Source gold QA and protocol approval remain pending; historical capture evidence is not relabeled.

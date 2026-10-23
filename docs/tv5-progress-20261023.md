@@ -1,5 +1,7 @@
 # TV5 — tiến độ tích hợp và bàn giao ngày 23/10/2026
 
+Cập nhật sau PR #69: [TV5 source evaluation](tv5-source-evaluation.md) ghi kernel UNKNOWN/row P/R/F1 mới và wrapper source-hash/identity/geometry của TV5. Bảng dưới là snapshot của PR #67, không phải trạng thái mới nhất của TV4. Gold/protocol approval vẫn chưa có.
+
 ## Đầu vào đã kiểm tra
 
 | Thành viên | Bàn giao trên GitHub | Phần dùng được cho TV5 | Điều kiện chưa được đáp ứng |
