@@ -1,0 +1,4 @@
+sample_id,condition,receipt_id,input_sha256,processing_success,workflow_status,stage,code,upload_ms,processing_wall_ms,total_ms,document_reading_ms,kie_ms
+text_pdf,text_pdf,f99a6a93-65e8-45c3-baed-193790feaa92,e8c76ff249cc35fb954e47031d2ea336960233841b634a122f096b65a7c57a2e,True,verified,,,75.576,2028.949,2326.957,842.288,24.646
+jpg,jpg,532018ae-2a6c-4850-8e98-1db1552fc773,e1f06fb824e473a51c5c8c2d8da7bad37679521c95b8d34c85a4b65ef0dc8a00,True,verified,,,77.0,16378.594,16603.206,12215.88,38.821
+scan_pdf,scan_pdf,2a43ba7c-615f-477f-9d81-e4ee8f83e2a3,565d0eceea68954eb914c4f7ba0f55375c9b158131db2391be70ca7b2b64bd8e,True,verified,,,12.094,10173.554,10246.367,7848.555,24.708

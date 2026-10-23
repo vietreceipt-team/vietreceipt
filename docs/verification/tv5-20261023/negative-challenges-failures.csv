@@ -1,0 +1,4 @@
+sample_id,condition,receipt_id,input_sha256,processing_success,workflow_status,stage,code,upload_ms,processing_wall_ms,total_ms,document_reading_ms,kie_ms
+corrupt,,,869d4d582c0ab3445ba27d31903ff859236986df705d9529c9476f1467490368,False,failed,UPLOAD,UPLOAD_FAILED,,,5.201,,
+missing,,,,False,failed,INPUT,INPUT_READ_FAILED,,,0.039,,
+hash_mismatch,,,e8c76ff249cc35fb954e47031d2ea336960233841b634a122f096b65a7c57a2e,False,failed,INPUT,SOURCE_HASH_MISMATCH,,,0.072,,

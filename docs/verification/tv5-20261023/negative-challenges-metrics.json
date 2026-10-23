@@ -1,0 +1,19 @@
+{
+  "scope": "system_workflow_only",
+  "expected_samples": 3,
+  "attempted_samples": 3,
+  "complete": true,
+  "processing_succeeded": 0,
+  "processing_failed": 3,
+  "not_attempted": 0,
+  "processing_success_rate": 0.0,
+  "workflow_failed": 3,
+  "workflow_verified": 0,
+  "failures_by_stage": {
+    "UPLOAD": 1,
+    "INPUT": 2
+  },
+  "accuracy": null,
+  "accuracy_status": "NOT_SCORED",
+  "accuracy_reason": "No approved source-gold scoring protocol is executed by this capture runner; pending QA and reviewed values cannot establish AI accuracy."
+}

@@ -29,7 +29,12 @@ ZIP CRC đạt. Đây là kiểm tra toàn vẹn, không phải duyệt nhãn đ
 - Trong đó 33 test tập trung vào reproducibility/handoff: raw vs reviewed, schema/native failure, timeout, file thiếu/hash sai, failure stage/code, export thất bại nhưng processing thành công, snapshot không ghi đè, duplicate/leak/path/final input rejection và pending QA.
 - Legacy/shared contracts, Ruff, format và `git diff --check` đạt.
 - Luồng JPG/PDF text/PDF scan → correction → verify → JSON/CSV/XLSX với provider thật và giới hạn ARM64: xem [nghiệm thu PR #62](v2-stability-acceptance.md). Không thay provider/Paddle hoặc sửa UI/API/storage ở đợt bổ sung này.
-- Kết quả batch TV2 validation và CI của PR bổ sung sẽ được ghi sau khi chạy xong, không coi test phần mềm là accuracy.
+- Docker AMD64 worker: 20/20 validation sources đạt NEEDS_REVIEW; native ARM64: cùng 20/20 đạt NEEDS_REVIEW. Đây là 20 file từ 5 base và một family table_heavy, không cộng hai lần chạy thành 40 mẫu độc lập. Không correction/verify các receipt này.
+- Native synthetic riêng: JPG/text PDF/scan PDF đều VERIFIED và đủ JSON/CSV/XLSX, snapshot máy không đổi. Bộ corrupt/missing/hash mismatch riêng giữ đủ 3/3 failure, CLI exit 1.
+- Native validation/three-route bắt đầu từ runner commit `f17581f` với `dirty=false`; worker native ghi `277fe71`, source hash và model/config trong attempt. Docker validation giữ metadata exploratory `1319801`, `dirty=true`, worker `fd18638`; không gán ngược commit. Docker exploratory bắt đầu trước khi thêm metrics.csv nên giữ nguyên các artifact gốc, không sửa lịch sử để trông như cùng bản runner.
+- CI tại code commit `f17581f`: 3/3 check qua; artifact HTTP test providers có đủ JSONL/metadata/failures/metrics CSV, 3/3 VERIFIED và accuracy=null. Test providers không phải bằng chứng AI thật.
+
+Bảng CSV/JSON, nguồn demo/validation, raw machine snapshot, reviewed exports tách riêng và checksum nằm trong [artifact index](verification/tv5-20261023/index.json) / [ZIP bằng chứng](verification/tv5-20261023/machine-evidence.zip). Hash ở index xác định chính xác từng file. Không có dữ liệu người dùng, final test/mock, model weights hay credentials trong gói này.
 
 Lệnh tái lập và ý nghĩa artifact: [v2-reproducible-demo.md](v2-reproducible-demo.md#tv2-development-handoff-and-report-tables-23-october).
 

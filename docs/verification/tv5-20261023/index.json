@@ -1,0 +1,101 @@
+{
+  "scope": "synthetic_development_workflow_only",
+  "accuracy": null,
+  "runs": {
+    "docker-validation": {
+      "attempted": 20,
+      "failed": 0,
+      "statuses": [
+        "needs_review"
+      ],
+      "runner_commit": "1319801756fba16b5efdf5ab50da9c0aba6f4f33",
+      "runner_dirty": true,
+      "workers": [
+        {
+          "commit": "fd18638a05b2a28b12d5fbbc230e9f5725a72287",
+          "source_sha256": "df64bb61ba829dbb2e5f85adb4f52d9e4c3cc2d750dd8a47fa796166983714c1",
+          "architecture": "x86_64",
+          "python": "3.12.15"
+        }
+      ]
+    },
+    "native-validation": {
+      "attempted": 20,
+      "failed": 0,
+      "statuses": [
+        "needs_review"
+      ],
+      "runner_commit": "f17581f24ff181429545d685f0f5fb6508bff560",
+      "runner_dirty": false,
+      "workers": [
+        {
+          "commit": "277fe7154a7a6651897a2b23f92efa1e2f5568b6",
+          "source_sha256": "df64bb61ba829dbb2e5f85adb4f52d9e4c3cc2d750dd8a47fa796166983714c1",
+          "architecture": "arm64",
+          "python": "3.12.14"
+        }
+      ]
+    },
+    "native-three-route": {
+      "attempted": 3,
+      "failed": 0,
+      "statuses": [
+        "verified"
+      ],
+      "runner_commit": "f17581f24ff181429545d685f0f5fb6508bff560",
+      "runner_dirty": false,
+      "workers": [
+        {
+          "commit": "277fe7154a7a6651897a2b23f92efa1e2f5568b6",
+          "source_sha256": "df64bb61ba829dbb2e5f85adb4f52d9e4c3cc2d750dd8a47fa796166983714c1",
+          "architecture": "arm64",
+          "python": "3.12.14"
+        }
+      ]
+    },
+    "negative-challenges": {
+      "attempted": 3,
+      "failed": 3,
+      "statuses": [
+        "failed"
+      ],
+      "runner_commit": "f17581f24ff181429545d685f0f5fb6508bff560",
+      "runner_dirty": false,
+      "workers": []
+    }
+  },
+  "tv2_source_revision": "8a603300071d6dbfebd23e8f22a8c9cbac90ff48",
+  "tv2_archive_sha256": "6661c858c0564820a035ae0f62951647d19c74dd0c789aa4e56a072dfb4d9790",
+  "notes": [
+    "20 inputs are four variants of 5 base documents from one template family, table_heavy; repetitions across runtimes are not independent samples.",
+    "Docker validation was exploratory: original runner_commit=1319801 with dirty=true is preserved. It predates committed reporter metrics.csv; no backward reassignment of commit.",
+    "Native validation and three-route acceptance were started from clean committed runner f17581f. Worker runtime revision is separate and recorded per attempt.",
+    "No correction/verification was applied to imported validation receipts; PENDING_REVIEW gold is not scored.",
+    "Reviewed exports exist only for the separate explicitly synthetic three-route workflow, not machine accuracy.",
+    "Corrupt/missing/checksum challenge inputs are a separate expected-failure cohort, not mixed with eligible validation successes.",
+    "Machine evidence contains fictional invoice text. Final/test/mock and private user receipts are absent."
+  ],
+  "machine_evidence_sha256": "00b33eb444206aff7798754e82de4c81d61272577eca7fd6111e3e419f2aec90",
+  "files_sha256": {
+    "docker-validation-failures.csv": "297202d29b40be0890df7d3d506775a9974905b61b072ed0e937a038bc03e4de",
+    "docker-validation-metrics.json": "e92ef991bbd0e100d621287c9128e7e6c80f8dda15a17688734ac3a0521e6570",
+    "docker-validation-run_metadata.json": "1feb091305935b14e888f7f5d9f4eba2b339e0da4991cf40252b187354bb3aed",
+    "docker-validation-samples.csv": "f6df874d5abd7c82fcf429bd25091579dd70b2d6df6daf8a1be609ae1936f1cb",
+    "machine-evidence.zip": "00b33eb444206aff7798754e82de4c81d61272577eca7fd6111e3e419f2aec90",
+    "native-three-route-failures.csv": "297202d29b40be0890df7d3d506775a9974905b61b072ed0e937a038bc03e4de",
+    "native-three-route-metrics.csv": "5c76f4d7c6ed2cf173b3af3b509c6bfd1ab81142a8aba17027b141b568f905f4",
+    "native-three-route-metrics.json": "9ba1fb9d7ccfbf7be282ebc38c0597941fe5c886def58b548c9afe58d11ba132",
+    "native-three-route-run_metadata.json": "0a5b02cc1145152031fd9f754b1966e39e83f56f6c30023e5a8cab4513519ae1",
+    "native-three-route-samples.csv": "db62751530b2b3e9f9be1814acb64125672a8f4a8ba934625b002c872ff1f0d5",
+    "native-validation-failures.csv": "297202d29b40be0890df7d3d506775a9974905b61b072ed0e937a038bc03e4de",
+    "native-validation-metrics.csv": "0565b6c89de9a9d7604aabfd0e1f2380b90b5309574771013392ffa0ac753a08",
+    "native-validation-metrics.json": "e92ef991bbd0e100d621287c9128e7e6c80f8dda15a17688734ac3a0521e6570",
+    "native-validation-run_metadata.json": "a591925d90d8f828a388a134fa0ccd2dae79390dd2cca6c42dc95d9f6d6d512d",
+    "native-validation-samples.csv": "2c85c461fc4e247da89ebdb31267489c66fc2479605fccbde90282d4f0896066",
+    "negative-challenges-failures.csv": "e55499f6bcd066407eb9a1e08c3d4c51944387760fe9e8d83d81593370869a67",
+    "negative-challenges-metrics.csv": "fc7a0a57fcd673d83d04c07719f1739ac7f554424748d4a789f5c01e5bac9018",
+    "negative-challenges-metrics.json": "69153413868a004279df2d0befc9455d4846945ca449262a869a67dc92731fe0",
+    "negative-challenges-run_metadata.json": "6a5f49bc0b5c2f1b65b729f966e4ba08f0fcad87cbde387c367aef203ce0056d",
+    "negative-challenges-samples.csv": "e55499f6bcd066407eb9a1e08c3d4c51944387760fe9e8d83d81593370869a67"
+  }
+}
