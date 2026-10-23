@@ -1,6 +1,70 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { HEADER_FIELDS } from "../assets/js/api-v2.js";
+import { createHash } from "node:crypto";
+
+for (const status of ["NOT_PRESENT", "UNKNOWN", "AMBIGUOUS", "UNREADABLE"]) {
+ test(`trạng thái ${status}: giữ null, không tự xác nhận, sửa có chủ ý và giữ máy gốc`,async({page})=>{
+  const state=await provider(page);
+  Object.assign(state.record.fields.seller_name,{value_status:status,normalized_value:null,effective_status:status,effective_value:null,effective_needs_review:true,reviewed:false});
+  const machine=structuredClone(state.record.fields.seller_name);
+  await page.goto(`${ORIGIN}/receipts/${RID}/`);
+  const card=page.locator('[data-cell="header||seller_name"]');
+  await expect(card.locator(".review-value-status")).toContainText("Dự đoán máy");
+  await expect(card.locator("[data-input]")).toHaveValue("");
+  await expect(page.locator("#verify")).toBeDisabled();expect(state.patches).toBe(0);
+  await card.locator("[data-inspect]").click();await page.getByRole("button",{name:"Sửa giá trị",exact:true}).click();
+  await card.locator("[data-status]").selectOption("PRESENT");
+  await card.getByRole("button",{name:"Lưu",exact:true}).click();
+  await expect(card.locator(".cell-state")).toContainText("không được để trống");expect(state.patches).toBe(0);
+  await card.locator("[data-input]").fill("Đã đọc lại nguồn");await card.getByRole("button",{name:"Lưu",exact:true}).click();
+  await expect(card.locator(".review-value-status")).toContainText("Đã đối chiếu");
+  expect(state.record.fields.seller_name.value_status).toBe(machine.value_status);
+  expect(state.record.fields.seller_name.normalized_value).toBeNull();
+ });
+}
+
+test("PRESENT sai OCR cần người sửa; inspector tách máy và giá trị đã sửa",async({page})=>{
+ const state=await provider(page);state.record.fields.seller_name=cell("C0ng ty sai OCR",true);
+ await page.goto(`${ORIGIN}/receipts/${RID}/`);const card=page.locator('[data-cell="header||seller_name"]');
+ await expect(card.locator(".review-value-status")).toContainText("Có dữ liệu · Dự đoán máy");
+ expect(state.patches).toBe(0);await expect(page.locator("#verify")).toBeDisabled();
+ await card.locator("[data-input]").fill("Công ty đúng");await card.getByRole("button",{name:"Lưu",exact:true}).click();
+ await expect(card.locator(".review-value-status")).toContainText("Đã đối chiếu");
+ await card.locator("[data-inspect]").click();await expect(page.locator(".inspector")).toContainText("C0ng ty sai OCR");await expect(page.locator(".inspector")).toContainText("Công ty đúng");
+ await page.screenshot({path:"test-results/v2-machine-reviewed.png"});
+});
+
+test("dòng 60: click source cuộn riêng viewer tới polygon cuối trang, xoay và zoom vẫn thấy",async({page})=>{
+ const bottom={...block("bottom"),polygon:[{x:.1,y:.92},{x:.7,y:.92},{x:.7,y:.96},{x:.1,y:.96}]};
+ const state=await provider(page,{pdf:true,evidence:{schema_version:"document-2.0",pages:[{page_index:0,evidence:{blocks:[block("b1")]}},{page_index:1,evidence:{blocks:[bottom]}}]}});
+ state.record.line_items=Array.from({length:60},(_,index)=>({...structuredClone(state.record.line_items[0]),line_id:`row-${index}`,description:cell(`Hàng ${index+1}`,true,index===59?"bottom":"b1")}));
+ await page.goto(`${ORIGIN}/receipts/${RID}/`);await expect(page.locator(".evidence-layer")).toHaveCount(1);
+ await page.getByRole("tab",{name:"Dòng hàng"}).click();
+ await page.locator('[data-cell="line|row-59|description"] [data-edit]').click();
+ await expect(page.locator('[data-view="page"]')).toHaveText("Trang 2 / 2");
+ const active=page.locator('polygon[data-block="bottom"].is-active');await expect(active).toHaveCount(1);
+ for(const name of ["Phóng to","Xoay 90 độ"]){
+  await page.getByRole("button",{name,exact:true}).click();
+  await expect.poll(async()=>active.evaluate(node=>{const r=node.getBoundingClientRect(),v=node.closest(".viewer-scroll").getBoundingClientRect();return r.top>=v.top-1&&r.bottom<=v.bottom+1&&r.left>=v.left-1&&r.right<=v.right+1;})).toBe(true);
+ }
+ await page.screenshot({path:"test-results/v2-long-table-source.png"});
+});
+
+test("pilot: không đo trước consent, tải aggregate không có nội dung, rút đồng ý xóa",async({page})=>{
+ await provider(page);await page.goto(`${ORIGIN}/receipts/${RID}/`);
+ await expect(page.locator("#pilot-download")).toHaveCount(0);
+ await page.locator("#pilot-open").click();await expect(page.locator("#pilot-start")).toBeDisabled();
+ await page.locator("#pilot-synthetic").check();await page.locator("#pilot-start").click();
+ const card=page.locator('[data-cell="header||seller_name"]');await card.locator("[data-input]").fill("SECRET-CONTENT");await card.getByRole("button",{name:"Lưu",exact:true}).click();
+ await expect(card).toContainText("Đã lưu");
+ const promise=page.waitForEvent("download");await page.locator("#pilot-download").click();
+ const download=await promise, stream=await download.createReadStream(), chunks=[];for await(const chunk of stream)chunks.push(chunk);
+ const text=Buffer.concat(chunks).toString(), summary=JSON.parse(text);
+ expect(summary.counts["header.seller_name"].corrections).toBe(1);
+ expect(text).not.toContain("SECRET-CONTENT");expect(text).not.toContain(RID);expect(createHash("sha256").update(text).digest("hex")).toHaveLength(64);
+ await page.locator("#pilot-withdraw").click();await expect(page.locator("#pilot-download")).toHaveCount(0);
+});
 const ORIGIN="http://127.0.0.1:3103", RID="00000000-0000-4000-8000-000000000051";
 const photo=readFileSync("assets/fixtures/R001.jpg"), pdf=readFileSync("tests/fixtures/two-page.pdf");
 const block=(id)=>({block_id:id,text:id,confidence:.9,reading_order:0,polygon:[{x:.1,y:.1},{x:.3,y:.1},{x:.3,y:.2},{x:.1,y:.2}]});
@@ -19,7 +83,7 @@ async function provider(page,options={}){
   if(method==="GET"&&part.endsWith("/history"))return send(state.history);
   if(method==="GET"&&part===`/${RID}`){state.gets++;if(options.progress)state.record.status=state.gets===1?"PROCESSING":"NEEDS_REVIEW";return send(state.record);}
   if(method==="GET"&&part.endsWith("/source"))return options.missingSource?send({error:{code:"STORAGE_FAILED",message:"missing source"}},503):route.fulfill({status:200,contentType:options.pdf?"application/pdf":"image/jpeg",body:options.pdf?pdf:photo});
-  if(method==="GET"&&part.endsWith("/evidence"))return options.missingEvidence?send({error:{code:"NOT_FOUND",message:"missing evidence"}},404):send(options.lateEvidence&&state.record.status==="PROCESSING"?{schema_version:"1.3",blocks:[]}:options.pdf?{schema_version:"document-2.0",pages:[{page_index:0,evidence:{blocks:[block("b1")]}},{page_index:1,evidence:{blocks:[block("p1")]}}]}:{schema_version:"1.3",blocks:[block("b1")]});
+  if(method==="GET"&&part.endsWith("/evidence"))return options.missingEvidence?send({error:{code:"NOT_FOUND",message:"missing evidence"}},404):send(options.evidence|| (options.lateEvidence&&state.record.status==="PROCESSING"?{schema_version:"1.3",blocks:[]}:options.pdf?{schema_version:"document-2.0",pages:[{page_index:0,evidence:{blocks:[block("b1")]}},{page_index:1,evidence:{blocks:[block("p1")]}}]}:{schema_version:"1.3",blocks:[block("b1")]}));
   if(method==="POST"&&part.endsWith("/retry")){expect(request.postDataJSON().expected_version).toBe(state.record.version);state.record.status="UPLOADED";state.record.version++;state.record.processing_error=null;return send(state.record,202);}
   if(method==="PATCH"&&part.endsWith("/correction")){
    state.patches++;if(options.conflict)return send({error:{code:"CONFLICT",message:"stale"}},409);

@@ -6,8 +6,14 @@ import { escapeHtml } from "./common.js?v=20260930";
 import { icon } from "./ui.js?v=20260930";
 
 export function evidencePages(evidence) {
-  if (evidence?.schema_version === "document-2.0" && Array.isArray(evidence.pages))
-    return evidence.pages.map((entry) => entry.evidence?.blocks || []);
+  if (evidence?.schema_version === "document-2.0" && Array.isArray(evidence.pages)) {
+    const pages = [];
+    for (const entry of evidence.pages) {
+      if (Number.isInteger(entry.page_index) && entry.page_index >= 0)
+        pages[entry.page_index] = entry.evidence?.blocks || [];
+    }
+    return Array.from({length: pages.length}, (_, index) => pages[index] || []);
+  }
   return Array.isArray(evidence?.blocks) ? [evidence.blocks] : [];
 }
 function blockPage(pages, id) { return pages.findIndex((blocks) => blocks.some((block) => block.block_id === id)); }
@@ -21,9 +27,20 @@ function polygonPoints(block, rotation = 0) {
 export function createSourceViewer(host, receiptId, onBlock) {
   let blobUrl = null, type = null, pdf = null, pdfTask = null, sourceImage = null, page = 0, zoom = 1, rotation = 0, pages = [], highlighted = new Set();
   let renderVersion = 0, renderTask = null, destroyed = false, resizeTimer, previousWidth = 0, sourceError = "", evidenceError = "", loading;
+  let selectionVersion = 0;
   host.innerHTML = `<div class="viewer-toolbar"><button type="button" data-view="previous" aria-label="Trang trước">${icon("back")}</button><span data-view="page">Trang 1 / 1</span><button type="button" data-view="next" aria-label="Trang sau">${icon("chevron")}</button><button type="button" data-view="zoom-out" aria-label="Thu nhỏ">−</button><span data-view="zoom">100%</span><button type="button" data-view="zoom-in" aria-label="Phóng to">+</button><button type="button" data-view="rotate" aria-label="Xoay 90 độ" title="Xoay 90 độ">${icon("rotate")}</button><button type="button" data-view="fit">Vừa chiều rộng</button></div><div class="viewer-scroll"><div class="viewer-surface"></div></div><p class="viewer-note" role="status"></p>`;
   const surface = host.querySelector(".viewer-surface"), note = host.querySelector(".viewer-note"), scroll = host.querySelector(".viewer-scroll");
   const total = () => pdf?.numPages || Math.max(1, pages.length);
+  function revealHighlight() {
+    const active = surface.querySelector("polygon.is-active");
+    if (!active) return;
+    const region = active.getBoundingClientRect(), viewport = scroll.getBoundingClientRect();
+    scroll.scrollTo({
+      top: Math.max(0, scroll.scrollTop + region.top - viewport.top - (scroll.clientHeight - region.height) / 2),
+      left: Math.max(0, scroll.scrollLeft + region.left - viewport.left - (scroll.clientWidth - region.width) / 2),
+      behavior: "instant",
+    });
+  }
   function updateToolbar() {
     host.querySelector('[data-view="page"]').textContent = `Trang ${page + 1} / ${total()}`;
     host.querySelector('[data-view="zoom"]').textContent = `${Math.round(zoom * 100)}%`;
@@ -69,7 +86,7 @@ export function createSourceViewer(host, receiptId, onBlock) {
     if (version !== renderVersion || destroyed) return;
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 100 100"); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("class", "evidence-layer");
-    wrap.append(svg); drawBlocks();
+    wrap.append(svg); drawBlocks(); revealHighlight();
   }
   async function safeRender() { try { await render(); } catch (error) { if (!destroyed) note.textContent = errorText(error); } }
   function resize() { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (!destroyed) safeRender(); }, 100); }
@@ -119,10 +136,15 @@ export function createSourceViewer(host, receiptId, onBlock) {
       catch { evidenceError = "Không có evidence để đánh dấu."; drawBlocks(); }
     },
     async highlight(ids) {
+      const selection = ++selectionVersion;
+      await loading;
+      if (destroyed || selection !== selectionVersion) return;
       highlighted = new Set(ids || []);
       const found = [...highlighted].map((id) => blockPage(pages, id)).find((index) => index >= 0);
       if (found !== undefined && found !== page) { page = found; await safeRender(); }
       else drawBlocks();
+      if (selection !== selectionVersion || destroyed) return;
+      revealHighlight();
       if (highlighted.size && found === undefined && !sourceError) note.textContent = "Không có vị trí nguồn cho ô này.";
     },
     resize,

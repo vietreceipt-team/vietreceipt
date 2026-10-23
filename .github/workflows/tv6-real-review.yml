@@ -1,0 +1,112 @@
+name: TV6 real-provider browser review
+on:
+  pull_request:
+    paths: ['frontend/**', 'scripts/create_tv6_review_demo.py', '.github/workflows/tv6-real-review.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vietreceipt
+          POSTGRES_PASSWORD: synthetic_ci_only
+          POSTGRES_DB: tv6_review
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 15
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    env:
+      DATABASE_URL: postgresql+psycopg://vietreceipt:synthetic_ci_only@localhost:5432/tv6_review
+      CELERY_BROKER_URL: redis://localhost:6379/0
+      STORAGE_BACKEND: filesystem
+      STORAGE_FILESYSTEM_ROOT: /tmp/tv6-synthetic-sources
+      V2_DOCUMENT_READER_CALLABLE: ai.document_reader.backend:read_document
+      V2_KIE_CALLABLE: ai.kie.v2:extract_invoice
+      V2_READER_ISOLATION: subprocess
+      VIETRECEIPT_COMMIT: ${{ github.sha }}
+      OMP_NUM_THREADS: '1'
+      TOKENIZERS_PARALLELISM: 'false'
+      PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK: 'True'
+      PYTHONPATH: .:backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.paddlex
+            ~/.cache/huggingface
+          key: tv6-paddle-v1-${{ runner.os }}-${{ hashFiles('requirements-ocr-runtime.txt') }}
+      - name: Install canonical TV3/TV4 runtime
+        run: |
+          python -m pip install -r backend/requirements-ai.txt reportlab
+          python -m pip check
+          npm ci --prefix frontend
+          cd frontend && npx playwright install --with-deps chromium
+      - name: Generate synthetic sources and start isolated real stack
+        run: |
+          mkdir -p .data/tv6-services frontend/real-results
+          python -m scripts.create_tv6_review_demo --output .data/tv6-demo
+          python -m alembic -c backend/alembic.ini upgrade head
+          python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 18000 > .data/tv6-services/api.log 2>&1 &
+          python -m celery -A backend.app.v2.worker:celery_app worker --pool=solo --concurrency=1 --loglevel=info > .data/tv6-services/worker.log 2>&1 &
+          python -m celery -A backend.app.v2.worker:celery_app beat --schedule=/tmp/tv6-beat --loglevel=info > .data/tv6-services/beat.log 2>&1 &
+          python - <<'PY'
+          import time, urllib.request
+          for _ in range(60):
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:18000/api/v2/readiness')
+                  break
+              except OSError:
+                  time.sleep(1)
+          else:
+              raise RuntimeError('Isolated API did not become ready')
+          PY
+      - name: Browser review on original JPG, text PDF, scan PDF and uncertainty challenge
+        working-directory: frontend
+        run: npx playwright test --config playwright.real.config.js
+      - name: Parse downloaded JSON, CSV ZIP and XLSX
+        run: |
+          python - <<'PY'
+          import csv, io, json, zipfile
+          from pathlib import Path
+          from openpyxl import load_workbook
+          for name in ('jpg', 'text_pdf', 'scan_pdf', 'challenge'):
+              folder = Path('frontend/real-results') / name
+              payload = json.loads((folder / 'reviewed.json').read_text())
+              assert payload['header']['invoice_number'] == '00001234'
+              with zipfile.ZipFile(folder / 'reviewed.zip') as archive:
+                  assert archive.testzip() is None
+                  rows = list(csv.DictReader(io.StringIO(archive.read('invoice_headers.csv').decode('utf-8-sig'))))
+                  assert rows[0]['invoice_number'] == '00001234'
+              book = load_workbook(folder / 'reviewed.xlsx', read_only=True)
+              rows = list(book['Invoices'].values)
+              assert rows[1][rows[0].index('invoice_number')] == '00001234'
+              book.close()
+          PY
+      - name: Upload synthetic evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv6-real-provider-review
+          path: |
+            frontend/real-results/
+            .data/tv6-demo/
+            .data/tv6-services/
+          include-hidden-files: true
+          retention-days: 14

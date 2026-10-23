@@ -1,7 +1,8 @@
 import { invoiceApi, ApiError, HEADER_GROUPS, LINE_FIELDS, TAX_FIELDS, VALUE_LABELS, STATUS_LABELS, correctionValue, unresolvedCells, errorText } from "./api-v2.js?v=20260930";
 import { escapeHtml, formatDate, getReceiptIdFromLocation, renderNavigation } from "./common.js?v=20260930";
 import { icon, invoiceDate } from "./ui.js?v=20260930";
-import { createSourceViewer } from "./source-v2.js?v=20260930";
+import { createSourceViewer } from "./source-v2.js?v=20261023";
+import { createReviewSession } from "./review-session-v2.js?v=20261023";
 
 document.body.classList.add("app-v2", "is-review");
 renderNavigation();
@@ -9,6 +10,8 @@ const main = document.querySelector("#main-content"), receiptId = getReceiptIdFr
 let detail, viewer, timer, pollCount = 0, stale = false, saving = false, verifying = false, exporting = false;
 let tab = "info", activeEditor = null, selectedCell = null, inspectorId = null, history = null, historyError = "", historyLoading = false, retrying = false;
 const drafts = new Map(), saved = new Set(), errors = new Map();
+const reviewSession = createReviewSession();
+reviewSession.visibility(document.hidden);
 const key = (section, row, field) => `${section}|${row}|${field}`;
 const moneyFields = new Set(["subtotal", "tax_amount", "total_amount", "unit_price", "amount", "taxable_amount"]);
 const labelMap = Object.fromEntries([...HEADER_GROUPS.flatMap(([, fields]) => fields), ...LINE_FIELDS, ...TAX_FIELDS]);
@@ -29,6 +32,14 @@ const getCell = (id) => allCells().find(([section, row, field]) => key(section, 
 const sourceIds = (cell) => Array.isArray(cell?.source_block_ids) ? cell.source_block_ids : [];
 function draftValue(id, cell) { return drafts.get(id) || {text: cell.effective_value == null ? "" : String(cell.effective_value), status: cell.effective_status || "UNKNOWN"}; }
 function warning(cell) { return cell.effective_needs_review ? `<span class="cell-warning-dot" title="Cần kiểm tra" aria-label="Cần kiểm tra">${icon("warning")}</span>` : ""; }
+function reviewStatus(cell) {
+  const status = cell.effective_status || "UNKNOWN";
+  return `<small class="review-value-status value-${safe(status.toLowerCase())}">${safe(VALUE_LABELS[status])} · ${cell.reviewed ? "Đã đối chiếu" : "Dự đoán máy"}</small>`;
+}
+function mutationFailed(error) {
+  // Unknown delivery of a mutation must be reconciled before another write.
+  return !(error instanceof ApiError) || error.status === 0 || error.status === 409 || error.status >= 500;
+}
 function cellState(id) { return `<p class="cell-state ${errors.has(id) ? "v2-error" : ""}" role="status">${errors.has(id) ? safe(errors.get(id)) : drafts.has(id) ? (saving && activeEditor === id ? "Đang lưu…" : "Chưa lưu") : saved.has(id) ? "Đã lưu" : ""}</p>`; }
 function editorExtra(id, cell) {
   const draft = draftValue(id, cell);
@@ -42,13 +53,13 @@ function inputHtml(id, field, cell) {
 }
 function renderField(field) {
   const cell = detail.fields[field] || {}, id = key("header", "", field);
-  return `<div class="review-cell field-row ${cell.effective_needs_review ? "needs-review" : ""} ${selectedCell === id ? "source-selected" : ""}" data-cell="${id}" data-field="${field}"><label class="field-label">${safe(labelMap[field])} ${warning(cell)}</label><div class="field-control">${inputHtml(id, field, cell)}<span class="cell-icons"><button type="button" class="icon-button" data-evidence="${id}" aria-label="Xem vị trí nguồn: ${safe(labelMap[field])}" title="Xem vị trí nguồn" ${sourceIds(cell).length ? "" : "disabled"}>${icon("eye")}</button><button type="button" class="icon-button" data-inspect="${id}" aria-label="Chi tiết: ${safe(labelMap[field])}" title="Chi tiết dữ liệu">${icon("info")}</button></span></div>${editable() ? editorExtra(id, cell) : ""}${cellState(id)}</div>`;
+  return `<div class="review-cell field-row ${cell.effective_needs_review ? "needs-review" : ""} ${selectedCell === id ? "source-selected" : ""}" data-cell="${id}" data-field="${field}"><label class="field-label">${safe(labelMap[field])} ${warning(cell)}</label><div class="field-control">${inputHtml(id, field, cell)}<span class="cell-icons"><button type="button" class="icon-button" data-evidence="${id}" aria-label="Xem vị trí nguồn: ${safe(labelMap[field])}" title="Xem vị trí nguồn" ${sourceIds(cell).length ? "" : "disabled"}>${icon("eye")}</button><button type="button" class="icon-button" data-inspect="${id}" aria-label="Chi tiết: ${safe(labelMap[field])}" title="Chi tiết dữ liệu">${icon("info")}</button></span></div>${reviewStatus(cell)}${editable() ? editorExtra(id, cell) : ""}${cellState(id)}</div>`;
 }
 function renderTableCell(section, row, field, cell) {
   cell ||= {};
   const id = key(section, row, field), draft = drafts.get(id), editing = activeEditor === id && editable(), numeric = moneyFields.has(field) || field === "quantity";
   const text = draft ? draft.status === "PRESENT" ? display(draft.text, field) : VALUE_LABELS[draft.status] : display(cell.effective_value, field);
-  return `<div class="review-cell ${cell.effective_needs_review ? "needs-review" : ""} ${selectedCell === id ? "source-selected" : ""}" data-cell="${safe(id)}">${editing ? `<div class="table-cell-editor">${inputHtml(id, field, cell)}${editorExtra(id, cell)}</div>` : `<button type="button" class="table-cell-value ${numeric ? "number" : ""}" data-edit="${safe(id)}" aria-label="${editable() ? "Sửa" : "Chi tiết"} ${safe(labelMap[field])}: ${safe(text)}"><span>${safe(text)}</span>${warning(cell)}${draft ? '<span class="cell-draft-label">*</span>' : ""}</button>`}${cellState(id)}</div>`;
+  return `<div class="review-cell ${cell.effective_needs_review ? "needs-review" : ""} ${selectedCell === id ? "source-selected" : ""}" data-cell="${safe(id)}">${editing ? `<div class="table-cell-editor">${inputHtml(id, field, cell)}${editorExtra(id, cell)}</div>` : `<button type="button" class="table-cell-value ${numeric ? "number" : ""}" data-edit="${safe(id)}" aria-label="${editable() ? "Sửa" : "Chi tiết"} ${safe(labelMap[field])}: ${safe(text)}"><span>${safe(text)}</span>${warning(cell)}${draft ? '<span class="cell-draft-label">*</span>' : ""}</button>`}${reviewStatus(cell)}${cellState(id)}</div>`;
 }
 function renderTable(section) {
   const rows = section === "line" ? detail.line_items : detail.tax_breakdown, fields = section === "line" ? LINE_FIELDS : TAX_FIELDS;
@@ -59,7 +70,7 @@ function renderTotals() {
   const labels = {subtotal: "Tổng tiền hàng", tax_amount: "Tiền thuế", total_amount: "Tổng thanh toán"};
   return `<section class="review-group"><h2>Tiền và thuế</h2><div class="totals-grid">${Object.entries(labels).map(([field, label]) => {
     const cell = detail.fields[field] || {}, id = key("header", "", field), editing = activeEditor === id && editable(), draft = drafts.get(id);
-    return `<div class="review-cell amount-card ${field === "total_amount" ? "total" : ""} ${cell.effective_needs_review ? "needs-review" : ""}" data-cell="${id}"><div class="amount-top"><span class="field-label">${label} ${warning(cell)}</span><button type="button" class="icon-button" data-inspect="${id}" aria-label="Chi tiết: ${label}">${icon("info")}</button></div>${editing ? `${inputHtml(id, field, cell)}${editorExtra(id, cell)}` : `<button type="button" class="amount-value" data-edit="${id}" aria-label="${editable() ? "Sửa" : "Chi tiết"} ${label}">${safe(display(draft ? (draft.status === "PRESENT" ? draft.text : null) : cell.effective_value, field))}${draft ? " *" : ""}</button><small class="amount-currency">${safe(detail.fields.currency?.effective_value || "")}</small>`}${cellState(id)}</div>`;
+    return `<div class="review-cell amount-card ${field === "total_amount" ? "total" : ""} ${cell.effective_needs_review ? "needs-review" : ""}" data-cell="${id}"><div class="amount-top"><span class="field-label">${label} ${warning(cell)}</span><button type="button" class="icon-button" data-inspect="${id}" aria-label="Chi tiết: ${label}">${icon("info")}</button></div>${editing ? `${inputHtml(id, field, cell)}${editorExtra(id, cell)}` : `<button type="button" class="amount-value" data-edit="${id}" aria-label="${editable() ? "Sửa" : "Chi tiết"} ${label}">${safe(display(draft ? (draft.status === "PRESENT" ? draft.text : null) : cell.effective_value, field))}${draft ? " *" : ""}</button><small class="amount-currency">${safe(detail.fields.currency?.effective_value || "")}</small>`}${reviewStatus(cell)}${cellState(id)}</div>`;
   }).join("")}</div><div class="currency-row">${renderField("currency")}</div></section>`;
 }
 function renderInfo() {
@@ -139,12 +150,13 @@ async function applyRemaining() {
   dialog.close(); saving = true; render();
   try {
     for (const [section,row,field,cell] of pending) {
-      applyDetail(await invoiceApi.correction(receiptId,section,row,field,cell.effective_value ?? null,cell.effective_status,detail.version));
+      applyDetail(await reviewSession.waiting(() => invoiceApi.correction(receiptId,section,row,field,cell.effective_value ?? null,cell.effective_status,detail.version)));
+      reviewSession.saved(section, field, false);
     }
     history = null;
     main.querySelector("#action-message").textContent = "Đã lưu đối chiếu. Nhấn “Xác nhận hóa đơn” để hoàn tất và xuất dữ liệu.";
   } catch (error) {
-    if (error instanceof ApiError && error.status === 409) stale = true;
+    if (mutationFailed(error)) stale = true;
     main.querySelector("#action-message").textContent = `Đối chiếu chưa hoàn tất: ${errorText(error)}. Các mục đã lưu được giữ lại.`;
   } finally { saving = false; render(); }
 }
@@ -160,18 +172,39 @@ function renderContent() {
   renderInspector();
 }
 function renderShell() {
-  main.innerHTML = `<div class="review-workspace"><header class="review-header"><div class="review-heading"></div><div class="review-header-actions"></div></header><div id="stale-banner" class="v2-error-panel" hidden><strong>Dữ liệu đã thay đổi.</strong> Các thay đổi chưa lưu được giữ lại. Tải phiên bản mới và kiểm tra lại trước khi lưu. <button type="button" id="reload-detail" class="v2-button secondary small">Tải phiên bản mới</button></div><p id="top-message" class="workspace-message" role="status"></p><div class="review-layout"><section class="source-panel"><div class="source-panel-head"><h2>Tài liệu nguồn</h2><button type="button" class="icon-button" data-toggle-source aria-label="Ẩn tài liệu nguồn" title="Ẩn tài liệu nguồn">${icon("panel")}</button></div><div id="source-viewer"></div></section><section class="data-panel"><nav class="review-tabs" role="tablist" aria-label="Dữ liệu hóa đơn">${[["info", "Thông tin"], ["lines", "Dòng hàng"], ["tax", "Thuế"], ["history", "Lịch sử"]].map(([name, label]) => `<button type="button" class="review-tab" role="tab" id="tab-${name}" data-tab="${name}" aria-controls="detail-body">${label}</button>`).join("")}<button type="button" class="icon-button source-show" data-toggle-source hidden aria-label="Hiện tài liệu nguồn" title="Hiện tài liệu nguồn">${icon("panel")}</button></nav><div id="detail-body" role="tabpanel"></div><footer class="review-footer"><p id="review-help"></p><p id="action-message" role="status" aria-live="polite"></p></footer></section></div></div>`;
+  main.innerHTML = `<div class="review-workspace"><header class="review-header"><div class="review-heading"></div><div class="review-header-actions"></div></header><div id="stale-banner" class="v2-error-panel" hidden><strong>Dữ liệu đã thay đổi.</strong> Các thay đổi chưa lưu được giữ lại. Tải phiên bản mới và kiểm tra lại trước khi lưu. <button type="button" id="reload-detail" class="v2-button secondary small">Tải phiên bản mới</button></div><p id="top-message" class="workspace-message" role="status"></p><div class="review-layout"><section class="source-panel"><div class="source-panel-head"><h2>Tài liệu nguồn</h2><button type="button" class="icon-button" data-toggle-source aria-label="Ẩn tài liệu nguồn" title="Ẩn tài liệu nguồn">${icon("panel")}</button></div><div id="source-viewer"></div></section><section class="data-panel"><nav class="review-tabs" role="tablist" aria-label="Dữ liệu hóa đơn">${[["info", "Thông tin"], ["lines", "Dòng hàng"], ["tax", "Thuế"], ["history", "Lịch sử"]].map(([name, label]) => `<button type="button" class="review-tab" role="tab" id="tab-${name}" data-tab="${name}" aria-controls="detail-body">${label}</button>`).join("")}<button type="button" class="icon-button source-show" data-toggle-source hidden aria-label="Hiện tài liệu nguồn" title="Hiện tài liệu nguồn">${icon("panel")}</button></nav><div id="detail-body" role="tabpanel"></div><footer class="review-footer"><p id="review-help"></p><p id="action-message" role="status" aria-live="polite"></p><div id="pilot-controls"></div></footer></section></div></div>`;
   viewer = createSourceViewer(main.querySelector("#source-viewer"), receiptId, (blockId) => {
     const match = allCells().find(([, , , cell]) => sourceIds(cell).includes(blockId));
-    if (match) selectField(key(...match.slice(0, 3)));
+    if (match) { const id = key(...match.slice(0, 3)); selectField(id); revealSource(id); }
   });
   viewer.load().catch((error) => { main.querySelector("#top-message").textContent = errorText(error); });
 }
 function render() {
   if (!main.querySelector("#detail-body")) renderShell();
-  updateHeader(); renderContent();
+  updateHeader(); renderContent(); renderPilot();
   clearTimeout(timer);
   if (["UPLOADED", "PROCESSING"].includes(detail.status)) schedulePoll();
+}
+function renderPilot() {
+  const controls = main.querySelector("#pilot-controls");
+  if (!controls) return;
+  controls.innerHTML = reviewSession.enabled()
+    ? '<p>Đang đo thao tác tự nguyện trên hóa đơn giả. Số liệu chỉ ở bộ nhớ trang này.</p><button type="button" class="text-button" id="pilot-download">Tải số liệu phiên</button> · <button type="button" class="text-button" id="pilot-withdraw">Rút đồng ý và xóa số liệu</button>'
+    : editable() ? '<button type="button" class="text-button" id="pilot-open">Thử nghiệm thao tác tự nguyện</button>' : "";
+}
+function openPilot() {
+  if (!editable() || reviewSession.enabled()) return;
+  main.insertAdjacentHTML("beforeend", '<dialog id="pilot-consent" aria-labelledby="pilot-title" style="max-width:560px;padding:24px"><h2 id="pilot-title">Thử nghiệm thao tác tự nguyện</h2><p>Chỉ dùng hóa đơn giả. Khi bắt đầu, trang đếm số lần sửa/xác nhận theo loại trường và thời gian thao tác, loại trừ lúc tab ẩn và chờ lưu/tải lại/xác nhận. Không thu nội dung hóa đơn hay mã định danh. Không gửi số liệu lên máy chủ. Tải lại trang sẽ xóa số liệu.</p><p>Độ đúng cuối cần TV1 chấm riêng bằng đáp án giả; phiên này không tự tính accuracy.</p><label><input type="checkbox" id="pilot-synthetic"> Tôi đang dùng hóa đơn giả và tự nguyện đồng ý đo từ bây giờ.</label><div class="button-row"><button type="button" class="v2-button" id="pilot-start" disabled>Bắt đầu đo</button><button type="button" class="v2-button secondary" id="pilot-cancel">Hủy</button></div></dialog>');
+  const dialog = main.querySelector("#pilot-consent");
+  dialog.addEventListener("change", () => { dialog.querySelector("#pilot-start").disabled = !dialog.querySelector("#pilot-synthetic").checked; });
+  dialog.addEventListener("close", () => dialog.remove());
+  dialog.showModal();
+}
+function downloadPilot() {
+  const snapshot = reviewSession.snapshot(); if (!snapshot) return;
+  const url = URL.createObjectURL(new Blob([JSON.stringify(snapshot, null, 2)], {type: "application/json"}));
+  const link = document.createElement("a"); link.href = url; link.download = "tv6-pilot-session.json"; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function applyDetail(next) {
   const wasProcessing = ["UPLOADED", "PROCESSING", "FAILED"].includes(detail.status);
@@ -224,7 +257,7 @@ function activate(id) {
 }
 async function reload() {
   if (saving || verifying) return;
-  try { applyDetail(await invoiceApi.detail(receiptId)); stale = false; errors.clear(); saved.clear(); render(); main.querySelector("#top-message").textContent = drafts.size ? "Đã tải phiên bản mới. Các thay đổi chưa lưu vẫn được giữ; hãy đối chiếu trước khi lưu." : "Đã cập nhật hóa đơn."; }
+  try { applyDetail(await reviewSession.waiting(() => invoiceApi.detail(receiptId))); stale = false; errors.clear(); saved.clear(); render(); main.querySelector("#top-message").textContent = drafts.size ? "Đã tải phiên bản mới. Các thay đổi chưa lưu vẫn được giữ; hãy đối chiếu trước khi lưu." : "Đã cập nhật hóa đơn."; }
   catch (error) { main.querySelector("#top-message").textContent = errorText(error); }
 }
 async function save(id, confirm = false) {
@@ -236,24 +269,25 @@ async function save(id, confirm = false) {
   catch (error) { errors.set(id, errorText(error)); renderContent(); return; }
   drafts.set(id, draft); errors.delete(id); saving = true; render();
   try {
-    applyDetail(await invoiceApi.correction(receiptId, section, row, field, value, draft.status, detail.version));
+    applyDetail(await reviewSession.waiting(() => invoiceApi.correction(receiptId, section, row, field, value, draft.status, detail.version)));
+    reviewSession.saved(section, field, value !== cell.effective_value || draft.status !== cell.effective_status);
     drafts.delete(id); saved.add(id); activeEditor = null; history = null;
     main.querySelector("#action-message").textContent = `Đã ${confirm ? "xác nhận" : "lưu"} ${labelMap[field]}.`;
-  } catch (error) { errors.set(id, errorText(error)); if (error instanceof ApiError && error.status === 409) stale = true; }
+  } catch (error) { errors.set(id, errorText(error)); if (mutationFailed(error)) stale = true; }
   finally { saving = false; render(); }
 }
 async function retry() {
   if (retrying || stale) return;
   retrying = true; renderContent();
   try { applyDetail(await invoiceApi.retry(receiptId, detail.version)); pollCount = 0; }
-  catch (error) { if (error instanceof ApiError && error.status === 409) stale = true; main.querySelector("#top-message").textContent = errorText(error); }
+  catch (error) { if (mutationFailed(error)) stale = true; main.querySelector("#top-message").textContent = errorText(error); }
   finally { retrying = false; render(); }
 }
 async function verify() {
   if (disabled() || drafts.size || unresolvedCells(detail).length) return;
   verifying = true; updateHeader(); renderContent(); main.querySelector("#action-message").textContent = "Đang xác nhận hóa đơn…";
-  try { applyDetail(await invoiceApi.verify(receiptId, detail.version)); history = null; main.querySelector("#action-message").textContent = "Hóa đơn đã được xác nhận. Có thể xuất kết quả."; }
-  catch (error) { if (error instanceof ApiError && error.status === 409) stale = true; main.querySelector("#action-message").textContent = errorText(error); }
+  try { applyDetail(await reviewSession.waiting(() => invoiceApi.verify(receiptId, detail.version))); reviewSession.complete(); history = null; main.querySelector("#action-message").textContent = "Hóa đơn đã được xác nhận. Có thể xuất kết quả."; }
+  catch (error) { if (mutationFailed(error)) stale = true; main.querySelector("#action-message").textContent = errorText(error); }
   finally { verifying = false; render(); if (tab === "history") loadHistory(); }
 }
 async function download(format) {
@@ -264,7 +298,7 @@ async function download(format) {
     const result = await invoiceApi.export(receiptId, format), url = URL.createObjectURL(result.blob), link = document.createElement("a");
     link.href = url; link.download = result.filename; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
     message.textContent = `Đã tải ${result.filename}.`;
-  } catch (error) { if (error instanceof ApiError && error.status === 409) stale = true; message.textContent = `Không thể xuất tệp: ${errorText(error)}`; }
+  } catch (error) { if (mutationFailed(error)) stale = true; message.textContent = `Không thể xuất tệp: ${errorText(error)}`; }
   finally { exporting = false; updateHeader(); }
 }
 main.addEventListener("click", (event) => {
@@ -286,6 +320,11 @@ main.addEventListener("click", (event) => {
   else if (button.id === "retry-processing") retry();
   else if (["refresh-now", "reload-detail"].includes(button.id)) reload();
   else if (button.id === "reload-history") loadHistory();
+  else if (button.id === "pilot-open") openPilot();
+  else if (button.id === "pilot-cancel") main.querySelector("#pilot-consent")?.close();
+  else if (button.id === "pilot-start" && main.querySelector("#pilot-synthetic")?.checked) { reviewSession.start(); main.querySelector("#pilot-consent").close(); renderPilot(); }
+  else if (button.id === "pilot-withdraw") { reviewSession.withdraw(); renderPilot(); }
+  else if (button.id === "pilot-download") downloadPilot();
   else if (button.id === "show-unresolved") { const first = allCells().find(([, , , cell]) => cell.effective_needs_review); if (first) { const id = key(...first.slice(0, 3)); selectField(id); inspectorId = id; renderInspector(); revealSource(id); } }
 });
 main.addEventListener("input", (event) => {
@@ -327,7 +366,7 @@ main.addEventListener("keydown", (event) => {
 });
 window.addEventListener("pagehide", () => { clearTimeout(timer); viewer?.destroy(); }, {once: true});
 window.addEventListener("beforeunload", (event) => { if (drafts.size) { event.preventDefault(); event.returnValue = ""; } });
-document.addEventListener("visibilitychange", () => { if (document.hidden) clearTimeout(timer); else if (detail && ["UPLOADED", "PROCESSING"].includes(detail.status)) schedulePoll(); });
+document.addEventListener("visibilitychange", () => { reviewSession.visibility(document.hidden); if (document.hidden) clearTimeout(timer); else if (detail && ["UPLOADED", "PROCESSING"].includes(detail.status)) schedulePoll(); });
 if (!receiptId) main.innerHTML = '<div class="v2-container"><div class="v2-error-panel">Không tìm thấy mã hóa đơn. <a href="/receipts/">Về danh sách</a></div></div>';
 else {
   main.innerHTML = '<div class="v2-container"><p role="status">Đang tải hóa đơn…</p></div>';
