@@ -73,3 +73,7 @@ Backend tự động lên lịch xử lý sau khi upload thành công. `UPLOADED
 - API correction dùng canonical field name và một payload `APPLY`/`CLEAR`; correction và verify đều kiểm tra `expected_updated_at` để chống ghi đè thay đổi mới hơn.
 - Chỉ dữ liệu `VERIFIED` được export chính thức theo mặc định.
 - Mọi thay đổi contract phải cập nhật OpenAPI, JSON Schema, ví dụ và consumer test trong cùng Pull Request.
+
+## V2 reproducible experiments and demo
+
+See [V2 runner, machine/review separation and ARM64 runtime handling](../docs/v2-reproducible-demo.md).

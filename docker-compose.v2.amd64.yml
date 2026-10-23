@@ -1,0 +1,7 @@
+# Explicit compatibility worker for Apple Silicon/Linux ARM64 hosts.
+# docker compose -f docker-compose.v2.yml -f docker-compose.v2.amd64.yml up --build
+# Only the OCR worker is emulated; PostgreSQL/API/Redis stay host-native.
+services:
+  worker:
+    platform: linux/amd64
+    image: vietreceipt-v2-worker-amd64:local

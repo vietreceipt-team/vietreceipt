@@ -5,10 +5,12 @@ COPY backend/requirements.txt /app/backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
 FROM base AS runtime
+ARG VIETRECEIPT_COMMIT=unknown
+ENV VIETRECEIPT_COMMIT=$VIETRECEIPT_COMMIT
 COPY backend /app/backend
 COPY schemas /app/schemas
 COPY ai /app/ai
-COPY scripts/export_openapi_v2.py /app/scripts/export_openapi_v2.py
+COPY scripts /app/scripts
 EXPOSE 8000
 CMD ["python", "-m", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
@@ -21,6 +23,8 @@ COPY backend/requirements-ai.txt /app/backend/requirements-ai.txt
 RUN pip install --no-cache-dir -r backend/requirements-ai.txt && pip check
 
 FROM worker-deps AS worker
+ARG VIETRECEIPT_COMMIT=unknown
+ENV VIETRECEIPT_COMMIT=$VIETRECEIPT_COMMIT
 COPY --from=runtime /app /app
 ENV OMP_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false
 CMD ["python", "-m", "celery", "-A", "backend.app.v2.worker:celery_app", "worker", "--loglevel=info", "--concurrency=1"]

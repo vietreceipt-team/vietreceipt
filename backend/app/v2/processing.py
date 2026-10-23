@@ -6,6 +6,12 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from .contracts import cells, validate_evidence, validate_result
 from .errors import V2Error
+from .provenance import (
+    callable_identity,
+    model_artifacts,
+    processing_config,
+    runtime_identity,
+)
 from .models import Attempt, Cell, Invoice, MachineRun, Outbox, timestamp, uid
 
 log = logging.getLogger(__name__)
@@ -51,6 +57,17 @@ class Processor:
                     ocr_run_id=ocr,
                     kie_run_id=kie,
                     lease_until=time.time() + self.lease_seconds,
+                    provenance=dict(
+                        runtime=runtime_identity(),
+                        config=dict(
+                            processing_config(),
+                            callables={
+                                "reader": callable_identity(self.reader),
+                                "kie": callable_identity(self.kie),
+                            },
+                        ),
+                        timing_ms={},
+                    ),
                 )
             )
         return dict(attempt_id=aid, receipt_id=rid, ocr_run_id=ocr, kie_run_id=kie)
@@ -79,6 +96,8 @@ class Processor:
         if a is None:
             return False
         stage = "DOCUMENT_READING"
+        started = time.perf_counter()
+        timing = {}
         log.info(
             "Processing receipt_id=%s attempt_id=%s ocr_run_id=%s kie_run_id=%s",
             rid,
@@ -92,6 +111,9 @@ class Processor:
                 data, content_type=mime, receipt_id=rid, ocr_run_id=a["ocr_run_id"]
             )
             validate_evidence(evidence, rid, a["ocr_run_id"])
+            timing["document_reading"] = round(
+                (time.perf_counter() - started) * 1000, 3
+            )
             with self.service.sessions.begin() as s:
                 if not self.fence(
                     s, a, processing_stage="KIE", latest_ocr_run_id=a["ocr_run_id"]
@@ -108,8 +130,11 @@ class Processor:
                 )
                 s.get(Attempt, a["attempt_id"]).stage = "KIE"
             stage = "KIE"
+            kie_started = time.perf_counter()
             result = self.kie(evidence, kie_run_id=a["kie_run_id"])
             validate_result(result, evidence, rid, a["kie_run_id"], a["ocr_run_id"])
+            timing["kie"] = round((time.perf_counter() - kie_started) * 1000, 3)
+            model_hashes = model_artifacts()
             stage = "PERSISTING"
             with self.service.sessions.begin() as s:
                 if not self.fence(
@@ -150,6 +175,13 @@ class Processor:
                 attempt.active_receipt_id = None
                 attempt.finished_at = timestamp()
                 attempt.stage = "PERSISTING"
+                attempt.provenance = dict(
+                    attempt.provenance,
+                    model_artifacts_sha256=model_hashes,
+                    timing_ms=dict(
+                        timing, total=round((time.perf_counter() - started) * 1000, 3)
+                    ),
+                )
             return True
         except SQLAlchemyError:
             # Celery retries transient persistence failures; reaper handles exhausted/lost attempts.
@@ -173,6 +205,7 @@ class Processor:
                 message=error.message,
                 retryable=error.retryable,
             )
+            model_hashes = model_artifacts()
             with self.service.sessions.begin() as s:
                 if not self.fence(
                     s,
@@ -188,6 +221,13 @@ class Processor:
                 attempt.active_receipt_id = None
                 attempt.finished_at = timestamp()
                 attempt.error = metadata
+                attempt.provenance = dict(
+                    attempt.provenance,
+                    model_artifacts_sha256=model_hashes,
+                    timing_ms=dict(
+                        timing, total=round((time.perf_counter() - started) * 1000, 3)
+                    ),
+                )
             log.warning(
                 "Processing failed receipt_id=%s attempt_id=%s stage=%s code=%s",
                 rid,

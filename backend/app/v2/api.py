@@ -99,6 +99,61 @@ def evidence(receipt_id: UUID, svc=Depends(service)):
         return run.payload if run else None
 
 
+@router.get("/receipts/{receipt_id}/machine-results")
+def machine_results(receipt_id: UUID, svc=Depends(service)):
+    """Immutable OCR/KIE runs and actual attempt provenance; never effective values."""
+    from .models import Attempt, MachineRun
+    from sqlalchemy import select
+
+    rid = str(receipt_id)
+    with svc.sessions() as session:
+        svc.get(session, rid)
+        attempts = session.scalars(
+            select(Attempt)
+            .where(Attempt.receipt_id == rid)
+            .order_by(Attempt.created_at, Attempt.attempt_id)
+        )
+        runs = session.scalars(
+            select(MachineRun)
+            .where(MachineRun.receipt_id == rid)
+            .order_by(MachineRun.created_at, MachineRun.run_id)
+        )
+        return dict(
+            receipt_id=rid,
+            attempts=[
+                {
+                    key: getattr(attempt, key)
+                    for key in (
+                        "attempt_id",
+                        "ocr_run_id",
+                        "kie_run_id",
+                        "status",
+                        "stage",
+                        "created_at",
+                        "finished_at",
+                        "error",
+                        "provenance",
+                    )
+                }
+                for attempt in attempts
+            ],
+            runs=[
+                {
+                    key: getattr(run, key)
+                    for key in (
+                        "run_id",
+                        "attempt_id",
+                        "kind",
+                        "source_ocr_run_id",
+                        "payload",
+                        "created_at",
+                    )
+                }
+                for run in runs
+            ],
+        )
+
+
 @router.post(
     "/receipts/{receipt_id}/retry", status_code=202, response_model=InvoiceDetail
 )
