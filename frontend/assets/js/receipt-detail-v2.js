@@ -298,7 +298,7 @@ async function download(format) {
     const result = await invoiceApi.export(receiptId, format), url = URL.createObjectURL(result.blob), link = document.createElement("a");
     link.href = url; link.download = result.filename; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
     message.textContent = `Đã tải ${result.filename}.`;
-  } catch (error) { if (mutationFailed(error)) stale = true; message.textContent = `Không thể xuất tệp: ${errorText(error)}`; }
+  } catch (error) { if (error instanceof ApiError && error.status === 409) stale = true; message.textContent = `Không thể xuất tệp: ${errorText(error)}`; }
   finally { exporting = false; updateHeader(); }
 }
 main.addEventListener("click", (event) => {

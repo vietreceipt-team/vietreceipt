@@ -10,7 +10,8 @@ for (const status of ["NOT_PRESENT", "UNKNOWN", "AMBIGUOUS", "UNREADABLE"]) {
   const machine=structuredClone(state.record.fields.seller_name);
   await page.goto(`${ORIGIN}/receipts/${RID}/`);
   const card=page.locator('[data-cell="header||seller_name"]');
-  await expect(card.locator(".review-value-status")).toContainText("Dự đoán máy");
+  const label={NOT_PRESENT:"Không có trên hóa đơn",UNKNOWN:"Chưa xác định",AMBIGUOUS:"Mơ hồ",UNREADABLE:"Không đọc được"}[status];
+  await expect(card.locator(".review-value-status")).toHaveText(`${label} · Dự đoán máy`);
   await expect(card.locator("[data-input]")).toHaveValue("");
   await expect(page.locator("#verify")).toBeDisabled();expect(state.patches).toBe(0);
   await card.locator("[data-inspect]").click();await page.getByRole("button",{name:"Sửa giá trị",exact:true}).click();
@@ -79,6 +80,20 @@ test("mất response PATCH: khóa ghi tiếp, giữ draft, tải lại trước 
  await expect(cell.locator("[data-input]")).toBeDisabled();expect(attempts).toBe(1);
  await page.locator("#reload-detail").click();await expect(page.locator("#stale-banner")).toBeHidden();
  await expect(cell.locator("[data-input]")).toHaveValue("Đã tới server nhưng mất response");expect(attempts).toBe(1);
+});
+
+test("chọn nguồn khi evidence đang tải: lựa chọn mới nhất mở đúng trang 2",async({page})=>{
+ await provider(page,{pdf:true});let release;
+ const gate=new Promise(resolve=>{release=resolve;});
+ await page.route(/\/evidence$/,async route=>{
+  await gate;await route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({schema_version:"document-2.0",pages:[{page_index:0,evidence:{blocks:[block("b1")]}},{page_index:1,evidence:{blocks:[block("p1")]}}]})});
+ });
+ await page.goto(`${ORIGIN}/receipts/${RID}/`);
+ await page.locator('[data-cell="header||buyer_name"] [data-evidence]').click();
+ await page.locator('[data-cell="header||seller_name"] [data-evidence]').click();release();
+ await expect(page.locator('[data-view="page"]')).toHaveText("Trang 2 / 2");
+ await expect(page.locator('polygon[data-block="p1"].is-active')).toHaveCount(1);
+ await expect(page.locator('polygon[data-block="b1"].is-active')).toHaveCount(0);
 });
 const ORIGIN="http://127.0.0.1:3103", RID="00000000-0000-4000-8000-000000000051";
 const photo=readFileSync("assets/fixtures/R001.jpg"), pdf=readFileSync("tests/fixtures/two-page.pdf");
@@ -157,7 +172,7 @@ test("FAILED retry và 409 yêu cầu tải phiên bản mới",async({page})=>{
 });
 test("export lỗi không làm mất trang",async({page})=>{
  await provider(page,{status:"VERIFIED",exportError:true});await page.goto(`${ORIGIN}/receipts/${RID}/`);
- await page.locator(".export-menu summary").click();await page.getByRole("button",{name:"Tải Excel"}).click();await expect(page.locator("#action-message")).toContainText("Không thể xuất tệp");
+ await page.locator(".export-menu summary").click();await page.getByRole("button",{name:"Tải Excel"}).click();await expect(page.locator("#action-message")).toContainText("Không thể xuất tệp");await expect(page.locator("#stale-banner")).toBeHidden();
 });
 test("thiếu source/evidence vẫn cho xem và sửa dữ liệu",async({page})=>{
  await provider(page,{missingSource:true,missingEvidence:true});await page.goto(`${ORIGIN}/receipts/${RID}/`);

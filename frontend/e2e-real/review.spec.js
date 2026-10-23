@@ -49,7 +49,8 @@ for (const sample of manifest.samples) test(`${sample.condition}: real upload â†
     record.receipt_id = rid;
     await expect.poll(async () => (await get("")).status, {timeout: 840_000, intervals: [2000, 5000]}).toMatch(/NEEDS_REVIEW|FAILED/);
     let detail = await get(""); expect(detail.status).toBe("NEEDS_REVIEW");
-    await page.locator("#refresh-now").click().catch(() => {});
+    // Processing may already have removed its refresh button; reconcile with a GET.
+    await page.reload();
     await expect(page.locator('[data-cell="header||seller_name"]')).toBeVisible({timeout: 20_000});
     await expect(page.locator(".viewer-page canvas")).toBeVisible();
     const before = await get("/machine-results"); dump(join(folder, "machine-before.json"), before); dump(join(folder, "detail-before.json"), detail);

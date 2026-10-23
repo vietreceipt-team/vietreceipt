@@ -5,6 +5,7 @@ export default defineConfig({
   expect: {timeout: 15_000}, reporter: [["line"], ["json", {outputFile: "real-results/playwright.json"}]],
   outputDir: "real-results/browser", use: {
     baseURL: "http://127.0.0.1:3104", browserName: "chromium", headless: true,
+    actionTimeout: 15_000, navigationTimeout: 30_000,
     viewport: {width: 1500, height: 1000}, screenshot: "only-on-failure", video: "on", trace: "retain-on-failure",
   },
   webServer: {
