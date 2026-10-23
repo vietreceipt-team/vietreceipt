@@ -1,0 +1,18 @@
+{
+  "dataset_family": "vietreceipt_synthetic",
+  "dataset_snapshot": "v0.1-rendered",
+  "source_sample_count": 30,
+  "generated_manifest_rows": 270,
+  "missing_output_count": 0,
+  "duplicate_variant_id_count": 0,
+  "variants": [
+    "clean",
+    "blur",
+    "noise",
+    "skew"
+  ],
+  "layout_split": "Inherited from parent; all variants stay in parent's split",
+  "vector_pdf_text_extraction_verified": false,
+  "document_reader_outputs_included": false,
+  "note": "Synthetic development artifacts only; not the independent final test set."
+}
