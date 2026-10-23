@@ -43,6 +43,8 @@ def test_reader_native_failure_becomes_failed_attempt_and_can_retry(
     import backend.app.v2.reader_isolation as isolation
 
     monkeypatch.setenv("V2_READER_ISOLATION", "subprocess")
+    monkeypatch.delenv("V2_DOCUMENT_READER_CALLABLE", raising=False)
+    monkeypatch.delenv("V2_KIE_CALLABLE", raising=False)
 
     original_run = isolation.subprocess.run
 
