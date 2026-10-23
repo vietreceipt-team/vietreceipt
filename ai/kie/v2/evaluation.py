@@ -2,9 +2,11 @@
 
 import hashlib
 import json
+import math
 import subprocess
 from collections import Counter
 from datetime import date, datetime
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid5
 
@@ -15,7 +17,7 @@ from .config import CONFIGURATION, EXTRACTOR, HEADER_FIELDS, LINE_FIELDS, MONEY_
 from .evidence import flatten
 
 ROOT = Path(__file__).resolve().parents[3]
-VERSION = "invoice-evaluation-2.0.0"
+VERSION = "invoice-evaluation-2.0.1"
 TAXONOMY = (
     "NO_CANDIDATE",
     "WRONG_CANDIDATE",
@@ -237,6 +239,7 @@ def validate_gold(gold, evidence, manifest):
     for row in gold["line_items"]:
         if not any(row[f]["source_block_ids"] for f in LINE_FIELDS):
             raise ValueError("Gold row needs evidence for detection matching")
+    currency = gold["fields"]["currency"]["normalized_value"]
     named_cells = list(gold["fields"].items()) + [
         (f, r[f]) for r in gold["line_items"] for f in LINE_FIELDS
     ]
@@ -245,9 +248,22 @@ def validate_gold(gold, evidence, manifest):
             continue
         value = cell["normalized_value"]
         if field in MONEY_FIELDS:
+            # Match the machine contract: VND is integer-only, while an
+            # explicitly printed USD currency supports up to two decimals.
             valid = type(value) is int and value >= 0
+            if currency == "USD" and type(value) in (int, float):
+                scaled_value = Decimal(str(value)) * 100
+                valid = (
+                    math.isfinite(value)
+                    and value >= 0
+                    and scaled_value == scaled_value.to_integral_value()
+                )
         elif field == "quantity":
-            valid = type(value) in (int, float) and value >= 0
+            valid = (
+                type(value) in (int, float)
+                and math.isfinite(value)
+                and value >= 0
+            )
         else:
             valid = isinstance(value, str) and bool(value.strip())
         if field == "invoice_date" and valid:
@@ -322,10 +338,7 @@ def evaluate(manifest_path: Path):
             raise ValueError("Missing typed dataset/verification provenance")
         if (
             not isinstance(manifest["frozen_at"], str)
-            or datetime.fromisoformat(
-                manifest["frozen_at"].replace("Z", "+00:00")
-            ).tzinfo
-            is None
+            or datetime.fromisoformat(manifest["frozen_at"]).tzinfo is None
         ):
             raise ValueError("frozen_at needs a timezone")
         if (

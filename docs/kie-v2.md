@@ -181,6 +181,12 @@ TV2 manifest protocol (illustrative placeholders, not an eligible dataset):
 Gold validates `invoice-annotation.v2.schema.json` plus typed canonical values,
 all 13 fields, exact dataset/split identity and source linkage. Each gold row must
 have evidence IDs for matching. Records cannot escape the manifest directory.
+Money gold validation follows the canonical currency policy: VND values must be
+non-negative integers; explicitly labeled USD values may be non-negative JSON
+numbers with at most two decimal places. USD cents are checked using decimal
+string conversion to avoid binary floating-point rounding. The evaluator version
+is `invoice-evaluation-2.0.1`; earlier `2.0.0` runs incorrectly rejected valid
+USD cent values and must not be reused for USD manifests.
 The evaluator never assigns splits or creates oracle text. Optional
 `oracle_evidence` uses the same path/hash object and requires
 `oracle_qa_status: VERIFIED`; current paired diagnostics require the same receipt,
