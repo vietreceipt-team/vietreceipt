@@ -1,10 +1,12 @@
-# Evaluation Plan v3
+# Evaluation Plan v4
 
 ## Principle
 
 The final thesis/demo must be judged primarily by **end-to-end invoice correctness on frozen held-out data**.
 
 Module-level OCR/KIE scores are diagnostic. They are not a substitute for end-to-end performance.
+
+The canonical protocol and metric formulas are in [evaluation-matrix.md](evaluation-matrix.md). The study design is in [research-design.md](research-design.md); the optional human pilot is gated by [user-study-protocol.md](user-study-protocol.md). These are proposed rules until TV2, TV4 and TV5 record approval in the matrix.
 
 ## Evaluation layers
 
@@ -43,6 +45,8 @@ Report at least:
 
 A flat set/list of predicted values is not a successful line-item result unless values are linked into rows.
 
+For a method comparison, use the current row-producing geometry baseline versus one proposed row-producing variant on identical OCR evidence. A flat, ungrouped list has no valid row detection or complete-line score. Do not claim a row-grouping gain from comparing a scoreable structured result with an undefined flat-row denominator.
+
 ### 4. End-to-end invoice completion
 
 Report:
@@ -53,6 +57,8 @@ Report:
 - failure stage for documents that do not reach reviewable structured output.
 
 This is the primary headline evaluation layer.
+
+Use the explicit scope **13 supported headers + line items; tax groups excluded** until tax gold is added through a versioned annotation contract. Every in-scope file that fails before structured output stays in the eligible processing denominator and scores as a failed document. A document with UNKNOWN in a required source-gold cell remains in processing counts but is not scoreable for strict complete-invoice accuracy; report both counts.
 
 ### 5. Generalization
 
@@ -147,6 +153,8 @@ Every result table must name:
 - template seen/unseen status;
 - configuration;
 - git commit.
+- eligible input count, failed count, source-gold scoreable count and UNKNOWN annotation coverage;
+- whether metrics come from immutable machine output or a separate human-reviewed output.
 
 CORD/SROIE results are external benchmark results, not evidence of Vietnamese enterprise performance.
 
@@ -199,3 +207,10 @@ frozen TV2 gold. Exact eligibility checks, denominator definitions, oracle limit
 and manifest format are documented in [the V2 guide](kie-v2.md#evaluation-protocol).
 This is a module evaluator; full source-routing failures, latency, unseen-template
 experiments and actual upload-to-export acceptance remain part of the wider plan.
+
+### Current implementation gaps — do not report as final metrics
+
+- `scripts/evaluate_invoice_kie.py` evaluates KIE against OCR evidence, not original uploaded bytes. `scripts/evaluate_backend_v2.py` runs the source-file HTTP workflow and records machine snapshots/timing/failures, but does not score source-gold accuracy.
+- Annotation-v2 has no independent source-region gold or tax-group gold. OCR-aligned gold must not be presented as an end-to-end source benchmark.
+- The current evaluator accepts `UNKNOWN` labels but its metric aggregation treats every non-PRESENT gold status as a negative for presence and includes them in exact-match denominators. This differs from the protocol in [evaluation-matrix.md](evaluation-matrix.md). Until evaluator code and regression tests are updated, do not score manifests containing UNKNOWN labels or call their metrics final.
+- `complete_invoice_accuracy` currently covers all 13 header cells and row/table output only. It does not include tax groups. Keep that scope in every report.
