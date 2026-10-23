@@ -5,6 +5,7 @@ import csv
 import hashlib
 import io
 import json
+import math
 import mimetypes
 import platform
 import re
@@ -15,6 +16,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
+
+from scripts.backend_evaluation_reports import reports
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -164,7 +167,12 @@ def run(
     mode="real",
     client=None,
 ):
-    if timeout <= 0 or poll_interval < 0:
+    if (
+        not math.isfinite(timeout)
+        or not math.isfinite(poll_interval)
+        or timeout <= 0
+        or poll_interval < 0
+    ):
         raise ValueError("Timeout must be positive and polling interval nonnegative")
     manifest_path = manifest_path.resolve()
     manifest = load_manifest(manifest_path)
@@ -175,6 +183,8 @@ def run(
         raise ValueError(
             "Automated review requires an explicitly synthetic development/demo manifest"
         )
+    if review and manifest.get("purpose") == "development_workflow_capture_only":
+        raise ValueError("Pending-review handoffs allow machine capture only")
     output.mkdir(parents=True, exist_ok=False)
     dump(output / "manifest.json", manifest)
     commit = subprocess.run(
@@ -218,17 +228,22 @@ def run(
                 processing_wall_ms=None,
                 total_ms=None,
                 error=None,
+                processing_success=False,
             )
             started = time.perf_counter()
+            processing_started = None
+            stage, code = "INPUT", "INPUT_READ_FAILED"
             try:
                 data = (manifest_path.parent / sample["path"]).read_bytes()
                 row["input_sha256"] = digest(data)
                 if sample.get("sha256") and sample["sha256"] != row["input_sha256"]:
+                    code = "SOURCE_HASH_MISMATCH"
                     raise ValueError("Source checksum differs from manifest")
                 mime = (
                     sample.get("content_type")
                     or mimetypes.guess_type(sample["path"])[0]
                 )
+                stage, code = "UPLOAD", "UPLOAD_FAILED"
                 source = client.post(
                     "/api/v2/receipts",
                     files={"file": (Path(sample["path"]).name, data, mime)},
@@ -238,12 +253,18 @@ def run(
                 row["upload_ms"] = round((time.perf_counter() - started) * 1000, 3)
                 dump(folder / "upload.json", detail)
                 processing_started = time.perf_counter()
+                stage, code = "PROCESSING", "PROCESSING_FAILED"
                 deadline = time.monotonic() + timeout
                 while detail["status"] in ("UPLOADED", "PROCESSING"):
                     if time.monotonic() >= deadline:
+                        code = "PROCESSING_TIMEOUT"
                         raise TimeoutError("Processing exceeded experiment deadline")
                     time.sleep(poll_interval)
                     detail = checked(client.get(f"/api/v2/receipts/{rid}"))
+                stage = detail.get("processing_stage") or "PROCESSING"
+                code = (detail.get("processing_error") or {}).get(
+                    "code"
+                ) or "PROCESSING_FAILED"
                 row["processing_wall_ms"] = round(
                     (time.perf_counter() - processing_started) * 1000, 3
                 )
@@ -264,6 +285,7 @@ def run(
                         "Processing failed: "
                         + json.dumps(detail.get("processing_error"))
                     )
+                stage, code = "PROVENANCE", "INVALID_PROVENANCE"
                 successful = [
                     a
                     for a in snapshot["attempts"]
@@ -288,13 +310,16 @@ def run(
                     raise ValueError(
                         "Real evaluation requires the canonical TV3/TV4 providers; use --mode test for test doubles"
                     )
+                row["processing_success"] = True
                 if review:
+                    stage, code = "REVIEW_VERIFY", "REVIEW_VERIFY_FAILED"
                     review_folder = folder / "reviewed"
                     review_folder.mkdir()
                     reference = sample.get("review", {})
                     detail, changes = review_synthetic(client, rid, detail, reference)
                     dump(review_folder / "detail.json", detail)
                     dump(review_folder / "corrections.json", changes)
+                    stage, code = "EXPORT", "EXPORT_FAILED"
                     row["exports"] = verify_exports(
                         client, rid, review_folder, reference
                     )
@@ -302,6 +327,7 @@ def run(
                         client.get(f"/api/v2/receipts/{rid}/machine-results")
                     )
                     if snapshot != after:
+                        code = "MACHINE_SNAPSHOT_CHANGED"
                         raise ValueError("Machine artifacts changed after review")
                 row["status"] = "verified" if review else "needs_review"
             except (
@@ -313,8 +339,22 @@ def run(
                 TimeoutError,
                 zipfile.BadZipFile,
             ) as exc:
-                row["error"] = dict(type=type(exc).__name__, message=str(exc))
-                if row["receipt_id"]:
+                message = (
+                    "Real evaluation requires the canonical TV3/TV4 providers; use --mode test for test doubles"
+                    if code == "INVALID_PROVENANCE"
+                    else "Sample failed; see stage/code and authorized machine artifacts"
+                )
+                row["error"] = dict(
+                    type=type(exc).__name__, message=message, stage=stage, code=code
+                )
+                if processing_started is not None and row["processing_wall_ms"] is None:
+                    row["processing_wall_ms"] = round(
+                        (time.perf_counter() - processing_started) * 1000, 3
+                    )
+                if (
+                    row["receipt_id"]
+                    and not (folder / "machine" / "snapshot.json").exists()
+                ):
                     try:
                         dump(
                             folder / "machine" / "snapshot.json",
@@ -339,7 +379,11 @@ def run(
                         failed=sum(r["status"] == "failed" for r in rows),
                     ),
                 )
-                print(f"{row['id']}: {row['status']}", flush=True)
+                reports(output, manifest, rows)
+                print(
+                    f"sample {len(rows)}/{len(manifest['samples'])}: {row['status']}",
+                    flush=True,
+                )
     finally:
         if own_client:
             client.close()
