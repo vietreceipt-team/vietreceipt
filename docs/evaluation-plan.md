@@ -34,6 +34,7 @@ Do not hide weak fields behind one aggregate.
 
 Report at least:
 
+- line detection precision and F1, alongside counts of matched/predicted/gold rows;
 - line detection recall;
 - extra-row rate;
 - matched-line cell correctness;
@@ -199,3 +200,17 @@ frozen TV2 gold. Exact eligibility checks, denominator definitions, oracle limit
 and manifest format are documented in [the V2 guide](kie-v2.md#evaluation-protocol).
 This is a module evaluator; full source-routing failures, latency, unseen-template
 experiments and actual upload-to-export acceptance remain part of the wider plan.
+
+The issue #49 [proposed grouping protocol](kie-v2-grouping-experiment.md) adds
+precision M/P, recall M/G and F1 2M/(P+G), explicit zero-denominator semantics,
+paired development A/B and per-record failure coverage. TV1/TV2 confirmation is
+pending. Current `complete_invoice_accuracy` covers the 13 headers and line items,
+not `tax_breakdown`; document failures withhold module scores rather than disappear
+from a reported successful subset. Source-level end-to-end failure scoring is a
+separate protocol decision and must retain the original source-document denominator.
+
+Evaluator 2.2.0 implements the proposed TV1 PR #64 UNKNOWN masks and known-gold
+strict denominators. Source-spatial metric kernels and failure retention are
+tested separately from the aligned module gate. TV2 PR #66 candidate intake,
+actual Reader replay, exact experiment schema and remaining sign-offs are in
+[TV4 intake](kie49-tv2-intake.md); neither replay nor software tests grant QA.

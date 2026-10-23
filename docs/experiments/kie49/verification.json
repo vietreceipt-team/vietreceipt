@@ -1,0 +1,112 @@
+{
+  "date": "2026-10-23",
+  "scope": "Local software verification only; no TV2 benchmark acceptance",
+  "base_commit": "07b2945ab191eb2db7658082f06e8550ac0f11b4",
+  "branch": "codex/49-kie-grouping-evaluation",
+  "git_dirty": true,
+  "implementation_sha256": "78f2604a2c549ca93405d34fadef4533b95ad55c0393950e7934163ea919fd12",
+  "evaluator_version": "invoice-evaluation-2.1.0",
+  "matching_version": "source-overlap-cardinality-1.0",
+  "python": "3.12.15",
+  "packages": {
+    "lazy-object-proxy": "1.13.0",
+    "fqdn": "1.6.0",
+    "typing-inspection": "0.4.4",
+    "typing_extensions": "4.16.0",
+    "python-dateutil": "3.0.0",
+    "webcolors": "25.10.0",
+    "annotated-types": "0.8.0",
+    "uri-template": "1.3.0",
+    "pypdfium2": "5.12.1",
+    "reportlab": "4.4.10",
+    "lark": "1.3.1",
+    "pydantic-settings": "2.16.1",
+    "jsonschema-specifications": "2025.9.1",
+    "rfc3339-validator": "0.1.4",
+    "numpy": "1.26.4",
+    "openapi-schema-validator": "0.9.0",
+    "pathable": "0.6.0",
+    "jsonpointer": "3.4",
+    "idna": "3.20",
+    "PyYAML": "6.0.2",
+    "attrs": "26.1.0",
+    "six": "1.17.0",
+    "pillow": "10.4.0",
+    "python-dotenv": "1.2.4",
+    "tzdata": "2026.5",
+    "pydantic": "2.14.1",
+    "rfc3987-syntax": "1.1.0",
+    "openapi-spec-validator": "0.9.0",
+    "ruff": "0.15.6",
+    "charset-normalizer": "3.5.2",
+    "referencing": "0.37.0",
+    "pydantic_core": "2.50.1",
+    "rpds-py": "2026.9.1",
+    "jsonschema-path": "0.5.0",
+    "jsonschema": "4.26.0",
+    "arrow": "1.4.0",
+    "isoduration": "20.11.0",
+    "rfc3986-validator": "0.1.1"
+  },
+  "checks": [
+    {
+      "command": "python -m unittest tests.test_kie_baseline tests.test_kie_evaluation tests.test_kie_artifacts tests.test_kie_v2 tests.test_kie_v2_evaluation tests.test_kie_v2_grouping tests.test_kie_v2_reader -v",
+      "status": "PASS",
+      "tests": 120
+    },
+    {
+      "command": "python -m unittest tests.test_kie_v2_evaluation -v",
+      "status": "PASS",
+      "tests": 27,
+      "note": "Targeted rerun after final A/B API guard and per-row report fields"
+    },
+    {
+      "command": "python tests/contracts/run_contract_tests.py",
+      "status": "PASS",
+      "positive_schema_cases": 9,
+      "negative_schema_cases": 23
+    },
+    {
+      "command": "python scripts/evaluate_invoice_kie.py --output results/kie49/waiting-baseline",
+      "status": "EXPECTED_EXIT_2",
+      "metrics": null
+    },
+    {
+      "command": "python scripts/evaluate_invoice_kie.py --compare --output results/kie49/waiting-ab",
+      "status": "EXPECTED_EXIT_2",
+      "metrics": null
+    },
+    {
+      "command": "python scripts/evaluate_kie.py --report results/kie49/verification/v1-waiting.json",
+      "status": "EXPECTED_EXIT_2",
+      "metrics": null
+    },
+    {
+      "command": "ruff check changed Python files and ai/kie/v2; ruff format --check changed Python files",
+      "status": "PASS"
+    },
+    {
+      "command": "uv pip check --python /tmp/vietreceipt-kie49-venv/bin/python",
+      "status": "PASS",
+      "packages_checked": 38
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    }
+  ],
+  "log_sha256": {
+    "suite": "b681fde799d78df0baa95f7fead8e49a4d84d31b16f397c320aba1300e2bfebc",
+    "evaluator_final": "f01dfe981b62da4338b1e25f90a1e5a91a0328f2775a3a6d69938ce93745b160",
+    "contracts": "090533230768621230627f12a8ae59c08c31da921f1c34ff421f78c7c85383fc"
+  },
+  "logs_directory": "results/kie49/verification",
+  "baseline_snapshot_cases": 12,
+  "baseline_snapshot_result": "All full result SHA256 unchanged from pre-edit baseline",
+  "real_reader_smoke": "PDFium 5.12.1 on generated PDF, 1 document, 2 rows; independent test-only expected values",
+  "real_image_scan_ocr": "NOT_RUN: paddleocr runtime/models and QA-aligned TV2 corpus unavailable",
+  "dataset_acceptance": "WAITING_FOR_VERIFIED_V2_GOLD",
+  "benchmark_metrics": null,
+  "protocol_approval": "PENDING_TV1_TV2",
+  "remote_mutations": []
+}

@@ -1,0 +1,29 @@
+{
+  "commit": "07b2945ab191eb2db7658082f06e8550ac0f11b4",
+  "git_status": "",
+  "configuration": {
+    "name": "invoice-baseline",
+    "version": "2.1.0"
+  },
+  "extractor": {
+    "name": "deterministic-invoice-kie",
+    "version": "2.0.4"
+  },
+  "implementation_sha256": "aea26af6e8c791d887e21498ab10a365b8c057515ca3b18606c96c14220c39c8",
+  "python": "3.12.15",
+  "packages": {
+    "jsonschema": "4.26.0",
+    "openapi-spec-validator": "0.9.0",
+    "PyYAML": "6.0.2"
+  },
+  "scope": "Baseline before runtime edits; direct contract dependencies. Full local log: results/kie49/baseline/",
+  "unit_tests": {
+    "count": 96,
+    "status": "PASS"
+  },
+  "contracts": {
+    "status": "PASS",
+    "positive_cases": 9,
+    "negative_cases": 23
+  }
+}
