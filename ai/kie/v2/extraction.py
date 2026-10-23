@@ -267,13 +267,17 @@ def table_header(row, patterns):
     return columns
 
 
-def table_regions(blocks):
+def table_regions(
+    blocks, *, line_labels=None, line_stop_pattern=None, preserve_numeric_rows=False
+):
     """Detect tables by semantic headers; carry columns only within a page."""
     regions = []
     current = None
     excluded = set()
     for row in visual_rows(blocks):
-        line_columns = table_header(row, LINE_LABELS)
+        line_columns = table_header(
+            row, LINE_LABELS if line_labels is None else line_labels
+        )
         tax_columns = table_header(row, TAX_LABELS)
         if "description" in line_columns and len(line_columns) >= 2:
             current = ("line", line_columns, [])
@@ -287,6 +291,22 @@ def table_regions(blocks):
             continue
         if current:
             _, columns, data = current
+            numeric_item = False
+            if preserve_numeric_rows and current[0] == "line":
+                cells = group_columns(row, columns)
+                numeric_item = (
+                    bool(cells.get("description"))
+                    and sum(
+                        len(cells.get(f, [])) == 1
+                        and bool(
+                            re.fullmatch(
+                                r"[0-9]+(?:[.,][0-9]+)*", cells[f][0].text.strip()
+                            )
+                        )
+                        for f in ("quantity", "unit_price", "amount")
+                    )
+                    >= 2
+                )
             if (
                 not data
                 and "description" in columns
@@ -297,13 +317,21 @@ def table_regions(blocks):
                 continue
             if (
                 row[0].page != next(iter(columns.values())).page
-                or any(label_match(b.text, LABELS) for b in row)
-                or any(
-                    re.match(
-                        r"^(?:tong sl\b|nguoi |ky ten|signature|ghi chu|notes?\b|chi dung de\b|cam on\b|thank you\b)",
-                        folded(b.text),
+                or (
+                    current[0] == "line"
+                    and line_stop_pattern is not None
+                    and any(re.match(line_stop_pattern, folded(b.text)) for b in row)
+                )
+                or (not numeric_item and any(label_match(b.text, LABELS) for b in row))
+                or (
+                    not numeric_item
+                    and any(
+                        re.match(
+                            r"^(?:tong sl\b|nguoi |ky ten|signature|ghi chu|notes?\b|chi dung de\b|cam on\b|thank you\b)",
+                            folded(b.text),
+                        )
+                        for b in row
                     )
-                    for b in row
                 )
             ):
                 current = None
@@ -341,14 +369,15 @@ def row_metadata(row):
     row["machine_needs_review"] = any(c["machine_needs_review"] for c in cells)
 
 
-def extract_tables(regions, currency):
+def extract_tables(regions, currency, *, line_grouper=None):
     lines, taxes = [], []
     for kind, columns, rows in regions:
         grouped = []
         continuations = set()
         previous_bottom = None
         for row in rows:
-            groups = group_columns(row, columns)
+            grouper = line_grouper if kind == "line" and line_grouper else group_columns
+            groups = grouper(row, columns)
             nonempty = {f for f, values in groups.items() if values}
             if (
                 kind == "line"

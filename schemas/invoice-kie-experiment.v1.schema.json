@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vietreceipt.local/schemas/invoice-kie-experiment.v1.schema.json",
+  "title": "Proposed grouping A/B declaration, not QA approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol",
+    "evaluator_version",
+    "configurations"
+  ],
+  "properties": {
+    "protocol": {
+      "const": "grouping-ab-1.0"
+    },
+    "evaluator_version": {
+      "const": "invoice-evaluation-2.2.0"
+    },
+    "configurations": {
+      "const": {
+        "geometry_grouping_v2": {
+          "name": "invoice-baseline",
+          "version": "2.1.0"
+        },
+        "column_interval_grouping_v2_1": {
+          "name": "invoice-column-intervals",
+          "version": "2.2.0"
+        }
+      }
+    }
+  }
+}
