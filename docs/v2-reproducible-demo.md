@@ -65,7 +65,7 @@ docker compose -p vietreceipt-v2-demo \
   -f docker-compose.v2.yml -f docker-compose.v2.amd64.yml up -d --build
 ```
 
-Use the checked-in acceptance report for the observed result of this overlay, rather than assuming that emulation succeeds on every host. Native macOS ARM64 Python 3.12 with the pinned real providers completed all three formats in the local acceptance run.
+The [acceptance run](v2-stability-acceptance.md) completed all three formats with this AMD64 worker on the tested ARM64 host. Native macOS ARM64 Python 3.12 with the pinned real providers also completed all three formats. Linux ARM64 inference remains unsupported by this pinned runtime; select the overlay explicitly for a Docker demo on this host.
 
 To run a native worker with containerized PostgreSQL/Redis, expose dedicated local database/broker ports, migrate an isolated database and set the **same** DATABASE_URL, CELERY_BROKER_URL, STORAGE_FILESYSTEM_ROOT and pinned Python environment for API, worker and beat:
 
