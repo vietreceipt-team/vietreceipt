@@ -8,12 +8,15 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import random
 import uuid
 from decimal import Decimal
 from pathlib import Path
 from xml.sax.saxutils import escape
+
+from jsonschema import Draft202012Validator
 
 SEED = 20261023
 LAYOUT_SPLITS = {"layout_a": "train", "layout_b": "validation", "layout_c": "test"}
@@ -150,6 +153,13 @@ def main():
     rng = random.Random(SEED)
     rows = []
     errors = []
+    schema_errors = []
+    seen_ids = set()
+    schema_path = Path("schemas/invoice-annotation.v2.schema.json")
+    if not schema_path.exists():
+        raise SystemExit(f"Schema not found: {schema_path}")
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
     for index in range(1, args.count + 1):
         layout = list(LAYOUT_SPLITS)[(index - 1) % len(LAYOUT_SPLITS)]
         values, items, labels, subtotal, tax, total = make_invoice(index, layout, rng)
@@ -157,8 +167,20 @@ def main():
         label_path = labels_dir / f"VRSYN-{index:03d}.json"
         svg_path.write_text(svg_document(f"VRSYN-{index:03d}", layout, values, items, subtotal, tax, total), encoding="utf-8")
         label_path.write_text(json.dumps(labels, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        sample_id = f"VRSYN-{index:03d}"
+        if sample_id in seen_ids:
+            errors.append(f"duplicate sample_id: {sample_id}")
+        seen_ids.add(sample_id)
+        if sum(Decimal(str(item["amount"]["raw_value"])) for item in items) != Decimal(subtotal):
+            errors.append(f"line-item subtotal mismatch: {sample_id}")
         if subtotal + tax != total:
-            errors.append(f"arithmetic mismatch: VRSYN-{index:03d}")
+            errors.append(f"total arithmetic mismatch: {sample_id}")
+        if tax != int((Decimal(subtotal) * Decimal("0.10")).quantize(Decimal("1"))):
+            errors.append(f"VAT arithmetic mismatch: {sample_id}")
+        for validation_error in validator.iter_errors(labels):
+            schema_errors.append({"sample_id": sample_id, "message": validation_error.message})
+        document_sha256 = hashlib.sha256(svg_path.read_bytes()).hexdigest()
+        ground_truth_sha256 = hashlib.sha256(label_path.read_bytes()).hexdigest()
         rows.append({
             "sample_id": f"VRSYN-{index:03d}",
             "dataset_family": "vietreceipt_synthetic",
@@ -172,16 +194,37 @@ def main():
             "synthetic": "true",
             "split": LAYOUT_SPLITS[layout],
             "mapping_version": "vietreceipt-canonical-v2",
+            "document_sha256": document_sha256,
+            "ground_truth_sha256": ground_truth_sha256,
         })
     with manifest_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
-    if errors:
-        raise SystemExit("\n".join(errors))
+    qa_report = {
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_snapshot": "v0.1",
+        "sample_count": len(rows),
+        "unique_sample_ids": len(seen_ids),
+        "duplicate_sample_ids": len(rows) - len(seen_ids),
+        "schema_error_count": len(schema_errors),
+        "schema_errors": schema_errors,
+        "arithmetic_error_count": len(errors),
+        "arithmetic_errors": errors,
+        "checksum_algorithm": "SHA-256",
+        "checksum_columns": ["document_sha256", "ground_truth_sha256"],
+        "split_by_layout": {layout: split for layout, split in LAYOUT_SPLITS.items()},
+    }
+    (root / "qa_report.json").write_text(json.dumps(qa_report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if errors or schema_errors:
+        raise SystemExit(f"QA failed: {len(errors)} arithmetic/dedup errors, {len(schema_errors)} schema errors; see {root / 'qa_report.json'}")
     print(f"Generated {len(rows)} synthetic invoices at {root}")
     print("Layout-disjoint split: layout_a=train, layout_b=validation, layout_c=test")
     print(f"Manifest: {manifest_path}")
+    print(f"QA report: {root / 'qa_report.json'}")
+    print("Schema validation: PASS")
+    print("Arithmetic and duplicate-ID checks: PASS")
+    print("SHA-256 checksums written for documents and labels.")
     print("Documents are SVG; convert/render to PNG or PDF for OCR tests as needed.")
 
 if __name__ == "__main__":
