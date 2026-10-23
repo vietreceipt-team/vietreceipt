@@ -5,11 +5,14 @@ import hashlib
 import json
 import tempfile
 import unittest
+from decimal import Decimal
 from pathlib import Path
+
+from jsonschema import ValidationError
 
 from ai.kie.v2 import extract_invoice
 from ai.kie.v2.config import CONFIGURATION, HEADER_FIELDS, LINE_FIELDS
-from ai.kie.v2.evaluation import evaluate, metrics, row_matches
+from ai.kie.v2.evaluation import evaluate, metrics, row_matches, validate_gold
 from tests.kie_v2_fixtures import KIE_RUN, RECEIPT, invoice
 
 
@@ -150,6 +153,92 @@ class EvaluationV2Tests(unittest.TestCase):
             self.prepare()
             with self.subTest(value=value):
                 self.assert_waiting(self.run_manifest())
+
+    def test_gold_money_accepts_currency_precision(self):
+        for currency, values in (
+            ("VND", (0, 123)),
+            ("USD", (0, 123, 123.0, 123.4, 123.45, 0.01)),
+        ):
+            for value in values:
+                gold = gold_fixture()
+                gold["fields"]["currency"]["normalized_value"] = currency
+                for field in ("subtotal", "tax_amount", "total_amount"):
+                    gold["fields"][field]["normalized_value"] = value
+                for field in ("unit_price", "amount"):
+                    gold["line_items"][0][field]["normalized_value"] = value
+                # Quantity has its own decimal policy, independent of money scale.
+                gold["line_items"][0]["quantity"]["normalized_value"] = 1.5
+                with self.subTest(currency=currency, value=value):
+                    validate_gold(gold, self.source, self.manifest)
+
+    def test_gold_money_rejects_excess_currency_precision(self):
+        for currency, value in (
+            ("VND", 123.0),
+            ("VND", 123.45),
+            ("VND", 0.01),
+            ("USD", 123.456),
+            ("USD", 0.001),
+            ("USD", 123.45000000000002),
+        ):
+            for field in ("subtotal", "tax_amount", "total_amount", "unit_price", "amount"):
+                gold = gold_fixture()
+                gold["fields"]["currency"]["normalized_value"] = currency
+                cells = gold["fields"] if field in HEADER_FIELDS else gold["line_items"][0]
+                cells[field]["normalized_value"] = value
+                with (
+                    self.subTest(currency=currency, field=field, value=value),
+                    self.assertRaises(ValueError),
+                ):
+                    validate_gold(gold, self.source, self.manifest)
+
+    def test_gold_money_rejects_invalid_numeric_values(self):
+        for currency in ("VND", "USD"):
+            for field in ("subtotal", "amount"):
+                for value in (
+                    True,
+                    False,
+                    "123.45",
+                    Decimal("123.45"),
+                    -1,
+                    -0.01,
+                    float("inf"),
+                    float("-inf"),
+                    float("nan"),
+                ):
+                    gold = gold_fixture()
+                    gold["fields"]["currency"]["normalized_value"] = currency
+                    cells = gold["fields"] if field in HEADER_FIELDS else gold["line_items"][0]
+                    cells[field]["normalized_value"] = value
+                    with (
+                        self.subTest(currency=currency, field=field, value=value),
+                        self.assertRaises((ValueError, ValidationError)),
+                    ):
+                        validate_gold(gold, self.source, self.manifest)
+
+    def test_usd_gold_evaluation_accepts_cents(self):
+        self.source = invoice(rows=[["Dịch vụ mẫu", "gói", "1", "123.45", "123.45"]])
+        for index, text in (
+            (9, "Đơn vị tiền tệ: USD"),
+            (20, "Cộng tiền hàng: 123.45"),
+            (21, "Tổng tiền thuế: 0"),
+            (22, "Tổng cộng: 123.45"),
+        ):
+            self.source["blocks"][index]["text"] = text
+        for field, value in (
+            ("currency", "USD"),
+            ("subtotal", 123.45),
+            ("tax_amount", 0),
+            ("total_amount", 123.45),
+        ):
+            self.gold["fields"][field]["normalized_value"] = value
+            self.gold["fields"][field]["raw_value"] = str(value)
+        for field, value in (("quantity", 1), ("unit_price", 123.45), ("amount", 123.45)):
+            self.gold["line_items"][0][field]["normalized_value"] = value
+            self.gold["line_items"][0][field]["raw_value"] = str(value)
+        self.prepare()
+        report = self.run_manifest()
+        self.assertEqual(report["status"], "COMPLETED", report)
+        self.assertEqual(report["metrics"]["complete_invoice_accuracy"], 1)
 
     def test_malformed_freeze_provenance(self):
         self.prepare()
