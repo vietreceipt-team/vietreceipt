@@ -67,6 +67,8 @@ Mỗi lượt giữ một thư mục riêng có nguồn/manifest/SHA-256, commit
 
 Giữ nguyên [gói 23/10](verification/tv6-20261023/README.md) làm mốc cũ. Lượt integration sau #69/#70 có thư mục và index mới, không thay ngày/commit của bằng chứng cũ. Video tự động chỉ là evidence kỹ thuật, không được điền vào worksheet user study.
 
+Bộ dùng cho buổi bảo vệ đã chọn tại [evidence 24/10](verification/tv6-20261024/README.md), gồm [video challenge](verification/tv6-20261024/challenge-demo.webm), các ảnh trước/sau/verified và nguồn/export trong ZIP. [Biên bản integration](tv6-integration-20261024.md) ghi cấu hình, mã nền và kết quả chạy lại.
+
 ## Khi có lỗi hoặc thay đổi dependency
 
 - Nếu pipeline thất bại, giữ result/failure/trace/log theo sample; không loại mẫu lỗi khỏi báo cáo hay chuyển sang fake provider để làm video.

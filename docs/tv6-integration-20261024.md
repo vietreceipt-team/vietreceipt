@@ -25,7 +25,27 @@ Không mở final/test hoặc dùng pending gold để chấm accuracy. Backend 
 - Challenge giữ machine PRESENT sai trước sửa, ảnh inspector sau sửa và video kết quả cuối. UNREADABLE/null phải giữ nguyên trong **cả JSON, CSV ZIP và XLSX**.
 - Workflow được nối trigger push main khi Backend/Reader/KIE/contracts/dependency thay đổi, có manual dispatch. Khi #68 chưa merge, cần cập nhật nhánh và chạy PR workflow như lượt này; chưa tuyên bố đã có lịch chạy trên main.
 
-Lượt CI mới sẽ ghi kết quả/commit/artifact sau khi chạy; không dùng 4/4 ngày 23/10 để suy ra integration mới đã đạt.
+## Kết quả đã chạy lại
+
+| Phép kiểm | Kết quả và bằng chứng |
+|---|---|
+| Typecheck/lint/build | Đạt trên mã nền mới |
+| Unit / browser provider | **58/58 + 30/30 đạt** tại máy và [CI Frontend](https://github.com/vietreceipt-team/vietreceipt/actions/runs/40098707115) |
+| Browser provider thật | **4/4 đạt**, [run 40098707182](https://github.com/vietreceipt-team/vietreceipt/actions/runs/40098707182) |
+| Worker nguồn mới #70 | 4/4 khớp SHA-256, MIME, số byte với nguồn upload |
+| Header/dòng/thuế, 409/reload, verify/export | Đạt; machine snapshots trước/sau không đổi |
+| UNREADABLE/null | Đạt trong JSON, CSV ZIP, XLSX; không đổi thành NOT_PRESENT/0/giá trị đoán |
+| Ảnh/video trước → sau → kết quả cuối | Đạt; bổ sung khung `06-final-values.png` sau verify hiển thị máy gốc, bản sửa và UNREADABLE cùng lúc |
+
+Đây là lượt chạy **mới sau #69/#70**, không dùng 4/4 ngày 23/10 để suy ra integration mới đã đạt. Lượt đầu trên baseline mới [40098126486](https://github.com/vietreceipt-team/vietreceipt/actions/runs/40098126486) cũng đạt 4/4; bản evidence bàn giao dùng nguyên một lượt hoàn chỉnh 40098707182 sau khi bổ sung khung hình cuối, không ghép mẫu từ nhiều lượt.
+
+PR head lúc quay: `dc2e1a9736c320b6b7b0d1b686acbf1ec52c24d1`; runner/worker checkout merge commit `ffc5f41a5859cd934bdd430811426f4552255cf5`, `git_dirty=false`, Python 3.12.15/Linux x86_64. Provider canonical TV3/TV4 được kiểm tra trực tiếp trong machine attempt. Không đổi baseline grouping để tạo demo và không mở test/final.
+
+[Bộ evidence 24/10](verification/tv6-20261024/README.md) gồm ZIP **79 file**, 4 video, ảnh ba định dạng, ảnh machine/sửa/verified riêng cho challenge, bản reviewed và ba export. [Index](verification/tv6-20261024/index.json) giữ source/run identities và hash từng file; [samples.csv](verification/tv6-20261024/samples.csv) ghi đủ 4 mẫu. [Artifact CI](https://github.com/vietreceipt-team/vietreceipt/actions/runs/40098707182/artifacts/12562140972) còn có service logs. Sau khi tải đã kiểm tra CRC, 79 hashes, source identity, machine snapshot và nội dung các export.
+
+ZIP SHA-256: `6c578b4bc0f5de368d3eb7be27c75f8a7260230aa8332da5f397cbc985a3b9ff`.
+
+Không phát hiện regression trong bốn ca đã chạy; kết luận chỉ áp dụng cho cấu hình và dữ liệu synthetic đã nêu. Mã giao diện sản phẩm không đổi so với bản đã review; phần follow-up là đồng bộ main, kiểm thử/CI và tài liệu/evidence. Các commit tài liệu sau lượt quay không được gán ngược cho runtime.
 
 ## Demo và user study
 
