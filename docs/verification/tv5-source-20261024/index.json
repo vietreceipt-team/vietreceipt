@@ -104,11 +104,11 @@
     "PR #69 original commits are integrated into #70 ancestry; production grouping remains baseline."
   ],
   "files_sha256": {
-    "failures.csv": "297202d29b40be0890df7d3d506775a9974905b61b072ed0e937a038bc03e4de",
+    "failures.csv": "8fb10d2eea5e1db524505abb3a055dc7ce75fb7183a4e4e45a23a83d7539fed0",
     "machine-source-evidence.zip": "79c94d26d36fb58a2cfc279043348c25e72548fdf160468fc40b905526c08ede",
     "pending-gate.json": "2b59bd777b3744dc104fe979643e25f8e0ad673133a2d6940ab942c8dd54024a",
     "run_metadata.json": "747cfaff2d2734906c042a968b1f0847a8d5249707ea0c2a3b6c174bb282a63d",
-    "samples.csv": "e492880ed1e29c915babaf8f7d6057f95d9400b169c37bca94a73851f0232ccd",
+    "samples.csv": "92fc30d5f177c8d60b450405d7335d87be844e0bc8c24e1846675bf17e3884cb",
     "tv2-overlay-intake.json": "d6272823dec6ea281f1f98a6c64c99f13259d8093807c90083f81510720a4936"
   }
 }
