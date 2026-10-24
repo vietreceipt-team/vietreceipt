@@ -1,8 +1,8 @@
 # TV4 protocol evidence for TV1/TV2 follow-up
 
-**Date:** 2026-10-24  
+**Date:** 2026-10-24
 **Scope:** development-only metric and matcher evidence; not dataset QA, benchmark
-accuracy, final-test authorization, or human sign-off.  
+accuracy, final-test authorization, or human sign-off.
 **Compared inputs:** TV1 PR #64 at `1b63cb88528ad431c88436d3c500c913f7fd23e5`
 and TV2 PR #66 at `89281198ebaf419e511b4c99321ca3355e94fcf1`.
 
