@@ -1,0 +1,326 @@
+{
+  "schema_version": "2.0",
+  "receipt_id": "8ccaa4a4-569c-5573-be57-bc3efd1e88c2",
+  "kie_run_id": "260f6b80-de58-4307-97a7-9b0f34b3f5d9",
+  "source_ocr_run_id": "89c6542e-5dca-455d-8b58-a05e8ad02e15",
+  "extractor": {
+    "name": "deterministic-invoice-kie",
+    "version": "2.0.4"
+  },
+  "configuration": {
+    "name": "invoice-baseline",
+    "version": "2.1.0"
+  },
+  "fields": {
+    "invoice_template_number": {
+      "raw_text": "Mau sö: 1",
+      "predicted_value": "1",
+      "normalized_value": "1",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000002"
+      ]
+    },
+    "invoice_symbol": {
+      "raw_text": "Ky hieu: C26T1A",
+      "predicted_value": "C26T1A",
+      "normalized_value": "C26T1A",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000004"
+      ]
+    },
+    "invoice_number": {
+      "raw_text": "só hóa don: 00000001",
+      "predicted_value": "00000001",
+      "normalized_value": "00000001",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000006"
+      ]
+    },
+    "invoice_date": {
+      "raw_text": "Ngay l@p: 2026-01-01",
+      "predicted_value": "l@p: 2026-01-01",
+      "normalized_value": null,
+      "normalization": null,
+      "value_status": "AMBIGUOUS",
+      "confidence": null,
+      "heuristic_score": 0.8,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": true,
+      "review_reasons": [
+        "AMBIGUOUS_FORMAT",
+        "NORMALIZATION_FAILED"
+      ],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000008"
+      ]
+    },
+    "seller_name": {
+      "raw_text": "Don vi bän hang: CU'A HANG MAU SAO VIET",
+      "predicted_value": "CU'A HANG MAU SAO VIET",
+      "normalized_value": "CU'A HANG MAU SAO VIET",
+      "normalization": {
+        "rule": "identity_string",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000001"
+      ]
+    },
+    "seller_tax_id": {
+      "raw_text": "MST nguoi ban: 0000000001",
+      "predicted_value": "0000000001",
+      "normalized_value": "0000000001",
+      "normalization": {
+        "rule": "tax_id_printed_separators",
+        "version": "invoice-normalization-2.0.0"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000003"
+      ]
+    },
+    "seller_address": {
+      "raw_text": null,
+      "predicted_value": null,
+      "normalized_value": null,
+      "normalization": null,
+      "value_status": "UNKNOWN",
+      "confidence": null,
+      "heuristic_score": 0.0,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": true,
+      "review_reasons": [
+        "NO_CANDIDATE"
+      ],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": []
+    },
+    "buyer_name": {
+      "raw_text": null,
+      "predicted_value": null,
+      "normalized_value": null,
+      "normalization": null,
+      "value_status": "UNKNOWN",
+      "confidence": null,
+      "heuristic_score": 0.0,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": true,
+      "review_reasons": [
+        "NO_CANDIDATE"
+      ],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": []
+    },
+    "buyer_tax_id": {
+      "raw_text": null,
+      "predicted_value": null,
+      "normalized_value": null,
+      "normalization": null,
+      "value_status": "UNKNOWN",
+      "confidence": null,
+      "heuristic_score": 0.0,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": true,
+      "review_reasons": [
+        "NO_CANDIDATE"
+      ],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": []
+    },
+    "subtotal": {
+      "raw_text": "Cöng tien hang: 884.000",
+      "predicted_value": "884.000",
+      "normalized_value": 884000,
+      "normalization": {
+        "rule": "vnd_grouped_integer",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000041"
+      ]
+    },
+    "tax_amount": {
+      "raw_text": "Tien thué GTGT: 0",
+      "predicted_value": "0",
+      "normalized_value": 0,
+      "normalization": {
+        "rule": "vnd_plain_integer",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000042"
+      ]
+    },
+    "total_amount": {
+      "raw_text": "Töng thanh toän: 884.000",
+      "predicted_value": "884.000",
+      "normalized_value": 884000,
+      "normalization": {
+        "rule": "vnd_grouped_integer",
+        "version": "normalization-v0.1"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000043"
+      ]
+    },
+    "currency": {
+      "raw_text": "Tien te: VND",
+      "predicted_value": "VND",
+      "normalized_value": "VND",
+      "normalization": {
+        "rule": "explicit_vnd_marker",
+        "version": "invoice-normalization-2.0.0"
+      },
+      "value_status": "PRESENT",
+      "confidence": null,
+      "heuristic_score": 0.95,
+      "score_version": "invoice-heuristic-2.0.0",
+      "machine_needs_review": false,
+      "review_reasons": [],
+      "review_policy_version": "invoice-review-2.0.0",
+      "source_block_ids": [
+        "p0_b000044"
+      ]
+    }
+  },
+  "line_items": [],
+  "tax_breakdown": [
+    {
+      "rate": {
+        "raw_text": "Thué suat GTGT: 0%",
+        "predicted_value": "0%",
+        "normalized_value": "0%",
+        "normalization": {
+          "rule": "printed_percent",
+          "version": "invoice-normalization-2.0.0"
+        },
+        "value_status": "PRESENT",
+        "confidence": null,
+        "heuristic_score": 0.95,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": false,
+        "review_reasons": [],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": [
+          "p0_b000040"
+        ]
+      },
+      "taxable_amount": {
+        "raw_text": null,
+        "predicted_value": null,
+        "normalized_value": null,
+        "normalization": null,
+        "value_status": "UNKNOWN",
+        "confidence": null,
+        "heuristic_score": 0.0,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": true,
+        "review_reasons": [
+          "NO_CANDIDATE"
+        ],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": []
+      },
+      "tax_amount": {
+        "raw_text": null,
+        "predicted_value": null,
+        "normalized_value": null,
+        "normalization": null,
+        "value_status": "UNKNOWN",
+        "confidence": null,
+        "heuristic_score": 0.0,
+        "score_version": "invoice-heuristic-2.0.0",
+        "machine_needs_review": true,
+        "review_reasons": [
+          "NO_CANDIDATE"
+        ],
+        "review_policy_version": "invoice-review-2.0.0",
+        "source_block_ids": []
+      }
+    }
+  ],
+  "consistency": {
+    "version": "invoice-consistency-2.0.0",
+    "tolerance_vnd": 1,
+    "checks": [
+      {
+        "name": "line_sum_subtotal",
+        "status": "SKIPPED",
+        "difference_vnd": null
+      },
+      {
+        "name": "subtotal_tax_total",
+        "status": "PASS",
+        "difference_vnd": 0
+      }
+    ]
+  }
+}

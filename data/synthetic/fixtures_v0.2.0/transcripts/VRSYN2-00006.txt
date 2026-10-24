@@ -1,0 +1,46 @@
+HÓA ĐƠN GIÁ TRỊ GIA TĂNG
+Mẫu số: 1
+Ký hiệu: C26T6A
+Số hóa đơn: 00000006
+Ngày lập: 2026-06-06
+Đơn vị bán hàng: CÔNG TY MẪU MINH AN
+MST người bán: 0000000006
+Địa chỉ người bán: 6 Đường Mẫu, Thành phố Hà Nội
+Người mua: KHÁCH HÀNG THỬ NGHIỆM
+MST người mua: 0000003006
+Tên hàng / dịch vụ
+ĐVT
+SL
+Đơn giá
+Thành tiền
+Giấy in A4
+Ram
+3
+65.000
+195.000
+Dịch vụ in tài liệu
+Lần
+5
+12.000
+60.000
+Giấy in A4
+Ram
+2
+65.000
+130.000
+Bìa hồ sơ
+Cái
+1
+7.000
+7.000
+Bìa hồ sơ
+Cái
+5
+7.000
+35.000
+Thuế suất GTGT: 5%
+Cộng tiền hàng: 427.000
+Tiền thuế GTGT: 21.350
+Tổng thanh toán: 448.350
+Tiền tệ: VND
+DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN

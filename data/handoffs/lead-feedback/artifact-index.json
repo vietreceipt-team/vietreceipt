@@ -1,0 +1,36 @@
+{
+  "artifacts": [
+    {
+      "path": "data/handoffs/tv4-dev-v1.zip",
+      "sha256": "6661c858c0564820a035ae0f62951647d19c74dd0c789aa4e56a072dfb4d9790",
+      "bytes": 13185327,
+      "availability": "TRACKED_IN_PR_66",
+      "qa_status": "PENDING_REVIEW"
+    },
+    {
+      "path": "data/handoffs/tv4-evaluation-intake-v2.zip",
+      "sha256": "fca8aa088b54da280dbca776b7d654c339c0d3717fb368b4a96ace2140cce223",
+      "bytes": 103027,
+      "availability": "TRACKED_IN_PR_66",
+      "qa_status": "PENDING_REVIEW"
+    },
+    {
+      "path": "output/datasets/public-quarantine-0.2.zip",
+      "sha256": "b8f9954bb226d4cd637f9c762020c7ad3b91e357fcf72c6dffe2f397d40f1be6",
+      "bytes": 52001783,
+      "availability": "LOCAL_ONLY_IGNORED",
+      "qa_status": "PENDING_REVIEW"
+    }
+  ],
+  "review_required": 80,
+  "independently_reviewed": 0,
+  "quarantined_records": 38,
+  "final_mock_available": false,
+  "final_eligible": false,
+  "source_gold": "v1 records/*/source-gold.json",
+  "candidate_aligned_gold": "v1 records/*/aligned-gold-candidate.json; NOT reviewed gold",
+  "evaluator_manifests": "v2 evaluator-{train,validation}-manifest.json; PENDING_REVIEW",
+  "reviewed_aligned_gold": null,
+  "reviewed_release": null,
+  "pull_or_fetch_performed": false
+}

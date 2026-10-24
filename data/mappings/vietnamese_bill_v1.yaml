@@ -1,0 +1,14 @@
+version: public-mapping-0.2
+family: vietnamese_bill
+status: native_train_subset_tested
+native_format: "master_data list; also accepts converted conversations with one gpt JSON answer"
+rules:
+  ten_dich_vu: line_items.description
+  don_vi_tinh: line_items.unit
+  so_luong: line_items.quantity
+  don_gia: line_items.unit_price
+  thanh_tien: line_items.amount
+numeric_locale: "quantity: decimal comma; VND money: integer with either dot or comma thousands groups; reject mixed/malformed groups"
+unsupported: [seller_tax_id, buyer_tax_id, invoice_symbol]
+metric_policy: "Keep native labels; no absent header is an extraction failure. Do not claim full-page OCR reference from sparse line labels."
+raw_policy: "Preserve native raw_value; strip explicit VND/VNĐ/đ suffix for numeric normalization; support decimal quantity with one/two dot digits; no rounding fractional monetary values."

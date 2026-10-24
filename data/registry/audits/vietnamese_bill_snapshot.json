@@ -1,0 +1,14 @@
+{
+  "repo": "minhduc168/dataset-origin-vlm-extract-bill",
+  "revision": "d24586e71318dec13c69f5f35f3d8bc04c5e561c",
+  "source": "https://huggingface.co/datasets/minhduc168/dataset-origin-vlm-extract-bill/tree/d24586e71318dec13c69f5f35f3d8bc04c5e561c",
+  "native_shard": "data/train-00000-of-00001.parquet",
+  "shard_sha256": "f97e62eaa9b9417cd0bfe2c27802a45b708166f22a7d35c88770c3e72e72a6a4",
+  "card_sha256": "faf2aff64060952d5de3ee40bb907b86c615cd619a1aabdfcad1d1c6a392d114",
+  "export_sha256": "fb4916e5a35f349c3bbcbcadf1c72204595810c936397a5da5df64c9f8ee2bd9",
+  "subset_size": 10,
+  "selection": "first N records of first native train shard",
+  "split": "train",
+  "final_eligible": false,
+  "scope": "development subset; not full dataset"
+}

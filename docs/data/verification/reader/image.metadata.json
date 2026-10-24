@@ -1,0 +1,29 @@
+{
+  "config": {
+    "dpi": 200,
+    "max_bytes": 31457280,
+    "max_pages": 30,
+    "max_pixels": 40000000,
+    "max_pdf_chars": 200000,
+    "min_pdf_chars": 20,
+    "orientation": "none",
+    "max_side": 0,
+    "contrast": 1.0,
+    "force_pdf_ocr": false
+  },
+  "pages": [
+    {
+      "orientation_clockwise": 0,
+      "orientation_model": null,
+      "orientation_score": null,
+      "engine": {
+        "name": "paddleocr",
+        "version": "3.0.3"
+      },
+      "width_px": 893,
+      "height_px": 1263,
+      "source": "IMAGE_OCR"
+    }
+  ],
+  "duration_ms": 15837
+}

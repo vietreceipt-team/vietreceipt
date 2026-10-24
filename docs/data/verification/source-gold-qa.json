@@ -1,0 +1,16 @@
+{
+  "status": "PASSED",
+  "sample_count": 510,
+  "base_sample_count": 30,
+  "layout_families": 6,
+  "errors": [],
+  "warnings": [
+    "Unlinked source gold: not eligible for evidence-linked KIE evaluation"
+  ],
+  "split_counts": {
+    "train": 255,
+    "validation": 85,
+    "test": 170
+  },
+  "verification_scope": "automated source-gold QA only"
+}

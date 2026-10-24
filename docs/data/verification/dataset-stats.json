@@ -1,0 +1,62 @@
+{
+  "file_count": 510,
+  "base_document_count": 30,
+  "dataset_family": {
+    "vietreceipt_synthetic": 510
+  },
+  "dataset_version": {
+    "0.2.0": 510
+  },
+  "split": {
+    "train": 255,
+    "validation": 85,
+    "test": 170
+  },
+  "layout_id": {
+    "corporate": 85,
+    "retail": 85,
+    "service": 85,
+    "table_heavy": 85,
+    "long_invoice": 85,
+    "minimal": 85
+  },
+  "source_type": {
+    "text_pdf": 30,
+    "image": 240,
+    "scanned_pdf": 240
+  },
+  "augmentation_type": {
+    "clean": 90,
+    "blur": 60,
+    "noise": 60,
+    "rotation": 60,
+    "perspective": 60,
+    "contrast": 60,
+    "scan_like": 60,
+    "photo_like": 60
+  },
+  "line_counts": {
+    "5": 8,
+    "2": 3,
+    "4": 5,
+    "12": 5,
+    "3": 6,
+    "1": 3
+  },
+  "header_present": {
+    "invoice_template_number": 30,
+    "invoice_symbol": 30,
+    "invoice_number": 30,
+    "invoice_date": 30,
+    "seller_name": 30,
+    "seller_tax_id": 30,
+    "seller_address": 30,
+    "buyer_name": 24,
+    "buyer_tax_id": 24,
+    "subtotal": 30,
+    "tax_amount": 30,
+    "total_amount": 30,
+    "currency": 30
+  },
+  "final_evaluation": false
+}

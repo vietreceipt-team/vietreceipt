@@ -1,0 +1,5 @@
+{
+  "scope": "small source fixtures, not frozen test",
+  "source_gold_verified": false,
+  "base_count": 6
+}

@@ -1,0 +1,33 @@
+{
+  "checked_tv4_revision": "1e7b407d1314110ce2d8411211f55f49f7eb0ffd",
+  "tv4_pr": 69,
+  "status": "PUBLISHED_CONTRACT_INTAKE_PREPARED_QA_PENDING",
+  "supports_output_cli": true,
+  "grouping_test_available": true,
+  "experiment": {
+    "protocol": "grouping-ab-1.0",
+    "evaluator_version": "invoice-evaluation-2.2.0",
+    "configurations": {
+      "geometry_grouping_v2": {
+        "name": "invoice-baseline",
+        "version": "2.1.0"
+      },
+      "column_interval_grouping_v2_1": {
+        "name": "invoice-column-intervals",
+        "version": "2.2.0"
+      }
+    }
+  },
+  "experiment_approval": "PENDING_TV1_TV4_SIGN_OFF",
+  "paired_replay": 80,
+  "qa_reviewed_records": 0,
+  "scored_train_exit": 2,
+  "scored_validation_exit": 2,
+  "gate_reason": "Missing typed dataset/verification provenance: verified_by intentionally blank pending actual review",
+  "tv2_tests_passed": 25,
+  "tv4_tests_passed": 49,
+  "source_runtime_note": "TV4 git archive snapshot: evaluator report git_commit/git_dirty may refer to enclosing TV2 checkout; pinned TV4 revision and implementation hashes identify runtime. Not a clean TV4 checkout claim.",
+  "runtime_changes": false,
+  "accuracy": null,
+  "delta": null
+}

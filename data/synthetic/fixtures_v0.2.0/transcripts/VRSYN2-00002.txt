@@ -1,0 +1,31 @@
+HÓA ĐƠN GIÁ TRỊ GIA TĂNG
+Mẫu số: 1
+Ký hiệu: C26T2A
+Số hóa đơn: 00000002
+Ngày lập: 2026-02-02
+Đơn vị bán hàng: CÔNG TY MẪU HOA SEN
+MST người bán: 0000000002
+Địa chỉ người bán: 2 Đường Mẫu, Thành phố Hà Nội
+Người mua: KHÁCH HÀNG THỬ NGHIỆM
+MST người mua: 0000003002
+Tên hàng / dịch vụ
+ĐVT
+SL
+Đơn giá
+Thành tiền
+Sổ tay văn phòng
+Quyển
+3
+18.000
+54.000
+Bìa hồ sơ
+Cái
+5
+7.000
+35.000
+Thuế suất GTGT: 5%
+Cộng tiền hàng: 89.000
+Tiền thuế GTGT: 4.450
+Tổng thanh toán: 93.450
+Tiền tệ: VND
+DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN

@@ -1,0 +1,65 @@
+{
+  "family": "vietnamese_bill",
+  "mapping_version": "public-mapping-0.2",
+  "snapshot": "d24586e71318dec13c69f5f35f3d8bc04c5e561c",
+  "source": "https://huggingface.co/datasets/minhduc168/dataset-origin-vlm-extract-bill",
+  "license_access": "MIT declared by publisher; original raw text and native annotation retained",
+  "input_sha256": "d0d5d3219754d3c5da666f052b2ac4feac7c04f13f3d024d496396b16c569c1d",
+  "usable_samples": 969,
+  "rejected": [
+    {
+      "line": 327,
+      "error": "Ambiguous/non-integer VND amount: 17,120.0"
+    },
+    {
+      "line": 340,
+      "error": "Ambiguous/non-integer VND amount: 47.759,93"
+    },
+    {
+      "line": 407,
+      "error": "Ambiguous/non-integer VND amount: 37.407,97"
+    },
+    {
+      "line": 481,
+      "error": "Ambiguous/non-integer VND amount: 400,000.0"
+    },
+    {
+      "line": 482,
+      "error": "Ambiguous/non-integer VND amount: 300,000.0"
+    },
+    {
+      "line": 707,
+      "error": "Ambiguous/non-integer VND amount: 85000."
+    },
+    {
+      "line": 759,
+      "error": "Ambiguous/non-integer VND amount: 1.885,72"
+    },
+    {
+      "line": 760,
+      "error": "Ambiguous/non-integer VND amount: 3.578,66"
+    },
+    {
+      "line": 796,
+      "error": "Ambiguous/non-integer VND amount: 194.40"
+    },
+    {
+      "line": 833,
+      "error": "Ambiguous/non-integer VND amount: 19.361,90"
+    },
+    {
+      "line": 841,
+      "error": "Ambiguous/non-integer VND amount: 129.675,00"
+    },
+    {
+      "line": 909,
+      "error": "Ambiguous/non-integer VND amount: 477.909,6"
+    },
+    {
+      "line": 941,
+      "error": "Ambiguous/non-integer VND amount: 237.132,79"
+    }
+  ],
+  "status": "NEEDS_REVIEW",
+  "metrics_eligible_fields_only": true
+}

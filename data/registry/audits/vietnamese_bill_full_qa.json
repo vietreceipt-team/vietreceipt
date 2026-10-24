@@ -1,0 +1,20 @@
+{
+  "status": "PASS_AUTOMATED_ONLY",
+  "samples": 969,
+  "errors": [],
+  "split_counts": {
+    "train": 969
+  },
+  "header_present_counts": {},
+  "line_present_counts": {
+    "description": 3349,
+    "unit_price": 2770,
+    "amount": 3334,
+    "unit": 2516,
+    "quantity": 3190
+  },
+  "native_ocr_geometry_samples": 0,
+  "independent_review": false,
+  "final_evaluation": false,
+  "mask_policy": "Only annotated supported cells; never score unavailable labels as extraction failures"
+}

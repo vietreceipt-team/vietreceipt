@@ -233,3 +233,9 @@ results/.DS_Store
 .DS_Store
 Thumbs.db
 *.code-workspace
+.dataset-deps/
+.dataset-tools/
+data/synthetic/v*/
+data/processed/
+results/tv2-local/
+output/datasets/

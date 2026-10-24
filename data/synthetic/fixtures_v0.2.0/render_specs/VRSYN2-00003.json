@@ -1,0 +1,306 @@
+{
+  "width": 595,
+  "height": 842,
+  "color": "#14532d",
+  "entries": [
+    {
+      "key": "title",
+      "text": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG",
+      "x": 44,
+      "y": 34,
+      "size": 16
+    },
+    {
+      "key": "fields.seller_name",
+      "text": "Đơn vị bán hàng: CÔNG TY MẪU MINH AN",
+      "x": 44,
+      "y": 68,
+      "size": 10
+    },
+    {
+      "key": "fields.seller_tax_id",
+      "text": "MST người bán: 0000000003",
+      "x": 44,
+      "y": 86,
+      "size": 10
+    },
+    {
+      "key": "fields.seller_address",
+      "text": "Địa chỉ người bán: 3 Đường Mẫu, Thành phố Hà Nội",
+      "x": 44,
+      "y": 104,
+      "size": 10
+    },
+    {
+      "key": "fields.buyer_name",
+      "text": "Người mua: KHÁCH HÀNG THỬ NGHIỆM",
+      "x": 44,
+      "y": 122,
+      "size": 10
+    },
+    {
+      "key": "fields.buyer_tax_id",
+      "text": "MST người mua: 0000003003",
+      "x": 44,
+      "y": 140,
+      "size": 10
+    },
+    {
+      "key": "fields.invoice_template_number",
+      "text": "Mẫu số: 1",
+      "x": 44,
+      "y": 158,
+      "size": 10
+    },
+    {
+      "key": "fields.invoice_symbol",
+      "text": "Ký hiệu: C26T3A",
+      "x": 44,
+      "y": 176,
+      "size": 10
+    },
+    {
+      "key": "fields.invoice_number",
+      "text": "Số hóa đơn: 00000003",
+      "x": 44,
+      "y": 194,
+      "size": 10
+    },
+    {
+      "key": "fields.invoice_date",
+      "text": "Ngày lập: 2026-03-03",
+      "x": 44,
+      "y": 212,
+      "size": 10
+    },
+    {
+      "key": "column.description",
+      "text": "Tên hàng / dịch vụ",
+      "x": 44,
+      "y": 252,
+      "size": 9
+    },
+    {
+      "key": "column.unit",
+      "text": "ĐVT",
+      "x": 277.22,
+      "y": 252,
+      "size": 9
+    },
+    {
+      "key": "column.quantity",
+      "text": "SL",
+      "x": 332.98999999999995,
+      "y": 252,
+      "size": 9
+    },
+    {
+      "key": "column.unit_price",
+      "text": "Đơn giá",
+      "x": 383.69,
+      "y": 252,
+      "size": 9
+    },
+    {
+      "key": "column.amount",
+      "text": "Thành tiền",
+      "x": 459.73999999999995,
+      "y": 252,
+      "size": 9
+    },
+    {
+      "key": "line_items.0.description",
+      "text": "Bìa hồ sơ",
+      "x": 44,
+      "y": 276,
+      "size": 9
+    },
+    {
+      "key": "line_items.0.unit",
+      "text": "Cái",
+      "x": 277.22,
+      "y": 276,
+      "size": 9
+    },
+    {
+      "key": "line_items.0.quantity",
+      "text": "1",
+      "x": 332.98999999999995,
+      "y": 276,
+      "size": 9
+    },
+    {
+      "key": "line_items.0.unit_price",
+      "text": "7.000",
+      "x": 383.69,
+      "y": 276,
+      "size": 9
+    },
+    {
+      "key": "line_items.0.amount",
+      "text": "7.000",
+      "x": 459.73999999999995,
+      "y": 276,
+      "size": 9
+    },
+    {
+      "key": "line_items.1.description",
+      "text": "Sổ tay văn phòng",
+      "x": 44,
+      "y": 300,
+      "size": 9
+    },
+    {
+      "key": "line_items.1.unit",
+      "text": "Quyển",
+      "x": 277.22,
+      "y": 300,
+      "size": 9
+    },
+    {
+      "key": "line_items.1.quantity",
+      "text": "3",
+      "x": 332.98999999999995,
+      "y": 300,
+      "size": 9
+    },
+    {
+      "key": "line_items.1.unit_price",
+      "text": "18.000",
+      "x": 383.69,
+      "y": 300,
+      "size": 9
+    },
+    {
+      "key": "line_items.1.amount",
+      "text": "54.000",
+      "x": 459.73999999999995,
+      "y": 300,
+      "size": 9
+    },
+    {
+      "key": "line_items.2.description",
+      "text": "Bìa hồ sơ",
+      "x": 44,
+      "y": 324,
+      "size": 9
+    },
+    {
+      "key": "line_items.2.unit",
+      "text": "Cái",
+      "x": 277.22,
+      "y": 324,
+      "size": 9
+    },
+    {
+      "key": "line_items.2.quantity",
+      "text": "6",
+      "x": 332.98999999999995,
+      "y": 324,
+      "size": 9
+    },
+    {
+      "key": "line_items.2.unit_price",
+      "text": "7.000",
+      "x": 383.69,
+      "y": 324,
+      "size": 9
+    },
+    {
+      "key": "line_items.2.amount",
+      "text": "42.000",
+      "x": 459.73999999999995,
+      "y": 324,
+      "size": 9
+    },
+    {
+      "key": "line_items.3.description",
+      "text": "Sổ tay văn phòng",
+      "x": 44,
+      "y": 348,
+      "size": 9
+    },
+    {
+      "key": "line_items.3.unit",
+      "text": "Quyển",
+      "x": 277.22,
+      "y": 348,
+      "size": 9
+    },
+    {
+      "key": "line_items.3.quantity",
+      "text": "4",
+      "x": 332.98999999999995,
+      "y": 348,
+      "size": 9
+    },
+    {
+      "key": "line_items.3.unit_price",
+      "text": "18.000",
+      "x": 383.69,
+      "y": 348,
+      "size": 9
+    },
+    {
+      "key": "line_items.3.amount",
+      "text": "72.000",
+      "x": 459.73999999999995,
+      "y": 348,
+      "size": 9
+    },
+    {
+      "key": "vat_rate",
+      "text": "Thuế suất GTGT: 8%",
+      "x": 44,
+      "y": 390,
+      "size": 10
+    },
+    {
+      "key": "fields.subtotal",
+      "text": "Cộng tiền hàng: 175.000",
+      "x": 44,
+      "y": 408,
+      "size": 10
+    },
+    {
+      "key": "fields.tax_amount",
+      "text": "Tiền thuế GTGT: 14.000",
+      "x": 44,
+      "y": 426,
+      "size": 10
+    },
+    {
+      "key": "fields.total_amount",
+      "text": "Tổng thanh toán: 189.000",
+      "x": 44,
+      "y": 444,
+      "size": 11
+    },
+    {
+      "key": "fields.currency",
+      "text": "Tiền tệ: VND",
+      "x": 44,
+      "y": 462,
+      "size": 10
+    },
+    {
+      "key": "disclaimer",
+      "text": "DỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN",
+      "x": 44,
+      "y": 505,
+      "size": 8
+    }
+  ],
+  "layout": "service",
+  "table_top": 238,
+  "table_bottom": 358,
+  "column_xs": [
+    44,
+    277.22,
+    332.98999999999995,
+    383.69,
+    459.73999999999995
+  ],
+  "summary_y": 408,
+  "margin": 44
+}

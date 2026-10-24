@@ -1,0 +1,49 @@
+{
+  "status": "WAITING_FOR_VERIFIED_V2_GOLD",
+  "metrics": null,
+  "modes": null,
+  "propagation_gap": null,
+  "variants": null,
+  "delta": null,
+  "evaluated": 0,
+  "reasons": [
+    "ValueError: Missing typed dataset/verification provenance"
+  ],
+  "failures": [],
+  "samples": [],
+  "coverage": {
+    "required": 60,
+    "manifest_records": 60,
+    "eligible": 0,
+    "processed": 0,
+    "evaluated": 0,
+    "fraction": 0.0
+  },
+  "evaluator_version": "invoice-evaluation-2.2.0",
+  "matching_version": "source-overlap-cardinality-1.0",
+  "protocol_status": "PROPOSED_PENDING_TV1_TV2_CONFIRMATION",
+  "extractor": {
+    "name": "deterministic-invoice-kie",
+    "version": "2.0.4"
+  },
+  "configuration": {
+    "name": "invoice-baseline",
+    "version": "2.1.0"
+  },
+  "comparison": true,
+  "grouping": "geometry_grouping_v2",
+  "manifest": "results\\tv2-local\\tv4-dev-v2\\evaluator-train-manifest.json",
+  "git_commit": "8a603300071d6dbfebd23e8f22a8c9cbac90ff48",
+  "git_dirty": true,
+  "implementation_sha256": "b7bfe8c4e4b815c92d99705b37b8f300e942e62169955b270b9f0a57d311932c",
+  "environment": {
+    "python": "3.12.10",
+    "jsonschema": "4.26.0"
+  },
+  "manifest_sha256": "5f186bc811e9603096db7b99626fdf8555d608307618060c2882284b3654c023",
+  "dataset_family": "vietreceipt_synthetic",
+  "dataset_snapshot": "0.2.0",
+  "split": "train",
+  "synthetic": true,
+  "template_regime": "template-disjoint-development"
+}

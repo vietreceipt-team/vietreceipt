@@ -1,0 +1,14 @@
+{
+  "status": "PASS_INTEGRITY_ONLY",
+  "errors": [],
+  "counts": {
+    "total_sources": 80,
+    "reader_success": 80,
+    "reader_failed": 0
+  },
+  "independent_base_documents": 20,
+  "qa_status": "PENDING_REVIEW",
+  "grants_verified": false,
+  "final_test_included": false,
+  "scope": "Artifact bytes, source preservation, real block IDs, counts and split leakage only"
+}

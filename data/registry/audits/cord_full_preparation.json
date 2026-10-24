@@ -1,0 +1,109 @@
+{
+  "family": "cord",
+  "mapping_version": "public-mapping-0.2",
+  "snapshot": "7f0115a4b758a71d6473b8d085751692da2fef98",
+  "source": "https://huggingface.co/datasets/naver-clova-ix/cord-v2",
+  "license_access": "CC-BY-4.0 NAVER CLOVA; first native train shard only",
+  "input_sha256": "9cb30457a9a087ee6dbe40c1e40e962b136c320e06392b5edfec39418a2c420b",
+  "usable_samples": 176,
+  "rejected": [
+    {
+      "line": 1,
+      "error": "Ambiguous numeric grouping: 40,000."
+    },
+    {
+      "line": 9,
+      "error": "Unsupported numeric value: Rp0.000"
+    },
+    {
+      "line": 10,
+      "error": "Unsupported numeric value: @20.000"
+    },
+    {
+      "line": 24,
+      "error": "Ambiguous numeric grouping: @21,000"
+    },
+    {
+      "line": 28,
+      "error": "Ambiguous numeric grouping: Rp30,000"
+    },
+    {
+      "line": 34,
+      "error": "Unsupported numeric value: @8000"
+    },
+    {
+      "line": 59,
+      "error": "Ambiguous numeric grouping: 8.500,00"
+    },
+    {
+      "line": 63,
+      "error": "Unsupported numeric value: 3.600.000"
+    },
+    {
+      "line": 74,
+      "error": "Ambiguous numeric grouping: 9.500,00"
+    },
+    {
+      "line": 89,
+      "error": "Unsupported numeric value: 210.00x"
+    },
+    {
+      "line": 97,
+      "error": "Unsupported numeric value: @22.000"
+    },
+    {
+      "line": 100,
+      "error": "Ambiguous numeric grouping: @22,000"
+    },
+    {
+      "line": 109,
+      "error": "Ambiguous numeric grouping: @30,000"
+    },
+    {
+      "line": 110,
+      "error": "Ambiguous numeric grouping: 8.500,00"
+    },
+    {
+      "line": 130,
+      "error": "Unsupported CORD quantity: *4 Pcs"
+    },
+    {
+      "line": 139,
+      "error": "Unsupported CORD quantity: 1.00."
+    },
+    {
+      "line": 142,
+      "error": "Unsupported CORD quantity: 1,000"
+    },
+    {
+      "line": 150,
+      "error": "Unsupported CORD quantity: 0,292X"
+    },
+    {
+      "line": 152,
+      "error": "Unsupported numeric value: Rp.22.000"
+    },
+    {
+      "line": 154,
+      "error": "Ambiguous numeric grouping: Rp57,000"
+    },
+    {
+      "line": 157,
+      "error": "Unsupported numeric value: @13000"
+    },
+    {
+      "line": 158,
+      "error": "Ambiguous numeric grouping: @25,000"
+    },
+    {
+      "line": 167,
+      "error": "Ambiguous numeric grouping: @20,000"
+    },
+    {
+      "line": 168,
+      "error": "Ambiguous numeric grouping: @9,000"
+    }
+  ],
+  "status": "NEEDS_REVIEW",
+  "metrics_eligible_fields_only": true
+}

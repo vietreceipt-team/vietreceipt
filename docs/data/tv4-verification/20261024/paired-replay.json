@@ -1,0 +1,3804 @@
+{
+  "status": "WAITING_FOR_VERIFIED_V2_GOLD",
+  "metrics": null,
+  "scope": "unscored_candidate_inspection; not accuracy or independent QA",
+  "source_revision": "8a603300071d6dbfebd23e8f22a8c9cbac90ff48",
+  "implementation_sha256": "b7bfe8c4e4b815c92d99705b37b8f300e942e62169955b270b9f0a57d311932c",
+  "git_commit": "8a603300071d6dbfebd23e8f22a8c9cbac90ff48",
+  "git_dirty": true,
+  "evaluator_version": "invoice-evaluation-2.2.0",
+  "configurations": {
+    "geometry_grouping_v2": {
+      "name": "invoice-baseline",
+      "version": "2.1.0"
+    },
+    "column_interval_grouping_v2_1": {
+      "name": "invoice-column-intervals",
+      "version": "2.2.0"
+    }
+  },
+  "required": 80,
+  "eligible_for_accuracy": 0,
+  "reader_success": 80,
+  "reader_failed": 0,
+  "kie_paired_success": 80,
+  "failures": [],
+  "records": [
+    {
+      "record_id": "VRSYN2-00001__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00001",
+      "template_id": "corporate",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00001__text_pdf/source.pdf",
+        "sha256": "b7ee8b50aacfec5765ec6708d92f351bb2d0f232f83123baaaa368dff38dd313"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00001__text_pdf/source-gold.json",
+        "sha256": "a9b1ce12c8488a5953a24c81ef72c9815ed5d8fa0a8c678c89ecc5c2cf8623b6"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00001__text_pdf/source-row-regions.json",
+        "sha256": "23b8c1c17cf55a1b14579ed3259e65d96acb5a1540a24285e59418b419ef4880"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00001__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "b28d5e955ca1b047f6b16e415440dfddb50209d1bf8be6eeee492cd7b1d4afaf",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00001__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "3b1e83cb9d9925d1644941304dde4e6d31f47a5b82120fa510fc0f1290f457a6",
+          "predicted_rows": 5,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00001__text_pdf/evidence.json",
+        "sha256": "aac7a3542b7416d892ff3cb7dc257d678136ed2a8b5e0ecf8356d3bd34d465d0"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00001__text_pdf/aligned-gold-candidate.json",
+        "sha256": "755f32584c4f9ca6caa9e1cac4f34aecfad78bc45e559a5e458297115ec65307"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00001__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00001",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00001__clean_png/source.png",
+        "sha256": "394930960c8858b1e4e8d82f94fee9d1065cb54dfcd10677fb3e79a34c0bc03c"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00001__clean_png/source-gold.json",
+        "sha256": "a9b1ce12c8488a5953a24c81ef72c9815ed5d8fa0a8c678c89ecc5c2cf8623b6"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00001__clean_png/source-row-regions.json",
+        "sha256": "23b8c1c17cf55a1b14579ed3259e65d96acb5a1540a24285e59418b419ef4880"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00001__clean_png\\geometry_grouping_v2.json",
+          "sha256": "cca0375916929f7ea8f9975e08385f82dcd9b87812cfceb3fb8093a67514a35d",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00001__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "d89aebcb538eef9f54cfedd1dc61619fd75a77a1467719cf0b61410fbeb3bb24",
+          "predicted_rows": 5,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00001__clean_png/evidence.json",
+        "sha256": "a99d53ec500b235cea06a881786b5fe295c052cd0b16842cb6c0e0d296c2f888"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00001__clean_png/aligned-gold-candidate.json",
+        "sha256": "57deb4af76355aee043fea3f7b4d8520afd001dc0ca5d9af111c4df42b808e1a"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00001__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00001",
+      "template_id": "corporate",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00001__clean_pdf/source.pdf",
+        "sha256": "6d7968fcb085565aa890371f90bef0afef2dfc64aee63177a942c73aceb580be"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00001__clean_pdf/source-gold.json",
+        "sha256": "a9b1ce12c8488a5953a24c81ef72c9815ed5d8fa0a8c678c89ecc5c2cf8623b6"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00001__clean_pdf/source-row-regions.json",
+        "sha256": "23b8c1c17cf55a1b14579ed3259e65d96acb5a1540a24285e59418b419ef4880"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00001__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "57393838dc6d6e0d8e317483ccc534b15d0de44280b427bd2382c7b4acb81262",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00001__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "f2f51ca9f671884470b6d27ea21b8b6105251f3a3b179e2ba021442586beda74",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00001__clean_pdf/evidence.json",
+        "sha256": "f9f3a2a693c8452b3361644807997d2a344061866c1ff21c57bd65405de2d8d0"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00001__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "34c81cea0942a45e451aa9a38d36beeb19fa0aac58584a7200ace7703d0fea58"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00001__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00001",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00001__blur_png/source.png",
+        "sha256": "263479a3859f8b26d15d04f7169265459abc41987f63ba21038b7db1fd1948fe"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00001__blur_png/source-gold.json",
+        "sha256": "a9b1ce12c8488a5953a24c81ef72c9815ed5d8fa0a8c678c89ecc5c2cf8623b6"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00001__blur_png/source-row-regions.json",
+        "sha256": "23b8c1c17cf55a1b14579ed3259e65d96acb5a1540a24285e59418b419ef4880"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00001__blur_png\\geometry_grouping_v2.json",
+          "sha256": "60c0b168d92d058edf75699669bb5319a50e7237ea4fdc172734f606b23c39d7",
+          "predicted_rows": 0,
+          "header_present": 5,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00001__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "9a174d96f80144a97bccc4ddab9f13554cf7b063e6a04118581c92aff2e6b5f3",
+          "predicted_rows": 5,
+          "header_present": 5,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00001__blur_png/evidence.json",
+        "sha256": "ee72fdad1641b96d0d6c5e2754895c8ae8b5d9118d3606a416e8015f13799640"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00001__blur_png/aligned-gold-candidate.json",
+        "sha256": "f1f38001c88b6b12e4a1d4118e3c6fa591f2a9b8bf89f1662fb679e290dee6bd"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00002__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00002",
+      "template_id": "retail",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00002__text_pdf/source.pdf",
+        "sha256": "02c9c329e46c8aa128e21339106fb9d3123fdfaba7dfb0b3dba9ee2e2db01c18"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00002__text_pdf/source-gold.json",
+        "sha256": "f5cf5a1542aa80ae609fb7e13fccbc15e9c71c634952bc35d356840b4fc38cc0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00002__text_pdf/source-row-regions.json",
+        "sha256": "5c93818fac457b8c8cdf807b00fdbfce3203d5794515272d218b1bf2e2e52809"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00002__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "0451c9fc75b4b72d64d6ff0e06f1852e48dccdd6ce917ec59083ba97b8a1bc37",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00002__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "3481ffb6dcd986acd2ef8377bf41ffcf555fbb86bb2c5bb098c0f6fc8835e502",
+          "predicted_rows": 2,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00002__text_pdf/evidence.json",
+        "sha256": "bf527145e55c8fdf355f826a0d2b60f49272689e25520dae4a9cf7507ac97991"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00002__text_pdf/aligned-gold-candidate.json",
+        "sha256": "a2f2c02047ab963e999c11026050c1a56bf2481e936ae024eeb6fc81c009f46c"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00002__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00002",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00002__clean_png/source.png",
+        "sha256": "920cda9415c9a9d49443785bc1005cc0a58cc3389ccd0246c9ac267edd8cd378"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00002__clean_png/source-gold.json",
+        "sha256": "f5cf5a1542aa80ae609fb7e13fccbc15e9c71c634952bc35d356840b4fc38cc0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00002__clean_png/source-row-regions.json",
+        "sha256": "5c93818fac457b8c8cdf807b00fdbfce3203d5794515272d218b1bf2e2e52809"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00002__clean_png\\geometry_grouping_v2.json",
+          "sha256": "48932c58ba92b09c4e3e68f267e829d981a6969afb3cdbd8d23e5e8a8c05c5ff",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00002__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "d6560519808be9b848fc3361bd564adad1be902f7ce62c71dbc9e7f178cf1109",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00002__clean_png/evidence.json",
+        "sha256": "58c2fe154c2a33d36d65608fd3061f319773a456a2e7b007d519a42c0b4e9aae"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00002__clean_png/aligned-gold-candidate.json",
+        "sha256": "2301c2b9f8cd2a52ce6c7159f6a6cf1c6687c6c8a7bd4173071ccd5036a70fe5"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00002__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00002",
+      "template_id": "retail",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00002__clean_pdf/source.pdf",
+        "sha256": "58143fd02f580788c7abbc4f18e83020d366f4b3a097bc9845a38daa6c98d8d7"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00002__clean_pdf/source-gold.json",
+        "sha256": "f5cf5a1542aa80ae609fb7e13fccbc15e9c71c634952bc35d356840b4fc38cc0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00002__clean_pdf/source-row-regions.json",
+        "sha256": "5c93818fac457b8c8cdf807b00fdbfce3203d5794515272d218b1bf2e2e52809"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00002__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "28c4621ee5706bd1a4bc2c316b90825ce0f5ef9c0e87cc171af26566cbb7fb4e",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00002__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "aa63efc6391a24fbaaaf5a346fa0d0af7b51db9e1468fa74b0be279e7986c062",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00002__clean_pdf/evidence.json",
+        "sha256": "9b66c5c024d32a4f5eaacc50f661ad9ad5ddd7e5afb62db0a2d6ad99bbbbb5f7"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00002__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "6e28cb9523df8c1f9bc74edb1685a8054aa8643b58cd2fb27028ef18a1bcc727"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00002__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00002",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00002__blur_png/source.png",
+        "sha256": "278fafccd7e539ab638856e52aa5e52451c0fbc484cab7f1f41060a6e862e9fe"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00002__blur_png/source-gold.json",
+        "sha256": "f5cf5a1542aa80ae609fb7e13fccbc15e9c71c634952bc35d356840b4fc38cc0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00002__blur_png/source-row-regions.json",
+        "sha256": "5c93818fac457b8c8cdf807b00fdbfce3203d5794515272d218b1bf2e2e52809"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00002__blur_png\\geometry_grouping_v2.json",
+          "sha256": "3df8287bcee34ce60b754e020bafe1fbe059e341a2ce9dbf8046d27a4482a9fa",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00002__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "891d1e9bcb413a7e8d3d3d14c5abc763d68e4cb7ee1651343a180e4e1516f66f",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00002__blur_png/evidence.json",
+        "sha256": "1e50f271ce5f86d5b1d4c3353966825900ee8b4e0f32de2ffe8188d906bd7dbc"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00002__blur_png/aligned-gold-candidate.json",
+        "sha256": "62def5a7e2385babe65349ad0c4567d886698e52056d0ff8b23939d26f783d7f"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00003__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00003",
+      "template_id": "service",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00003__text_pdf/source.pdf",
+        "sha256": "d1810252959d77b2cdcf791d4e482fd107209bdcf211fa0a869c6a86580ade80"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00003__text_pdf/source-gold.json",
+        "sha256": "4acc8f93d56deb072318fdc531d00cd6c55a960bae363d3fbba2ef5539d7c695"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00003__text_pdf/source-row-regions.json",
+        "sha256": "3e1e45c920dda21b444a952a92057e081c7d2e48bc9841e560ba5f5e006aa7f0"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00003__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "87870e08eeda8955a517bb340633df4198cd8cedc82d5bfacf27f7f84e511183",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00003__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "5891ec5b6ce43e7097b4e3b5cd5b81a4446b57f1a53babbbb1b94a1dc82d4e3f",
+          "predicted_rows": 4,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00003__text_pdf/evidence.json",
+        "sha256": "6d9761a767a8c2139f7ca00589e62cb7e398b3dbb03c109dd60a4af3f0dff58c"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00003__text_pdf/aligned-gold-candidate.json",
+        "sha256": "9d1612607e597009587db061303dd3bf1d90274a156601200012d1822ffc43d1"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00003__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00003",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00003__clean_png/source.png",
+        "sha256": "10fa4ca631151437327dfc9d690b2b3e2c35d19ffe98762c736abcfa4aa427e5"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00003__clean_png/source-gold.json",
+        "sha256": "4acc8f93d56deb072318fdc531d00cd6c55a960bae363d3fbba2ef5539d7c695"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00003__clean_png/source-row-regions.json",
+        "sha256": "3e1e45c920dda21b444a952a92057e081c7d2e48bc9841e560ba5f5e006aa7f0"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00003__clean_png\\geometry_grouping_v2.json",
+          "sha256": "60f9b07464297c97406213b976b0d4034698177cdad6f437057e3044595ba4aa",
+          "predicted_rows": 0,
+          "header_present": 5,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00003__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "df68ff65490818d1efc3284fe7c48567fbd1c3bfbc3d700f489cf85730004034",
+          "predicted_rows": 4,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00003__clean_png/evidence.json",
+        "sha256": "128aad4e86d94629d1e6c31802e63a51b93103bb1b1261d1e9366fc6c8513fc5"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00003__clean_png/aligned-gold-candidate.json",
+        "sha256": "ca3b6cb91ce1d9b2f6f8a937f6bce018669a8f4e11761ddfe088396f6de33281"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00003__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00003",
+      "template_id": "service",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00003__clean_pdf/source.pdf",
+        "sha256": "221f9c565b06e06c8b0a0b936e2026c22071afd0a72f041418dbea3797afc23d"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00003__clean_pdf/source-gold.json",
+        "sha256": "4acc8f93d56deb072318fdc531d00cd6c55a960bae363d3fbba2ef5539d7c695"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00003__clean_pdf/source-row-regions.json",
+        "sha256": "3e1e45c920dda21b444a952a92057e081c7d2e48bc9841e560ba5f5e006aa7f0"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00003__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "2f891d48a2cae1a8033c83cd388612debb57a7706b42454b38bb9810ca3b57d4",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00003__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "b358ee1a7610ab3db260e0c6aa609436f303315050b7b3d2c20272b4bfd41684",
+          "predicted_rows": 1,
+          "header_present": 7,
+          "consistency_warnings": 1
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00003__clean_pdf/evidence.json",
+        "sha256": "90c81aba58d3e78f3daae1d9c07e0a7bebe3b150566baaf9e85e0d720f5eb63b"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00003__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "0a811cd71ebf0ad92d78c748e94e6c163321023a9bad97bba02fd2523a39ecd7"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00003__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00003",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00003__blur_png/source.png",
+        "sha256": "305076248ffdc2b7f9fae4c85dc0ff2e6c5c5ec9199b4780220397c8a31acb79"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00003__blur_png/source-gold.json",
+        "sha256": "4acc8f93d56deb072318fdc531d00cd6c55a960bae363d3fbba2ef5539d7c695"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00003__blur_png/source-row-regions.json",
+        "sha256": "3e1e45c920dda21b444a952a92057e081c7d2e48bc9841e560ba5f5e006aa7f0"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00003__blur_png\\geometry_grouping_v2.json",
+          "sha256": "e086b7ecac31f03cc498715efba858fb9ec2e9650ac7695466972e5cfd85e5ef",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00003__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "b89817407bdde494b93387d14d123b28636ce707b9b2d860380f94320b712c79",
+          "predicted_rows": 4,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00003__blur_png/evidence.json",
+        "sha256": "2880be5cc937af0137f4f2308a3a7af5eb9468938ed0b19c81d73b7d7da50732"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00003__blur_png/aligned-gold-candidate.json",
+        "sha256": "1eed0967c96c390a3bd28ddffb2c7d126887a952228023e4ef14be0ccb4e50b9"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00007__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00007",
+      "template_id": "corporate",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00007__text_pdf/source.pdf",
+        "sha256": "4948e1d824ca5b911a4a2465a9d650cc5de3d55db6331b8d1216d2a84723569e"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00007__text_pdf/source-gold.json",
+        "sha256": "d5efacf6517562f16192565d30d5757e6ccf1a65fa2be46f7785d83e8e332116"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00007__text_pdf/source-row-regions.json",
+        "sha256": "a283e9ecac8643076cf81752be8cec0a77012290c596859079faee0bb31d2520"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00007__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "895683f52a0f2e184e6652fc234c587022642111370a3390c029c6ee3878c718",
+          "predicted_rows": 0,
+          "header_present": 13,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00007__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "f202a499605f05ed05f2a82aebfb1e14fe893e7b70e35e6df630e8161987bb82",
+          "predicted_rows": 2,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00007__text_pdf/evidence.json",
+        "sha256": "036e85c291d4ec0b401cc40d4f74e8be1ccc741d9ff5b36f6bfb7111eb640e35"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00007__text_pdf/aligned-gold-candidate.json",
+        "sha256": "c73f989dee52ef62a8f4245101cc36f7fe860df61dff8b238a08a3fb7daa84f8"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00007__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00007",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00007__clean_png/source.png",
+        "sha256": "fc54534eb352d2d18c7e6963a6266738646568fa077861b13176410a5452daf2"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00007__clean_png/source-gold.json",
+        "sha256": "d5efacf6517562f16192565d30d5757e6ccf1a65fa2be46f7785d83e8e332116"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00007__clean_png/source-row-regions.json",
+        "sha256": "a283e9ecac8643076cf81752be8cec0a77012290c596859079faee0bb31d2520"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00007__clean_png\\geometry_grouping_v2.json",
+          "sha256": "539c52ebda6fc03694464944f593bfdab57a4af3dad2043c00f90293ed1258da",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00007__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "4a6e71592fc852d27355336cf2e680e75afc4c183e8fac493041e1049c532b35",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00007__clean_png/evidence.json",
+        "sha256": "03dd000519697f563bff10f9a448a72f77f1be1c2cd0d15490aa04ef19457c45"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00007__clean_png/aligned-gold-candidate.json",
+        "sha256": "198166835ce26b9b9a3289d0b21c9c46b2f113efddd226d61acdc14d732dfab1"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00007__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00007",
+      "template_id": "corporate",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00007__clean_pdf/source.pdf",
+        "sha256": "6212c9f6e06956197e35d6ec0b29763f1a40e7fec78f4255d5279bc0f28cf2a6"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00007__clean_pdf/source-gold.json",
+        "sha256": "d5efacf6517562f16192565d30d5757e6ccf1a65fa2be46f7785d83e8e332116"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00007__clean_pdf/source-row-regions.json",
+        "sha256": "a283e9ecac8643076cf81752be8cec0a77012290c596859079faee0bb31d2520"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00007__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "89638517325697ab5291ab0713a9649e8b65f6f4564fa2c8f17a95c8ca92d114",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00007__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "7ebfaeec25253fa963cf0cc11a2b4091d77fd7ec466ab0380df070c5061e3c7d",
+          "predicted_rows": 2,
+          "header_present": 10,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00007__clean_pdf/evidence.json",
+        "sha256": "27314df46d4efca4cc6b7d91d9cd326c8e3780610f222b661e8d591ce4122c89"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00007__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "89ab1b4cfb147d2b59653617e26fcf5da5933536b24b4a8866caecb3d4801d21"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00007__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00007",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00007__blur_png/source.png",
+        "sha256": "8f22a9b78fa7e77c6b32843e24f32834511bda8fe17e6ef4221f622ca93d4d04"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00007__blur_png/source-gold.json",
+        "sha256": "d5efacf6517562f16192565d30d5757e6ccf1a65fa2be46f7785d83e8e332116"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00007__blur_png/source-row-regions.json",
+        "sha256": "a283e9ecac8643076cf81752be8cec0a77012290c596859079faee0bb31d2520"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00007__blur_png\\geometry_grouping_v2.json",
+          "sha256": "a691e7da63871d9d5a0a0daf43f763233bb718b75439b795a554b32d83d42fe1",
+          "predicted_rows": 0,
+          "header_present": 1,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00007__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "55acaa59ca70589a12241e6a57003c390110f1bb5118385de2ae6e21245fa253",
+          "predicted_rows": 2,
+          "header_present": 1,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00007__blur_png/evidence.json",
+        "sha256": "44bfc373011778a00c942bc85416dc5a40301f527c70fd08f6b3b1e8a83c25db"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00007__blur_png/aligned-gold-candidate.json",
+        "sha256": "2f486b1f8b53c4c30028ef48007f4f769d780bb4a447db8c1a1b37b6ba881d06"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00008__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00008",
+      "template_id": "retail",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00008__text_pdf/source.pdf",
+        "sha256": "0c0c0a58372c1fab3f7643d541beb936be9239887a28856649a3d46e08231c4f"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00008__text_pdf/source-gold.json",
+        "sha256": "fc951955e613a5f040f6b492b68004823f593f385a809a7e3fc36bf994566d82"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00008__text_pdf/source-row-regions.json",
+        "sha256": "b818b6a3b55d7e06e6f92101ecec14e4e801ae8a536b1102fd85c85e60ea1375"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00008__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "6d3c28c10332cc09b1e54e09fba9906d9288bd5f7ffaa29f892232b62e97e600",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00008__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "012ecaedffd036f3871dea693cc022ed9444063de5247a61cb8e9cb1bd4c5a9d",
+          "predicted_rows": 4,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00008__text_pdf/evidence.json",
+        "sha256": "8bc2860abbc32d7475ed0f119e6c9c9fabd997777b1ce03078f74ba23c750834"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00008__text_pdf/aligned-gold-candidate.json",
+        "sha256": "f6666a16722391a9ab93c603e34adce5babe24ca6a1f7da98ae29fd47a55844c"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00008__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00008",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00008__clean_png/source.png",
+        "sha256": "23461d271eac69ffb519348d94c0a8696ca0538501314b9c76f197af273758f7"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00008__clean_png/source-gold.json",
+        "sha256": "fc951955e613a5f040f6b492b68004823f593f385a809a7e3fc36bf994566d82"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00008__clean_png/source-row-regions.json",
+        "sha256": "b818b6a3b55d7e06e6f92101ecec14e4e801ae8a536b1102fd85c85e60ea1375"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00008__clean_png\\geometry_grouping_v2.json",
+          "sha256": "9a8aa26dc541d982dae8af487c53375dc7cf7b633758cca9b45b79ab801affb5",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00008__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "accecf5f10bd400f418aa9191c7d9c4cb2545eee3890b3d336a1b2338fd4914d",
+          "predicted_rows": 4,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00008__clean_png/evidence.json",
+        "sha256": "c0d0afe0e859b6cb2bae2d6776ac5a9f7d7dc4f44c7610a59aad407ab270d9a7"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00008__clean_png/aligned-gold-candidate.json",
+        "sha256": "09e52dbd357c8a514683088debcaf6052e32870211e00ea6c9a20dbaf568521d"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00008__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00008",
+      "template_id": "retail",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00008__clean_pdf/source.pdf",
+        "sha256": "87f0edfc29e629f53f0f730a4ef4e4de7e151dce21b736014a845a1547076e5c"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00008__clean_pdf/source-gold.json",
+        "sha256": "fc951955e613a5f040f6b492b68004823f593f385a809a7e3fc36bf994566d82"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00008__clean_pdf/source-row-regions.json",
+        "sha256": "b818b6a3b55d7e06e6f92101ecec14e4e801ae8a536b1102fd85c85e60ea1375"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00008__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "0280c92639ae2ea6e89502884eae845cd0b76634543be9e891ac664812f5c049",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00008__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "52cb454ff53fd4858b986c9048cfcb92d364c164f2b069aa81bd795212c96da3",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00008__clean_pdf/evidence.json",
+        "sha256": "4161f3de58e50612fc5fc8fabd23ecf309b1d2813b30c50e9c165eea6609b755"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00008__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "1b629c799ae00b9200c555a1bd0c7120b84b1c692190175e8bf2f1d896eb44b6"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00008__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00008",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00008__blur_png/source.png",
+        "sha256": "c4a9a13ba1aa7dc314d243517f677a7bed1cc1c87a095ee32c4829acb4e595bb"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00008__blur_png/source-gold.json",
+        "sha256": "fc951955e613a5f040f6b492b68004823f593f385a809a7e3fc36bf994566d82"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00008__blur_png/source-row-regions.json",
+        "sha256": "b818b6a3b55d7e06e6f92101ecec14e4e801ae8a536b1102fd85c85e60ea1375"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00008__blur_png\\geometry_grouping_v2.json",
+          "sha256": "749a2853bd5e992f721442cc657a9a708ee718eb8031ce2fc5524743e924b9fd",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00008__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "549d49e29d1d42196d7d3d691e5e0a799b32fba7e9b4f19e91c7fd0d12a5ea5b",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00008__blur_png/evidence.json",
+        "sha256": "0fe01944ea7c782b06ace413622be695cf9504289696c702e269dbd877430a97"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00008__blur_png/aligned-gold-candidate.json",
+        "sha256": "953f5dc367c8836d34041ee89d36fa4ed7bf363d29bea4b6ddf23c84cd00e3a2"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00009__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00009",
+      "template_id": "service",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00009__text_pdf/source.pdf",
+        "sha256": "fc0dd935e026894c63481a61d0e430e80db82129bb2cf3c01a67fdc323cc1de1"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00009__text_pdf/source-gold.json",
+        "sha256": "d3a35f2cb6a91f0e1d59c14c1a81111959577911cd3d03429aed4e2d8a068d0c"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00009__text_pdf/source-row-regions.json",
+        "sha256": "570aaa28e52f0276ab074d380d1ac83acae27f2c074e30fd489e92bdb69927e8"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00009__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "9286d3f6629c56e2c1c39fffc8e38934f4a3963292ca6ef76bd034acf54a973e",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00009__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "eb72417e4d92f16a1c2b4e586a66b1c6f24f250f286bea2dd6c97f4754367473",
+          "predicted_rows": 5,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00009__text_pdf/evidence.json",
+        "sha256": "5bb6e5cc57eb0fbad1abaac6ee2e27e07edb74d266cba4050c3a51d643325cb1"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00009__text_pdf/aligned-gold-candidate.json",
+        "sha256": "c22dfb4b2996fe8fd3366f7784268b4fe18b9c940297f5c2ca793494f0fb104a"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00009__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00009",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00009__clean_png/source.png",
+        "sha256": "d887d8085a6149ac19c9f4d20738b7c1fdfe516492728fe2f90db3808e995405"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00009__clean_png/source-gold.json",
+        "sha256": "d3a35f2cb6a91f0e1d59c14c1a81111959577911cd3d03429aed4e2d8a068d0c"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00009__clean_png/source-row-regions.json",
+        "sha256": "570aaa28e52f0276ab074d380d1ac83acae27f2c074e30fd489e92bdb69927e8"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00009__clean_png\\geometry_grouping_v2.json",
+          "sha256": "d955925860c417c7e980b471e4005ecb2e6f1b10b8b89c9d02338bc44e8886b4",
+          "predicted_rows": 0,
+          "header_present": 4,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00009__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "b9d5000de25ebd699efa048dff6f2a8bf446acefd4160cd5b0f42b7a1869aa7b",
+          "predicted_rows": 5,
+          "header_present": 5,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00009__clean_png/evidence.json",
+        "sha256": "d4da0868639c6d21f82e20de4735b6c4d788bfd4ca1d4c73e1829395eb3b830a"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00009__clean_png/aligned-gold-candidate.json",
+        "sha256": "4a739162f90ff5d3b6095c489e672212df62702ace084e9180207e8830c9de7c"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00009__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00009",
+      "template_id": "service",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00009__clean_pdf/source.pdf",
+        "sha256": "22514d2ac48393765accc23620876d4e847220fccdcd8c6d4112fd40d3aa633e"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00009__clean_pdf/source-gold.json",
+        "sha256": "d3a35f2cb6a91f0e1d59c14c1a81111959577911cd3d03429aed4e2d8a068d0c"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00009__clean_pdf/source-row-regions.json",
+        "sha256": "570aaa28e52f0276ab074d380d1ac83acae27f2c074e30fd489e92bdb69927e8"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00009__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "aa63f06a21f97a33de6f85980485f4eac4d1a17aca6ccc165462b6fb95bf7fa9",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00009__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "3d1b9adf5f8426163790acfd6d000eeee15868917eca236299d5e89af63a1b8f",
+          "predicted_rows": 2,
+          "header_present": 7,
+          "consistency_warnings": 1
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00009__clean_pdf/evidence.json",
+        "sha256": "a3f229c12eb31238a3e7bcbbfd02a89d5c5308e1c975fbbf50b7188470e87956"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00009__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "9009e5dfe80c3660110b81952bf9eb6a1063e1b4f6bf2d6f434590cfec22900e"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00009__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00009",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00009__blur_png/source.png",
+        "sha256": "468d495edb1d4d32a21499781cf69a6a2efd7a79f4b866bd21bc18b57fb6f4fa"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00009__blur_png/source-gold.json",
+        "sha256": "d3a35f2cb6a91f0e1d59c14c1a81111959577911cd3d03429aed4e2d8a068d0c"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00009__blur_png/source-row-regions.json",
+        "sha256": "570aaa28e52f0276ab074d380d1ac83acae27f2c074e30fd489e92bdb69927e8"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00009__blur_png\\geometry_grouping_v2.json",
+          "sha256": "f3e7ab8484bc74a5f508f596a63f35283ff9844c161eb8823d2b995a99d8365f",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00009__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "e20cc0b9781633060332bd9cf4b77d8545f677332b0f41d9d4a1fa82c4471048",
+          "predicted_rows": 5,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00009__blur_png/evidence.json",
+        "sha256": "207455f38b520637501c790ab7d0963ecc99bb8e91947d356791dbcf6a202a6d"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00009__blur_png/aligned-gold-candidate.json",
+        "sha256": "a9d9bf611a94b449e21962f9dc3d999c79b1270ab4b9a3c08bb0d0d3fd00b0fb"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00013__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00013",
+      "template_id": "corporate",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00013__text_pdf/source.pdf",
+        "sha256": "45a55419a6194988b2a7a3571a289fe5c97c6c03b82c89cb46b5d07ab010e986"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00013__text_pdf/source-gold.json",
+        "sha256": "3744c4874460563faad2051b53786dbbc786d549f20706022678cb8de756875e"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00013__text_pdf/source-row-regions.json",
+        "sha256": "34f89bee10e81b376c943ad72e681ae1cb8958dfe8d4a53a22acd957a5a8f779"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00013__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "34f89f9cf3ba9a0db5280190247afdd27f23534fdeb6ed8b9e6cd7083e8eb110",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00013__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "8f528a6e8f38c86324127eb9d9cd2e7100e40c4460d881f9f18ad09bda9bd4bb",
+          "predicted_rows": 5,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00013__text_pdf/evidence.json",
+        "sha256": "4a4fdb34036df25a1481733c4548786da17b74016e5b265ad1a5ef1276e2e818"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00013__text_pdf/aligned-gold-candidate.json",
+        "sha256": "b0fa5e97d257e7db8cc75bfee629af9cdada6841cb47b4833a0fd35a65b3fe60"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00013__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00013",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00013__clean_png/source.png",
+        "sha256": "d1dac6087a597340bc57c4811fdd1b3d236f10e75e9581f190568367d3455f34"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00013__clean_png/source-gold.json",
+        "sha256": "3744c4874460563faad2051b53786dbbc786d549f20706022678cb8de756875e"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00013__clean_png/source-row-regions.json",
+        "sha256": "34f89bee10e81b376c943ad72e681ae1cb8958dfe8d4a53a22acd957a5a8f779"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00013__clean_png\\geometry_grouping_v2.json",
+          "sha256": "d6b7e0d951cd2210f3e6bcb25558bb59bd14415dfeb9c907897029c29296e8f0",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00013__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "036006d3a448232079e762c19a17a5e1d40d96398bc05704e111cf208dbe3b08",
+          "predicted_rows": 5,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00013__clean_png/evidence.json",
+        "sha256": "429af7b5a00d20109eaca02924b9550e49410941a9ae4004a2c55efe540cec80"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00013__clean_png/aligned-gold-candidate.json",
+        "sha256": "a0b1bf3b095b620c1dbb6d460a060f9eecc06acf53c3425d2c70929e60f62ca6"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00013__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00013",
+      "template_id": "corporate",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00013__clean_pdf/source.pdf",
+        "sha256": "543694fec98beebbff42d07fa61da6d0e9c9c7c46af9dbc04c12937a0bc4488e"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00013__clean_pdf/source-gold.json",
+        "sha256": "3744c4874460563faad2051b53786dbbc786d549f20706022678cb8de756875e"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00013__clean_pdf/source-row-regions.json",
+        "sha256": "34f89bee10e81b376c943ad72e681ae1cb8958dfe8d4a53a22acd957a5a8f779"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00013__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "5bd5d8043ba2a849c8650d36e1267b68ca07eb3446efd2a031bceea11d154298",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00013__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "ce6cd2b6b8fe9920b8ac31490bc76a92156ae964ee3b76cc16199fa4d1c0311b",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00013__clean_pdf/evidence.json",
+        "sha256": "fb21153180465520ff71e9430bc1d9ed6c64c5e919b39f54e85f2523d935a81f"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00013__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "430e37d0ce782ef38b3220c1d720439b24c5e497ec4511a00c0cb92c014fb400"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00013__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00013",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00013__blur_png/source.png",
+        "sha256": "885afd5151f481d9cddd23d5cbef22ccc46818c6284725b70d5820806ba192d1"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00013__blur_png/source-gold.json",
+        "sha256": "3744c4874460563faad2051b53786dbbc786d549f20706022678cb8de756875e"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00013__blur_png/source-row-regions.json",
+        "sha256": "34f89bee10e81b376c943ad72e681ae1cb8958dfe8d4a53a22acd957a5a8f779"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00013__blur_png\\geometry_grouping_v2.json",
+          "sha256": "613726dd2e9af5a24fd86882a28a3f75dd04bbfab38eb8d150dd6efd74eb9f21",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00013__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "d61b3f6049f196a76342d89519e1d53f7ab4963318fb4e48e5418e5ffb8e2d06",
+          "predicted_rows": 5,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00013__blur_png/evidence.json",
+        "sha256": "d7f70276e4b2b995618c104fafd089cc0e89b80438be33beaa7a87ca20170539"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00013__blur_png/aligned-gold-candidate.json",
+        "sha256": "05149d98cc59c3db7b57f83a8c4d291b6f33aa25c6a249c59fb20f31daae07e0"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00014__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00014",
+      "template_id": "retail",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00014__text_pdf/source.pdf",
+        "sha256": "1a1976b6fc433c2eb07cc270ba6e771b655bcb75e5b72fd83464c7e454a1e12b"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00014__text_pdf/source-gold.json",
+        "sha256": "d59f5ccb6add2e1b8daf8ebe65970a3e35cacda2de24fa03edfe5588445100ec"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00014__text_pdf/source-row-regions.json",
+        "sha256": "f47b52db87552976c79063b4d0a4855a28405c0a5ce3a385c8e091bef8ed9e60"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00014__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "38310b36f7b948d0b54dfac6d604d6a08bfaf09f586af7a29dcb010d31233fb8",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00014__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "cec41110d1721c590e566d1253c8dbbb60e791ad5e6ef3d3a6a081f74417594b",
+          "predicted_rows": 5,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00014__text_pdf/evidence.json",
+        "sha256": "6b746e8d5ac81647d410639525c8a1f31d02ca22b4ab10cafbd4394231c8c2f2"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00014__text_pdf/aligned-gold-candidate.json",
+        "sha256": "78dff90735a1f23f4de78497707327ef1537e2c63447b99812e2d9a26bcc177a"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00014__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00014",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00014__clean_png/source.png",
+        "sha256": "916ff1c9a8cac4b54367f04c1c9ead48c28135acfdf03a10f4b41bd5c9cd45c1"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00014__clean_png/source-gold.json",
+        "sha256": "d59f5ccb6add2e1b8daf8ebe65970a3e35cacda2de24fa03edfe5588445100ec"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00014__clean_png/source-row-regions.json",
+        "sha256": "f47b52db87552976c79063b4d0a4855a28405c0a5ce3a385c8e091bef8ed9e60"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00014__clean_png\\geometry_grouping_v2.json",
+          "sha256": "abee3d95e4aebe78be533882397074baf54271d24e7d0e580afb1e5ae6f87294",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00014__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "e38632229295c12f897e904dafcd18ff32f773c98149e34213f8e012a42c2fcc",
+          "predicted_rows": 5,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00014__clean_png/evidence.json",
+        "sha256": "454256c98189cb4978a136b5b6ce260e7d9ff2d13b9c9cb351ebb80db3345700"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00014__clean_png/aligned-gold-candidate.json",
+        "sha256": "8c6a15d0f14bc03ddbfc54452d2b5461f5de79915852576c135317a25c560095"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00014__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00014",
+      "template_id": "retail",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00014__clean_pdf/source.pdf",
+        "sha256": "debb93d2abbb958246672630b1bf67e0e2778dd8bec2904cc55e639094b98078"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00014__clean_pdf/source-gold.json",
+        "sha256": "d59f5ccb6add2e1b8daf8ebe65970a3e35cacda2de24fa03edfe5588445100ec"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00014__clean_pdf/source-row-regions.json",
+        "sha256": "f47b52db87552976c79063b4d0a4855a28405c0a5ce3a385c8e091bef8ed9e60"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00014__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "e5a37023ed6934a76be421ec946dfb32fef51d54fb05fdf8f6c5214e7bd2afa4",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00014__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "2604dd31b77ee5b298d6fde68a4a08398c1790606669278f78c34612ad6d12fa",
+          "predicted_rows": 1,
+          "header_present": 9,
+          "consistency_warnings": 1
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00014__clean_pdf/evidence.json",
+        "sha256": "ce4f3527bfd21b10fbe649ebaae7d3011730add420fc9796190c8970046800c5"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00014__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "7128814cbcc19327323e2d5eb2cb390020988247a9b0070085fa406e9f8e7417"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00014__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00014",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00014__blur_png/source.png",
+        "sha256": "d2daab441e46a79b3c6d80618a2eda5236984045f6e39234ede19dca6550d18a"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00014__blur_png/source-gold.json",
+        "sha256": "d59f5ccb6add2e1b8daf8ebe65970a3e35cacda2de24fa03edfe5588445100ec"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00014__blur_png/source-row-regions.json",
+        "sha256": "f47b52db87552976c79063b4d0a4855a28405c0a5ce3a385c8e091bef8ed9e60"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00014__blur_png\\geometry_grouping_v2.json",
+          "sha256": "8f2c6ce8f06d06b2e0ca5d88b7cbbe48994d3783955c215ab3d34b91ff275b6d",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00014__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "d95a2a89835ec3b1dda88025604090afe1444f8f568736a0f07799b59aae6917",
+          "predicted_rows": 5,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00014__blur_png/evidence.json",
+        "sha256": "0ff67e0a7021052eff3831172a05473f526d36883412fccd0037a61355f11d62"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00014__blur_png/aligned-gold-candidate.json",
+        "sha256": "15a7f085c842ca4db60a5c5c9985f7fbf811f5808410caae408bfe2b8c409bd1"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00015__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00015",
+      "template_id": "service",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00015__text_pdf/source.pdf",
+        "sha256": "fa018c3f1a1842df52d6ec39060e5ca7bac894d5181648757258bf5d3cdff459"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00015__text_pdf/source-gold.json",
+        "sha256": "612eceac7e156fae2ab6d3c4ba72afdc4d29e3ab91705705274aea51eb5ad2d4"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00015__text_pdf/source-row-regions.json",
+        "sha256": "152776097ed001972cc52c3eb33ab2f770639223af0281face222a43e055b4ba"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00015__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "6fa14c18545a4e7e79b87dda7bf6877c24a61fd9ea2a590646f224bfcd267632",
+          "predicted_rows": 0,
+          "header_present": 11,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00015__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "2bf5d0934e6a82e502fb4419ba595eb3056ed43186dfd86fad19ddc99ce818a2",
+          "predicted_rows": 3,
+          "header_present": 11,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00015__text_pdf/evidence.json",
+        "sha256": "7f061bd791ade64468ec662ea6c51bb21c9f3694ae8ffa9336511478ce3c7cbd"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00015__text_pdf/aligned-gold-candidate.json",
+        "sha256": "50c871df3e42f321ef90ecf9d869e46e157022f2c25380115d63b76f2fd793e8"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00015__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00015",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00015__clean_png/source.png",
+        "sha256": "afc0a2518d19db7fea954020b226357ce8c2c5972dca614a70a294b4bda0c593"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00015__clean_png/source-gold.json",
+        "sha256": "612eceac7e156fae2ab6d3c4ba72afdc4d29e3ab91705705274aea51eb5ad2d4"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00015__clean_png/source-row-regions.json",
+        "sha256": "152776097ed001972cc52c3eb33ab2f770639223af0281face222a43e055b4ba"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00015__clean_png\\geometry_grouping_v2.json",
+          "sha256": "8bf199478d7d5361b942953e6ba93bbac61cf56ed4b65a276b8ca0ba1299f021",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00015__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "2dfdf7109d824a1e37f3f80a0ac80f7f20c7cdcbd83d00978fd89413d8f4cc89",
+          "predicted_rows": 3,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00015__clean_png/evidence.json",
+        "sha256": "0f150c4fdf16fd4de5ebea642c7ea11246e1fe9b7a7459bdd2131aa9bb4772da"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00015__clean_png/aligned-gold-candidate.json",
+        "sha256": "91919516eee71405eb71d918b618297c97446cf8fae8dfed95806c15fd2d68b2"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00015__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00015",
+      "template_id": "service",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00015__clean_pdf/source.pdf",
+        "sha256": "37324ca41e9d11b5ed959fa66ae09266743678df1913481408b0f8ce47b50a15"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00015__clean_pdf/source-gold.json",
+        "sha256": "612eceac7e156fae2ab6d3c4ba72afdc4d29e3ab91705705274aea51eb5ad2d4"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00015__clean_pdf/source-row-regions.json",
+        "sha256": "152776097ed001972cc52c3eb33ab2f770639223af0281face222a43e055b4ba"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00015__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "f2952f422791eef453c859706e5a07721ea97af2fdec5ed7764fd99ec07139f5",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00015__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "76301f162bb47092da9a233c0aa9058189858427f9d3007a3768c28b31dcb587",
+          "predicted_rows": 3,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00015__clean_pdf/evidence.json",
+        "sha256": "9071eab2aceee0e9f5e52f41738048361a0ecab9fd207dcea6903316530c844a"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00015__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "e374eb977730067ca6fac8c4e6e8765286f797b19a03c72b04adafc011698696"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00015__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00015",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00015__blur_png/source.png",
+        "sha256": "cb23a12d8cb9aafadb00216a0f4ae031d3b64ef1511cde857b67afa88d77e7f3"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00015__blur_png/source-gold.json",
+        "sha256": "612eceac7e156fae2ab6d3c4ba72afdc4d29e3ab91705705274aea51eb5ad2d4"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00015__blur_png/source-row-regions.json",
+        "sha256": "152776097ed001972cc52c3eb33ab2f770639223af0281face222a43e055b4ba"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00015__blur_png\\geometry_grouping_v2.json",
+          "sha256": "63b193c0e4caa111ebfe54603499175c5c0f5ee910bf49394393a5d5f2f57c92",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00015__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "07bfa90c6dfca89a4a7e6faba24e10a12d667da9aaa50cd2962e1c8e20b7943d",
+          "predicted_rows": 3,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00015__blur_png/evidence.json",
+        "sha256": "dc411eac78266aa8a45f70d6dacefb100b620d94f52f4bc45051a9dce0d3daf5"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00015__blur_png/aligned-gold-candidate.json",
+        "sha256": "863aceec10cbea885f793e1ad4204ae693c636220bf22adf29785380d89f2919"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00019__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00019",
+      "template_id": "corporate",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00019__text_pdf/source.pdf",
+        "sha256": "717966c4b9e0463a7755021108578b0cb1b0dff3f97474885b6fb946925d48c9"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00019__text_pdf/source-gold.json",
+        "sha256": "b4fd6143eeb0b9d69dc18047ed7d548294e7636948972c5a0462f79061ff2819"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00019__text_pdf/source-row-regions.json",
+        "sha256": "e6e8d023c86b743f8b696b56f146556017fc73fb230bfcb847e282145b3e5ea7"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00019__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "7019cca9e13abfacdda0886ace46e8f097cf910b204518c39b1e9f2fa85fc2f7",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00019__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "7d8869a21c5739092e297fd012d86f2b3ee7eb8f2eb046d6e5666cd616ca2a46",
+          "predicted_rows": 5,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00019__text_pdf/evidence.json",
+        "sha256": "fce6bd5cf5ef82c42f11cb814dbf35025465969da79108503cd0c293f1cb32f0"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00019__text_pdf/aligned-gold-candidate.json",
+        "sha256": "619bbd00c84ab8fb191095984dda2390108247bd65dae7a7af44cd4f455acbbb"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00019__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00019",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00019__clean_png/source.png",
+        "sha256": "6988e2e82114a4bcb1711163b3c8a042878a59d71556a5b3359cac001089e56b"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00019__clean_png/source-gold.json",
+        "sha256": "b4fd6143eeb0b9d69dc18047ed7d548294e7636948972c5a0462f79061ff2819"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00019__clean_png/source-row-regions.json",
+        "sha256": "e6e8d023c86b743f8b696b56f146556017fc73fb230bfcb847e282145b3e5ea7"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00019__clean_png\\geometry_grouping_v2.json",
+          "sha256": "737a77daceb0bbd85bc5837e0aa0b1bdde47ea161cb3cb246c967062ab6d8ad7",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00019__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "0a44cec4a69b09f9f17744f98955bc0f1536f6dd91119f7548db8a9cbafdf7df",
+          "predicted_rows": 5,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00019__clean_png/evidence.json",
+        "sha256": "b6620a6f2165dfe05127d2c2a45d93dd7c22d316d36fb48d09b1e12c0d4758b9"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00019__clean_png/aligned-gold-candidate.json",
+        "sha256": "2d8bcc38c51f45ebe720c2708bb7211b45a6d66360ba6aa9c2f5ae0bb60b5060"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00019__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00019",
+      "template_id": "corporate",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00019__clean_pdf/source.pdf",
+        "sha256": "4ed9507e4bd9f2f03062c7b3c49414ce35255e16fb7d40d810e3cded829e802c"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00019__clean_pdf/source-gold.json",
+        "sha256": "b4fd6143eeb0b9d69dc18047ed7d548294e7636948972c5a0462f79061ff2819"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00019__clean_pdf/source-row-regions.json",
+        "sha256": "e6e8d023c86b743f8b696b56f146556017fc73fb230bfcb847e282145b3e5ea7"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00019__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "18d87ad548fdf1b5afe759689705452269c96758b8aedb465e367d6cbbacfc6e",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00019__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "c4e2563dc0802ad04978cb1e15ecc38928192dbaeb5430f9a5538dcd331ea3b1",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00019__clean_pdf/evidence.json",
+        "sha256": "e739211a5d5e33e5260ac1bb2f38b2a40fd25fbe7318938cbca1edc74952ccc7"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00019__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "9a73f706bdcbe648898f02f1f1c5dd808baa02cf5ea2f2b7448f058962e1b37b"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00019__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00019",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00019__blur_png/source.png",
+        "sha256": "e88a4d83e039147b9ef0d16b7ccd9fbf4c61dd8537d30fb5a5176df8a2f14233"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00019__blur_png/source-gold.json",
+        "sha256": "b4fd6143eeb0b9d69dc18047ed7d548294e7636948972c5a0462f79061ff2819"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00019__blur_png/source-row-regions.json",
+        "sha256": "e6e8d023c86b743f8b696b56f146556017fc73fb230bfcb847e282145b3e5ea7"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00019__blur_png\\geometry_grouping_v2.json",
+          "sha256": "a219afb888e39fabde58da8638aff2b5b8ae895f388f7034fde7460bdf44ecd7",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00019__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "a54b1f48d4639e398d279cd2e24015d07bf2ac61c3c56389e52da1406cee00d8",
+          "predicted_rows": 5,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00019__blur_png/evidence.json",
+        "sha256": "6b1d1154b035f3a093e2f141303fd8e30b81bad98098de557c521aae64da9d3d"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00019__blur_png/aligned-gold-candidate.json",
+        "sha256": "d413d7b88c266a95e03c5431766be73ef25e4a33f27e8c11c9278b2abd0b1c5a"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00020__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00020",
+      "template_id": "retail",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00020__text_pdf/source.pdf",
+        "sha256": "d9934cf859824a029278f6fa791ae3d0209aff50ba5a71df727c8254c6fd0228"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00020__text_pdf/source-gold.json",
+        "sha256": "3321c224032c7a45f5ced7fb7de2c15492412604d39896c0a07fc47b5e450f33"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00020__text_pdf/source-row-regions.json",
+        "sha256": "3f3bb6c41307cb03b80c0123f11dc6aaf7f272f4a69d45c4bb08179e08d9287a"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00020__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "b28acba7ba8550d4e13304a143e3bc4f625be9397075761d24cdc7ea32c706f1",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00020__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "64b55995698befe4848323bed48e4a4d5e0925675a6b5285ac0181ee8ebc5380",
+          "predicted_rows": 4,
+          "header_present": 11,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00020__text_pdf/evidence.json",
+        "sha256": "39ecd56bc92c4d5cdafd433109c069e8f0b1d4d01e0df23b4791f43f84935248"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00020__text_pdf/aligned-gold-candidate.json",
+        "sha256": "478574bd039484bb7a8985198ce363f133e4a47345806b9a2665d57e648b6198"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00020__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00020",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00020__clean_png/source.png",
+        "sha256": "817a4c358b4ba23327eaa6a68f87efa0970479ecd34542baf45becf947d9d1c2"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00020__clean_png/source-gold.json",
+        "sha256": "3321c224032c7a45f5ced7fb7de2c15492412604d39896c0a07fc47b5e450f33"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00020__clean_png/source-row-regions.json",
+        "sha256": "3f3bb6c41307cb03b80c0123f11dc6aaf7f272f4a69d45c4bb08179e08d9287a"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00020__clean_png\\geometry_grouping_v2.json",
+          "sha256": "2ed4120eb2db99985bb623d5629c984c87018cc073935a72e8249bf3d31817e0",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00020__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "ea4e54738f242846f285ad3dc4cafb96f8e5ca4236e538dc6449a9cfd133d7e3",
+          "predicted_rows": 4,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00020__clean_png/evidence.json",
+        "sha256": "74a9e900d184980ca692cbe0e1e58d8c63f9343c56fc7a092c727b474a11b4ae"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00020__clean_png/aligned-gold-candidate.json",
+        "sha256": "0817ff1c5bb877cbe14e5b8c69f832c072ee1c722d7c7faafdbd8ca1507210e7"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00020__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00020",
+      "template_id": "retail",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00020__clean_pdf/source.pdf",
+        "sha256": "88a4de4035d3abc42bb6fa2697ad3eca5f9f4de39d96d4cf629328c873947514"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00020__clean_pdf/source-gold.json",
+        "sha256": "3321c224032c7a45f5ced7fb7de2c15492412604d39896c0a07fc47b5e450f33"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00020__clean_pdf/source-row-regions.json",
+        "sha256": "3f3bb6c41307cb03b80c0123f11dc6aaf7f272f4a69d45c4bb08179e08d9287a"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00020__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "54b6cae51412b7ee1e9f5c773520a787df1e58ae18f889052372c487aec82143",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00020__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "0295025a668ac758ccc86a6529731e365c364f546e4c594577c55dba55e056fd",
+          "predicted_rows": 4,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00020__clean_pdf/evidence.json",
+        "sha256": "e51dc6849408003b0169f95cc3751358ac2ecbebf2fd83e9920fea88cfd68ebf"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00020__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "e3c466c71dce71d8077cd1131ea54646bf358ebe07176404ec52466a182e7094"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00020__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00020",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00020__blur_png/source.png",
+        "sha256": "cd6e412515571bfadb00e7d3ddd1f34109f80ad739bfa202cf6089cb43257175"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00020__blur_png/source-gold.json",
+        "sha256": "3321c224032c7a45f5ced7fb7de2c15492412604d39896c0a07fc47b5e450f33"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00020__blur_png/source-row-regions.json",
+        "sha256": "3f3bb6c41307cb03b80c0123f11dc6aaf7f272f4a69d45c4bb08179e08d9287a"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00020__blur_png\\geometry_grouping_v2.json",
+          "sha256": "51d487199861a24972da683e9df94c4e58d103d24b439bb318233da4c32dc5ed",
+          "predicted_rows": 0,
+          "header_present": 5,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00020__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "95daca674440b9394b31d17c8c8f2d2bb37242e3a1b73257c126e9fb8386165e",
+          "predicted_rows": 0,
+          "header_present": 5,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00020__blur_png/evidence.json",
+        "sha256": "4c34b3e06f083cec0142c8afeef1ef6e976685161c54553f4cf4049984f768dc"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00020__blur_png/aligned-gold-candidate.json",
+        "sha256": "3a69e95c4d34320d3aae1060c5c041c4219c06d7c7900363e1364c370572859a"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00021__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00021",
+      "template_id": "service",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00021__text_pdf/source.pdf",
+        "sha256": "042e144bff8a3bb22a4776ab999b87c224a0624862a9268709dcf141d839598c"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00021__text_pdf/source-gold.json",
+        "sha256": "6b505eb7d9307bf90e655fce228231ae587661e592e2618e2f357ba7ca2abd92"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00021__text_pdf/source-row-regions.json",
+        "sha256": "06ecf375f3051e76a38c27b64c807850e5c9da451ea04999e0557e4629457b3f"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00021__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "ed902257415ca4368432f304eb15faae796086129c7c8363f8ccee3d96cc02cd",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00021__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "c9bfdf733fa0fd2114f5625f6a78f8b3e0ccca246be37005d9db3ab452962185",
+          "predicted_rows": 5,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00021__text_pdf/evidence.json",
+        "sha256": "07edfcd046d9ab5dcb4fcda0ae3a963fae23cbbf04ffaa14cf1e85643cbfbf5b"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00021__text_pdf/aligned-gold-candidate.json",
+        "sha256": "fbc644702bc4c630f78ca912f0e4c5b5ec722e7995f725a259080a57a3ce3ba2"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00021__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00021",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00021__clean_png/source.png",
+        "sha256": "18e74e8cd8ae440d2e94a0b616214ccff8238514381c9d168ddac2c14a1940e1"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00021__clean_png/source-gold.json",
+        "sha256": "6b505eb7d9307bf90e655fce228231ae587661e592e2618e2f357ba7ca2abd92"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00021__clean_png/source-row-regions.json",
+        "sha256": "06ecf375f3051e76a38c27b64c807850e5c9da451ea04999e0557e4629457b3f"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00021__clean_png\\geometry_grouping_v2.json",
+          "sha256": "3b7646203d12f75474f5a7746d8e3b16adfcd27813999b4105bdcdfafab8b33d",
+          "predicted_rows": 0,
+          "header_present": 5,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00021__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "cddf2acdc8e0b83b6b01c213b658fa1ab3feef4df8452f157509cac89bc3e9e1",
+          "predicted_rows": 5,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00021__clean_png/evidence.json",
+        "sha256": "b1410d90fe984726be817e2e091ea9e1fd50f74dc3c68f4ec2b27b5ac3984be9"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00021__clean_png/aligned-gold-candidate.json",
+        "sha256": "d12c6c976015b7e73b646121ca2927820945dea7c1f0163813d43461bbfadf29"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00021__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00021",
+      "template_id": "service",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00021__clean_pdf/source.pdf",
+        "sha256": "84642112fd7cc63467aa95049803a349fbd2beaae48aa317d74eeb4431f91fc0"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00021__clean_pdf/source-gold.json",
+        "sha256": "6b505eb7d9307bf90e655fce228231ae587661e592e2618e2f357ba7ca2abd92"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00021__clean_pdf/source-row-regions.json",
+        "sha256": "06ecf375f3051e76a38c27b64c807850e5c9da451ea04999e0557e4629457b3f"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00021__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "7b027d2b6caea67af259b32cb8cb9f33406385e718eea5ba101d78a1c602d25a",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00021__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "c584f9b2adc595beadd7e000fa8a4a8a43b057f456729547b3832b5ef04db8f0",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00021__clean_pdf/evidence.json",
+        "sha256": "099905a741bf6eea0433604707f6f991faea630a1b124f51c1f0add9aca43d26"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00021__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "eef616977d91db59518eb56901cf1a98e95836b1ede97d0c619fe6d50524c1f6"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00021__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00021",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00021__blur_png/source.png",
+        "sha256": "c1ada7378396366d8647c7b3702209848728e577f0d29ef8894b592ba1f121f5"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00021__blur_png/source-gold.json",
+        "sha256": "6b505eb7d9307bf90e655fce228231ae587661e592e2618e2f357ba7ca2abd92"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00021__blur_png/source-row-regions.json",
+        "sha256": "06ecf375f3051e76a38c27b64c807850e5c9da451ea04999e0557e4629457b3f"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00021__blur_png\\geometry_grouping_v2.json",
+          "sha256": "9ea67b1bca3e983ff5812ebcacbc60d7dcdbf05d13acc0da3ba303d176cfbb4a",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00021__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "e1d870113fbc94d51f870cf51f66be91258b4ff3d26cc0b8fe369f1bb2743d88",
+          "predicted_rows": 5,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00021__blur_png/evidence.json",
+        "sha256": "090105b5fe484698634968e505e797742767cf38862741c4f2e50873650300b3"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00021__blur_png/aligned-gold-candidate.json",
+        "sha256": "9d13a1731d532b72148d0fc99bea8f766c541e7f016f6665c822d93a11d22a9b"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00025__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00025",
+      "template_id": "corporate",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00025__text_pdf/source.pdf",
+        "sha256": "ee63a132266ab6fb66e1028b2db9cf6665920440a735e43aff1d85be98b805cd"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00025__text_pdf/source-gold.json",
+        "sha256": "dad2859ba65aa9d3ef3fe99255bdd55eefa9b1740a9d0c319677a4c715f72a31"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00025__text_pdf/source-row-regions.json",
+        "sha256": "c72be36d6c78fd079eddb5111a082eaea8e49eaf54c185920435243134f652ab"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00025__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "7796e625d912b94e3a1ff39001d43e6dbb2a9a56275220a0a3faea0b518e79a3",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00025__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "8c28b217905d899d008081b2794448bf1c347c71151032b45c782ff140aa6915",
+          "predicted_rows": 3,
+          "header_present": 11,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00025__text_pdf/evidence.json",
+        "sha256": "689913cdc67ee1091541bad798d77532aefa526ac52f5c5831ac02ed9926e34d"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00025__text_pdf/aligned-gold-candidate.json",
+        "sha256": "7f1fab3852a6ac149893e75a698a9866466dee7417b81deea018bccbf03a1a60"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00025__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00025",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00025__clean_png/source.png",
+        "sha256": "47e34866da5074e27f725a697123bb772ed8525219bba7889591dfc78c10f12e"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00025__clean_png/source-gold.json",
+        "sha256": "dad2859ba65aa9d3ef3fe99255bdd55eefa9b1740a9d0c319677a4c715f72a31"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00025__clean_png/source-row-regions.json",
+        "sha256": "c72be36d6c78fd079eddb5111a082eaea8e49eaf54c185920435243134f652ab"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00025__clean_png\\geometry_grouping_v2.json",
+          "sha256": "c1a39274e46ea8ee2b2c311f247d506b310c79cd30190485ec6b5d0abd395822",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00025__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "a05ef42771af3b6be12ebf003bcd192b60e8777db3f537ca343e10cc3e6cdba1",
+          "predicted_rows": 3,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00025__clean_png/evidence.json",
+        "sha256": "1f107c0f98ff9493be08d6126f1c34e5247cc86cb48f4a7e30e16631c6901ec8"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00025__clean_png/aligned-gold-candidate.json",
+        "sha256": "0bbd42f309aabe4be000ab45516966e6b76c2c66d3e400296046c1fab25a0ee5"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00025__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00025",
+      "template_id": "corporate",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00025__clean_pdf/source.pdf",
+        "sha256": "92db0306dcf10279eecb656d1418d04d0bbc51e0f46d7bc21a8809d9a674a76e"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00025__clean_pdf/source-gold.json",
+        "sha256": "dad2859ba65aa9d3ef3fe99255bdd55eefa9b1740a9d0c319677a4c715f72a31"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00025__clean_pdf/source-row-regions.json",
+        "sha256": "c72be36d6c78fd079eddb5111a082eaea8e49eaf54c185920435243134f652ab"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00025__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "a06bcb6d37693be238b23a6ba22da0570a49fab981fe4b1cfe6d621b88f8e696",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00025__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "e8216d095da9a7d30d8c007ac1a1b78035728e996bbeecf5efd2e5c96f7ea72a",
+          "predicted_rows": 0,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00025__clean_pdf/evidence.json",
+        "sha256": "2ea92c0be8f75f4b5c8817727d19f0dc505111645c337e838f9a21ab790d5e12"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00025__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "eb0cffe3feda4b6952d85599dba58aa1c1e9e75cd02bd734a8c9902939d9388a"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00025__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00025",
+      "template_id": "corporate",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00025__blur_png/source.png",
+        "sha256": "7287506d365c2421327170285d78e716d3ccf035e2f7a681dc0a294e204c4bfc"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00025__blur_png/source-gold.json",
+        "sha256": "dad2859ba65aa9d3ef3fe99255bdd55eefa9b1740a9d0c319677a4c715f72a31"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00025__blur_png/source-row-regions.json",
+        "sha256": "c72be36d6c78fd079eddb5111a082eaea8e49eaf54c185920435243134f652ab"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00025__blur_png\\geometry_grouping_v2.json",
+          "sha256": "29e81cfadc4f8643e1e8c3326b37995b0130710f5d7b5519a6faf836f8ae0095",
+          "predicted_rows": 0,
+          "header_present": 1,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00025__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "94e095bae059a36b704f612f3c8715c5b49138341ecc304d474b3be26e4b534d",
+          "predicted_rows": 0,
+          "header_present": 1,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00025__blur_png/evidence.json",
+        "sha256": "3505902b5f85b0bed92973f69380e9ef2fcf69aaedcf9130634a6ee75912cc06"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00025__blur_png/aligned-gold-candidate.json",
+        "sha256": "d5a74176c7bce915a971090f8463635d4d37ceeae4243d674e8fe4cdd18ca1e8"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00026__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00026",
+      "template_id": "retail",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 1,
+      "source": {
+        "path": "records/VRSYN2-00026__text_pdf/source.pdf",
+        "sha256": "2b0016a2baa7bce02ed3df1b0bd1ce6faf3fc5e8be79c9ec81fb5dd5f4f98fcc"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00026__text_pdf/source-gold.json",
+        "sha256": "159d20323e54b4a9c8900108302d837dd237d9f3b421055f33f41006cbecfe8a"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00026__text_pdf/source-row-regions.json",
+        "sha256": "937c88635663fdfe86078250e5cfd3829b5ac785c0e4fb4d5b5e64c4cd1431b5"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00026__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "48b72adc68af6c67ab223b593b01cad1d012041a6df79cf8fba91ed2ad5e1a98",
+          "predicted_rows": 0,
+          "header_present": 13,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00026__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "2dade24e6aceb4db4b0ba506396294baf58ae4f9d3edd6f4be860fdddd09e9cd",
+          "predicted_rows": 1,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00026__text_pdf/evidence.json",
+        "sha256": "e59c549ed389aa829b4babb6d8a3fbb23445fe96a539e3e411b64a0bf656070b"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00026__text_pdf/aligned-gold-candidate.json",
+        "sha256": "98e53699bd997e6b27f2870a35105ec922290ac79d9ec7a5aedbe0734511fe2a"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00026__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00026",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 1,
+      "source": {
+        "path": "records/VRSYN2-00026__clean_png/source.png",
+        "sha256": "fa5bfaf467e8711fdd5289afb6705af33adca8d36c70cc4d83b7d815506bd1a1"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00026__clean_png/source-gold.json",
+        "sha256": "159d20323e54b4a9c8900108302d837dd237d9f3b421055f33f41006cbecfe8a"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00026__clean_png/source-row-regions.json",
+        "sha256": "937c88635663fdfe86078250e5cfd3829b5ac785c0e4fb4d5b5e64c4cd1431b5"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00026__clean_png\\geometry_grouping_v2.json",
+          "sha256": "7f7ac1b2637d650e9b4dcfaca8d46e5d698cb6b133bd1ddcabaf13fb6d8dc126",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00026__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "ed4d53693dffefa3929713970e325527fc0ac14558855039009e2707dfd6912e",
+          "predicted_rows": 1,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00026__clean_png/evidence.json",
+        "sha256": "23fe4bcac330ce952a69850f78f4cf28efa8b28c5f0a27fb1a8cbd675f549cc1"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00026__clean_png/aligned-gold-candidate.json",
+        "sha256": "3b9a38b40c938641ddc97c0251db0fb5fdf109430cd462573c687ad1c5dfb4ac"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00026__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00026",
+      "template_id": "retail",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 1,
+      "source": {
+        "path": "records/VRSYN2-00026__clean_pdf/source.pdf",
+        "sha256": "aff2aa448898339c2f1727ce49be8bd6c23b72ef5cc1944f573264e8957e2bbd"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00026__clean_pdf/source-gold.json",
+        "sha256": "159d20323e54b4a9c8900108302d837dd237d9f3b421055f33f41006cbecfe8a"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00026__clean_pdf/source-row-regions.json",
+        "sha256": "937c88635663fdfe86078250e5cfd3829b5ac785c0e4fb4d5b5e64c4cd1431b5"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00026__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "af74f4535a92f534c242760da32bd57a5a713c2c141069922b40bf0671db55d7",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00026__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "87b150b3f0fb0f8625465572bbc9da09e77a145be324ebd2b4abce740f18cb5f",
+          "predicted_rows": 1,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00026__clean_pdf/evidence.json",
+        "sha256": "f1c6fe293484a5f75e1b8d3cb8a41adaaa415ed6446b020e35a087ac2e07bd08"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00026__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "bd97562b302956ec75fbcb7f900adf9a9401985451e691f8eda1a06a7cc021f0"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00026__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00026",
+      "template_id": "retail",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 1,
+      "source": {
+        "path": "records/VRSYN2-00026__blur_png/source.png",
+        "sha256": "d0ff17491586073ece41f0a18aa751c73091db055e38f68a94021a3be9eade63"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00026__blur_png/source-gold.json",
+        "sha256": "159d20323e54b4a9c8900108302d837dd237d9f3b421055f33f41006cbecfe8a"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00026__blur_png/source-row-regions.json",
+        "sha256": "937c88635663fdfe86078250e5cfd3829b5ac785c0e4fb4d5b5e64c4cd1431b5"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00026__blur_png\\geometry_grouping_v2.json",
+          "sha256": "8ec9b73ff642aaf0c8735b69488a231b557d9d9112fc82d3a77b9d6f0c2785ed",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00026__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "6089c5d98def56c7edc60f9b80f18fd58fcd5840812d69a2fc55ae27732189d8",
+          "predicted_rows": 1,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00026__blur_png/evidence.json",
+        "sha256": "41087b1936592c662ab839b91948e2655d2bb8416e21a224d541c50f7a8ea37d"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00026__blur_png/aligned-gold-candidate.json",
+        "sha256": "b710a15bbf065a88d498bb3d3fdca323ab38db4c9015221b9e3fc8c3df79514d"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00027__text_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00027",
+      "template_id": "service",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00027__text_pdf/source.pdf",
+        "sha256": "2eda3943eee3144b06baa6aa01ce80c3309af69270db7426782a3de00d2b30b8"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00027__text_pdf/source-gold.json",
+        "sha256": "3352c07f6daae82c7ddad5f2b5eac7e29abbd76f44b0dc3f1051cf1d8d3d4a2f"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00027__text_pdf/source-row-regions.json",
+        "sha256": "c246c81e63200b0220af190ac1e2b353fd7210812ddd8fd0134ae86ea0996f30"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00027__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "567be1876a39b9129fff92e1e09280b3addc47dcbfab54cac909bb6eb21de3d8",
+          "predicted_rows": 0,
+          "header_present": 13,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00027__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "3478980d5878ea92f5f4d98e84076e53a6dfd9ca69f4ffc04b8a7b39f205ef01",
+          "predicted_rows": 3,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00027__text_pdf/evidence.json",
+        "sha256": "37ce4adf97e3b768539922d7690c826282d63bd96ccfab4479773194640fd852"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00027__text_pdf/aligned-gold-candidate.json",
+        "sha256": "6697a38bce4ab3ce7d1e66aa56895681c5e338ee5cacd97ca56a575b5ea2b99c"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00027__clean_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00027",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00027__clean_png/source.png",
+        "sha256": "7c8edd828e22cc9f715cc2d96735645d18844c30a37f5cd54e7c6b1afc2cd42b"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00027__clean_png/source-gold.json",
+        "sha256": "3352c07f6daae82c7ddad5f2b5eac7e29abbd76f44b0dc3f1051cf1d8d3d4a2f"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00027__clean_png/source-row-regions.json",
+        "sha256": "c246c81e63200b0220af190ac1e2b353fd7210812ddd8fd0134ae86ea0996f30"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00027__clean_png\\geometry_grouping_v2.json",
+          "sha256": "5293a2ebe273a541b76e4d5413717accb9ad25c6a063fd4aacaaa6c8090f37f2",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00027__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "f8a6accdf0952550eab59e080496baaa0d14d2a4ff0d6046059292dc715db724",
+          "predicted_rows": 3,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00027__clean_png/evidence.json",
+        "sha256": "50536eef5bd73aad86a3981329872538846e4566000cef6011360d895e707a3f"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00027__clean_png/aligned-gold-candidate.json",
+        "sha256": "67dffb21a4381a8fc237f55a2f7005aab20994075b920ae2774345cbc026d8d8"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00027__clean_pdf",
+      "split": "train",
+      "base_document_id": "VRSYN2-00027",
+      "template_id": "service",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00027__clean_pdf/source.pdf",
+        "sha256": "af7e9c8e7adf01665c100a79759d5b6e32ef82fe96302ce93d924f2755e84a10"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00027__clean_pdf/source-gold.json",
+        "sha256": "3352c07f6daae82c7ddad5f2b5eac7e29abbd76f44b0dc3f1051cf1d8d3d4a2f"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00027__clean_pdf/source-row-regions.json",
+        "sha256": "c246c81e63200b0220af190ac1e2b353fd7210812ddd8fd0134ae86ea0996f30"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00027__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "d6d93d1648de7888e2fd5f1c9d4fc1904ff38a6a14857fdc756f9a1fc6210ea8",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00027__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "c085745975f1295ea8006e742d9d97a5d286c68a2b9613da265ae0df8b036ae5",
+          "predicted_rows": 3,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00027__clean_pdf/evidence.json",
+        "sha256": "1122de12be2e30862ee0609aa3178b7167aa68ba2aec4bc937fcf86525fcf35c"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00027__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "f3ce721ab44ef4f427dc887aa5ca11f9494766da6380e4d33c63297a06e9a42a"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00027__blur_png",
+      "split": "train",
+      "base_document_id": "VRSYN2-00027",
+      "template_id": "service",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00027__blur_png/source.png",
+        "sha256": "367fcc31ca016b24224b24a3b91952064ebc6cb0ffecb96cfaf716f8b8dec964"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00027__blur_png/source-gold.json",
+        "sha256": "3352c07f6daae82c7ddad5f2b5eac7e29abbd76f44b0dc3f1051cf1d8d3d4a2f"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00027__blur_png/source-row-regions.json",
+        "sha256": "c246c81e63200b0220af190ac1e2b353fd7210812ddd8fd0134ae86ea0996f30"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00027__blur_png\\geometry_grouping_v2.json",
+          "sha256": "6b7cfa561f64a7cbf03a14fd56d2d5c28d1ada7e913d3d2851bf0a646e18752e",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00027__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "0d93f0519165777925fa821ab7f8d6c444356060d86b84a0e21322980c9464d9",
+          "predicted_rows": 3,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00027__blur_png/evidence.json",
+        "sha256": "312632e77b64a75c3417d570fed9bd478e5fdf345f37fa54ed2b5be5b404e97a"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00027__blur_png/aligned-gold-candidate.json",
+        "sha256": "f6ea509848258153a70410513f393929391d0cf5f4b4cdd2fbf2d863073924e6"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00004__text_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00004",
+      "template_id": "table_heavy",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00004__text_pdf/source.pdf",
+        "sha256": "8657b62ace38ffde0557aa2996d5f240c4908d20a318a136eaf159a77dce152a"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00004__text_pdf/source-gold.json",
+        "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00004__text_pdf/source-row-regions.json",
+        "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00004__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "9313d4a5c6263a59836ede544a1494317d3d818e4331739e0bf502fb888d416a",
+          "predicted_rows": 0,
+          "header_present": 13,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00004__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "2a55e5a34a1c14b2b19fc791faef0ff76cf72fb1ce7d7d0f8cd25e1c20d20a36",
+          "predicted_rows": 2,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00004__text_pdf/evidence.json",
+        "sha256": "dd5411d01dbb12bee866a789fa053e35ed3ed067929b03f0a5174424fd220bf7"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00004__text_pdf/aligned-gold-candidate.json",
+        "sha256": "5d1d95bcc558b6c626b418fc7f616b65b91b123c43192c49fd781066ca2c5c2e"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00004__clean_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00004",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00004__clean_png/source.png",
+        "sha256": "7a27a38d87e1f0211f08b38c4300ffd67c4930c9d6f302d56a924d859e747904"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00004__clean_png/source-gold.json",
+        "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00004__clean_png/source-row-regions.json",
+        "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00004__clean_png\\geometry_grouping_v2.json",
+          "sha256": "ce837e5b232b5e29630cda23ce14d13093e6ad7cbfc7770086d3d073f88a7a06",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00004__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "d82bfd3e7bc30ca7f34da1885c30561c63c332272a609ce44385fc0517d4feac",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00004__clean_png/evidence.json",
+        "sha256": "9c907af3f1ade41c2892ef5235a9d74fe89a4799dae0229994e37081494e8418"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00004__clean_png/aligned-gold-candidate.json",
+        "sha256": "83d155df4bfa7e4b64cee1705676ea81968bce3fee80aa18d7be5b56d250c902"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00004__clean_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00004",
+      "template_id": "table_heavy",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00004__clean_pdf/source.pdf",
+        "sha256": "42c6be74ddcdeef060dd56bfe37a915754e646ad96aacd8132deaf7253bc1c2a"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00004__clean_pdf/source-gold.json",
+        "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00004__clean_pdf/source-row-regions.json",
+        "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00004__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "1d47bb162b648eebbad01b73b8283b4c20def9a87edb7b120abd8b42042ba152",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00004__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "87d3a85c392a7dc013658eb540f79187ab885249e9e6b1287ae885fc6ffdc9d1",
+          "predicted_rows": 2,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00004__clean_pdf/evidence.json",
+        "sha256": "bf151dd304a8af26c7c67b03432d53f1a6bc5fc1badccabca49265b70e3192cd"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00004__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "383f2ab6a26a7f3b792fe4225f77360f64aab1e94f7389f9f208415bcbb7993d"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00004__blur_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00004",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 2,
+      "source": {
+        "path": "records/VRSYN2-00004__blur_png/source.png",
+        "sha256": "9436c376ab83d827b5076f8d6dc6d9b94becb082838ba4141ca78a2ec9d4b3e1"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00004__blur_png/source-gold.json",
+        "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00004__blur_png/source-row-regions.json",
+        "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00004__blur_png\\geometry_grouping_v2.json",
+          "sha256": "b314308d72591ed2be0612f81980d3231cad798aeb77d5345013b79f72665d3a",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00004__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "3a7eb0b24c666b361077f897fa6c983a1d818cb37e722181b509a969904c6a16",
+          "predicted_rows": 2,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00004__blur_png/evidence.json",
+        "sha256": "b967d763fd657f76a2277754f902b05d394a2debcdf3c2cd9196fb9146c713a3"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00004__blur_png/aligned-gold-candidate.json",
+        "sha256": "610e23769d890d8ed1f87121fe146bd422313a721d92d90090d5d397b6e68285"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00010__text_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00010",
+      "template_id": "table_heavy",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00010__text_pdf/source.pdf",
+        "sha256": "543c91170d7eba608e2aec4a6cef58c3b56b7a1bb9cb70294b32e13249a389f0"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00010__text_pdf/source-gold.json",
+        "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00010__text_pdf/source-row-regions.json",
+        "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00010__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "d6bd761d96ee21ddc81215e5b9a45337778d8a33f1d7659153aa42aab8fd2d74",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00010__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "3107ef13821f000e7e6cf2dfb65cc176d6422e457985b26c999c2955b3dc8c86",
+          "predicted_rows": 3,
+          "header_present": 11,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00010__text_pdf/evidence.json",
+        "sha256": "3a223c0ff5243657d4645dec70944bb36001b786ce7b3e94f456e7e3e58a7208"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00010__text_pdf/aligned-gold-candidate.json",
+        "sha256": "7aad38ba7b6c567c3f7cf100f0611d055c690bf927ff00b5ba445eda63221678"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00010__clean_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00010",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00010__clean_png/source.png",
+        "sha256": "8b57f48413b6ee1405a5632193af814b2f015651ebecc388e11006e7a4e33a6a"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00010__clean_png/source-gold.json",
+        "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00010__clean_png/source-row-regions.json",
+        "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00010__clean_png\\geometry_grouping_v2.json",
+          "sha256": "5b2bb02876a3c67939d957c5884fb55b2406becb3157bfe77a052ca1465d8823",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00010__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "2267084586341796d64f9614576c4ad7b446a1e82ec628ca27ab2956a5914961",
+          "predicted_rows": 3,
+          "header_present": 9,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00010__clean_png/evidence.json",
+        "sha256": "b4fbdd4af3ddeac8555dcae8e440e47ecbfab82e78264186bcd5f0e96e746a41"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00010__clean_png/aligned-gold-candidate.json",
+        "sha256": "64283a0be256a443d82c0aa627d0fdf807f02870b80cfc376f9b734dea5485b0"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00010__clean_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00010",
+      "template_id": "table_heavy",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00010__clean_pdf/source.pdf",
+        "sha256": "f7977ccb4682c9ce11e416b82294989aebf6f92d19e5dfbe314521913872fae4"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00010__clean_pdf/source-gold.json",
+        "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00010__clean_pdf/source-row-regions.json",
+        "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00010__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "576b804ea0df0f8c9c63f60ba269689238f922f68ada64babe9f243a35bdf3b9",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00010__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "d9b6570a9b81e46b7d7dea8f3922b6db41b512b2aafe9d81998ce5225da3c03c",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00010__clean_pdf/evidence.json",
+        "sha256": "ea5c5012a007a392e637e0a9bfdd40f167cc9a8d4abba7a5960d232dc24a2d89"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00010__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "f11e3c6c9939110f240a6f9a23bc2d6e24de5ce84ebcc6d3ff25b0234c737178"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00010__blur_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00010",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00010__blur_png/source.png",
+        "sha256": "2d5f70740947bab638943adb311db0ab810286ffb7331deebcb1812d404d29cf"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00010__blur_png/source-gold.json",
+        "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00010__blur_png/source-row-regions.json",
+        "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00010__blur_png\\geometry_grouping_v2.json",
+          "sha256": "4e5dc0ea84bea37ff132d28a82dc8f5d889511a5a107523c300639db37b42782",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00010__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "d0f1f5c44d07e74ca9f7cdcaa2967db4cf7743a48bd43018217ee01fa7081213",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00010__blur_png/evidence.json",
+        "sha256": "20802d2bb10d1909d729c345f108dbfbba1601e5d706d839cf6c9ea3e64afc0d"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00010__blur_png/aligned-gold-candidate.json",
+        "sha256": "e3ef8a641b04864ad5030d01da366fdfcbb9ceb2cb33e0ec38eaaca2661ae596"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00016__text_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00016",
+      "template_id": "table_heavy",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00016__text_pdf/source.pdf",
+        "sha256": "41c100df07a708da31d23ee3149cd5cd79241b269f53a80c332a92f122e9ffa4"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00016__text_pdf/source-gold.json",
+        "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00016__text_pdf/source-row-regions.json",
+        "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00016__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "c48b2823a09859d261b22f9247982ba1fb616a3b03218cf008ef948e51dc065b",
+          "predicted_rows": 0,
+          "header_present": 12,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00016__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "9868c1835b08dc025b524ee31fb26873a30f24ff7c8c9e4a0cebdf03644cd211",
+          "predicted_rows": 5,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00016__text_pdf/evidence.json",
+        "sha256": "70c4b5296070308791cea09ac52efd15ce83e55f0280dc06ec841bf7231e075c"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00016__text_pdf/aligned-gold-candidate.json",
+        "sha256": "b20f490d48f9d35376064c187990dd6958364b10625700560e362cc8bf14a3c5"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00016__clean_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00016",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00016__clean_png/source.png",
+        "sha256": "9607252e873dbcd288cc448e85ad0ccb11a622d2e80f58c048ef87a15f9b3fc8"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00016__clean_png/source-gold.json",
+        "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00016__clean_png/source-row-regions.json",
+        "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00016__clean_png\\geometry_grouping_v2.json",
+          "sha256": "9e0cd9ee313ffbf8045580860e1e1b76a811021be49db494f6fd6a690dbcdd5c",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00016__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "47c3958eae898a014be000f924a55da7c4ed9d23a1c3ba3f79c8c55c237e4e3d",
+          "predicted_rows": 5,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00016__clean_png/evidence.json",
+        "sha256": "cceccd0adcd582a95dbe9816fa413e0fa6140b2213e6ce8aff49052ca76885a6"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00016__clean_png/aligned-gold-candidate.json",
+        "sha256": "c5d87acdc689647ea6218014214a1a12f1b2ae38c28f6c0a009db25058a477f6"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00016__clean_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00016",
+      "template_id": "table_heavy",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00016__clean_pdf/source.pdf",
+        "sha256": "c5d297e1625e78e9be84947daa285f17a7a0f329273ea1cc1a6a98549fcb8e70"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00016__clean_pdf/source-gold.json",
+        "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00016__clean_pdf/source-row-regions.json",
+        "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00016__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "12b026105b49a4a94e36fbbcc27aab8ed58f081b0ede979c45024b3bad1307f1",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00016__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "9fccd9db5fa964aecfbb03a77a2a444eb33857c37c87927b25d35c88bc6ffae1",
+          "predicted_rows": 0,
+          "header_present": 10,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00016__clean_pdf/evidence.json",
+        "sha256": "d407f66b58ef35e6504bf6a8744ee901271af664005ecc66904660d3adb944d7"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00016__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "d6f0510c5b3d14b6e10e58fc4d1ed52a3401c2640dbda1b0c6bd02185e457c14"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00016__blur_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00016",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 5,
+      "source": {
+        "path": "records/VRSYN2-00016__blur_png/source.png",
+        "sha256": "2eaebf3fa02c8932e2efb1bb40c6a27acc6823f5d5533fbfda5a80b108356c11"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00016__blur_png/source-gold.json",
+        "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00016__blur_png/source-row-regions.json",
+        "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00016__blur_png\\geometry_grouping_v2.json",
+          "sha256": "bdd218d7fd821c2374a262661977a80665f9bfce7c3cad21cfc359cd0ce88500",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00016__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "cf493dfa3362c95da7b4fb0fb3be85a5dfcb026a7fbc17088037cf52c058557c",
+          "predicted_rows": 5,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00016__blur_png/evidence.json",
+        "sha256": "3e7093e2919e250d740478d1974b81ac96168aa45b887503f3cd88338a1533f2"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00016__blur_png/aligned-gold-candidate.json",
+        "sha256": "81bc512cce8b1ca3935a06e7735551307db15d228e69f641dfead3c70a31eb50"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00022__text_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00022",
+      "template_id": "table_heavy",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00022__text_pdf/source.pdf",
+        "sha256": "c21443bfc0deda22f26074867775c956b926ed216c99e29c8b2f29b28b78ed28"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00022__text_pdf/source-gold.json",
+        "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00022__text_pdf/source-row-regions.json",
+        "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00022__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "143a54be67531f607a24c0f1d02e209484aa8dc53ff3e20dc5870558e27db378",
+          "predicted_rows": 0,
+          "header_present": 13,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00022__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "0a38a6b05b34b10a7a72e3ee8a2edda231943507c425bbbc81e04c5beb30cdfa",
+          "predicted_rows": 4,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00022__text_pdf/evidence.json",
+        "sha256": "af6f683c1e78ffd2fe401e6807bb41ecb2e35e5ff2a08a0ffa80803a5e8424ea"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00022__text_pdf/aligned-gold-candidate.json",
+        "sha256": "11f2d6488416563b257e3bb8bf8c247457901bc2b7b31f4c7dff5bbc9e5f230f"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00022__clean_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00022",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00022__clean_png/source.png",
+        "sha256": "c9b863971e232293b72ef45be0a4c423547d8e8cc87a9a0421abe970fe7608e9"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00022__clean_png/source-gold.json",
+        "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00022__clean_png/source-row-regions.json",
+        "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00022__clean_png\\geometry_grouping_v2.json",
+          "sha256": "675706275b01c1e09e6f62d4c6dbf7811697930f08a1e02a4b8e2f50962bcd15",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00022__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "089b4548255e28e45ca4c52a3cf8d7c884ec36c5ea79c69d24f5aa30a0ab439a",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00022__clean_png/evidence.json",
+        "sha256": "93821044b2c7afa2534f132f937b14bfc390ceef0c84e6bbc48822b857d74767"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00022__clean_png/aligned-gold-candidate.json",
+        "sha256": "6928acb137899ce0ad3431705972d365117dd26f6529e892c8af710e37c45cd7"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00022__clean_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00022",
+      "template_id": "table_heavy",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00022__clean_pdf/source.pdf",
+        "sha256": "31622a1a237a410817a8e39849dc1621957828af669d54bd3913f50b46ba54d0"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00022__clean_pdf/source-gold.json",
+        "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00022__clean_pdf/source-row-regions.json",
+        "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00022__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "14865c634928be3ccb04d66660a3ceea6a54ab1d0f0f9d323686dd4add30b1e4",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00022__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "6534b019f350294464e0a674f8ac26791c36b54d1d246b671934ebe77231b2f9",
+          "predicted_rows": 0,
+          "header_present": 7,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00022__clean_pdf/evidence.json",
+        "sha256": "4a67af5e0c144537b51af829c4be3ae9ce24070e7068f564145d5b622f8778d5"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00022__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "18b168599a3decbdde0408ed9858059f70cd2631c158a6489a69046fd2c8457f"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00022__blur_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00022",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 4,
+      "source": {
+        "path": "records/VRSYN2-00022__blur_png/source.png",
+        "sha256": "ee7b2afc20c8e0747f0163190b3852acef0a365eddef5454f8cb3912e060ccd7"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00022__blur_png/source-gold.json",
+        "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00022__blur_png/source-row-regions.json",
+        "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00022__blur_png\\geometry_grouping_v2.json",
+          "sha256": "9882412a610b83ec2d8480211f48579bd5e63681ea3e720adfd9c87056d34005",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00022__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "5067bcc0a42c3d6820be34bc6e8424c083591a1fcdea2f634904596522df650b",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00022__blur_png/evidence.json",
+        "sha256": "0500398f64077fe67c5386b74e58dc63c4e6082a69ab8414805899d0fb1d0cb3"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00022__blur_png/aligned-gold-candidate.json",
+        "sha256": "25c7b952bf8b0429f0b9f5819125860477727b1db5c7a52655ef9385c1528a57"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00028__text_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00028",
+      "template_id": "table_heavy",
+      "input_type": "text_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00028__text_pdf/source.pdf",
+        "sha256": "8d6972838afbfa183dbea1dd9e56ae33ef98d6df599e5c239f9f7a8499b3313b"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00028__text_pdf/source-gold.json",
+        "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00028__text_pdf/source-row-regions.json",
+        "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00028__text_pdf\\geometry_grouping_v2.json",
+          "sha256": "f9a0566c761cdfcd8b86d87b8eac5b51a9d09b9c1b5732baf8a0145ade91a039",
+          "predicted_rows": 0,
+          "header_present": 13,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00028__text_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "51ae4e261d487db56102aefd68a605b68e76e5ef10dd2e33dca28319b57dd2dd",
+          "predicted_rows": 3,
+          "header_present": 13,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00028__text_pdf/evidence.json",
+        "sha256": "3e98bc8f51977ebe528c3a5a73691de50823956c16a4ad00587753daa5fd04c1"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00028__text_pdf/aligned-gold-candidate.json",
+        "sha256": "242d7f69dec7e063ff42a463b76358750d3b7a0a6e5b930386087fb097efe951"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00028__clean_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00028",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00028__clean_png/source.png",
+        "sha256": "b7d82a81bd9ceece387a2a0873b4f59e989c5b3a1a2e04271b54181db3e071d6"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00028__clean_png/source-gold.json",
+        "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00028__clean_png/source-row-regions.json",
+        "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00028__clean_png\\geometry_grouping_v2.json",
+          "sha256": "c5639d0fdb75bc39ca24ce85690af86a7d316686cfc67cf3aff6dd2a716b073c",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00028__clean_png\\column_interval_grouping_v2_1.json",
+          "sha256": "497e2d60c23183cacab9b4626ea89e2859cc3a13e63311119654269e67ed0c71",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00028__clean_png/evidence.json",
+        "sha256": "dc298e5b53cd4151fa7b9e31851ae4e8351c8a5ba6200c531398c4a6b70d1e83"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00028__clean_png/aligned-gold-candidate.json",
+        "sha256": "af31e9d9b3fad982b97de4526132c033734b69170a0d12be003e21cc924bfb00"
+      },
+      "grouping_outputs_identical": true
+    },
+    {
+      "record_id": "VRSYN2-00028__clean_pdf",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00028",
+      "template_id": "table_heavy",
+      "input_type": "scanned_pdf",
+      "augmentation_type": "clean",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00028__clean_pdf/source.pdf",
+        "sha256": "3f67f89287304c0f82cd4da02b339f45ba313c64b8f19a04ff882708f0feb402"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00028__clean_pdf/source-gold.json",
+        "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00028__clean_pdf/source-row-regions.json",
+        "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00028__clean_pdf\\geometry_grouping_v2.json",
+          "sha256": "893b990560a38729e554476edfee6d66e9838c914a8029bc508b4aa6819c9d89",
+          "predicted_rows": 0,
+          "header_present": 8,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00028__clean_pdf\\column_interval_grouping_v2_1.json",
+          "sha256": "852f4fec1a64b3f00962554f7f4f8b69feba9e3872f66419e02281e696364704",
+          "predicted_rows": 3,
+          "header_present": 8,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00028__clean_pdf/evidence.json",
+        "sha256": "13d503bb793957d7cba04a52d7fc0784046f3961f18034814970a6467713fdb7"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00028__clean_pdf/aligned-gold-candidate.json",
+        "sha256": "52c8ad85d2a912ece2394a74a81b9fb6d86c5db59a881ff5a284c0c8f58befe3"
+      },
+      "grouping_outputs_identical": false
+    },
+    {
+      "record_id": "VRSYN2-00028__blur_png",
+      "split": "validation",
+      "base_document_id": "VRSYN2-00028",
+      "template_id": "table_heavy",
+      "input_type": "image",
+      "augmentation_type": "blur",
+      "qa_status": "PENDING_REVIEW",
+      "source_gold_rows_unreviewed": 3,
+      "source": {
+        "path": "records/VRSYN2-00028__blur_png/source.png",
+        "sha256": "ffd80fac9f85db4580d72d264c70a7cc647227e4af326dca3123ca3d03830347"
+      },
+      "source_gold": {
+        "path": "records/VRSYN2-00028__blur_png/source-gold.json",
+        "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+      },
+      "source_row_regions": {
+        "path": "records/VRSYN2-00028__blur_png/source-row-regions.json",
+        "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+      },
+      "variants": {
+        "geometry_grouping_v2": {
+          "prediction": "predictions\\VRSYN2-00028__blur_png\\geometry_grouping_v2.json",
+          "sha256": "543457b5c00ee63a413a9ebb0ad4e32abc9708eb5573c82748ac8dfce006db46",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        },
+        "column_interval_grouping_v2_1": {
+          "prediction": "predictions\\VRSYN2-00028__blur_png\\column_interval_grouping_v2_1.json",
+          "sha256": "961dd94a59bcc02020b5728ea2b1bff6916f2a15e78f9925dbb02a353badbcb8",
+          "predicted_rows": 0,
+          "header_present": 6,
+          "consistency_warnings": 0
+        }
+      },
+      "evidence": {
+        "path": "records/VRSYN2-00028__blur_png/evidence.json",
+        "sha256": "769b1b63a1dfc4440b3f3b8d58bb97b4923882146877370bc6fbce9f8a35a66b"
+      },
+      "candidate_gold": {
+        "path": "records/VRSYN2-00028__blur_png/aligned-gold-candidate.json",
+        "sha256": "441bc26690814efc61e2e526f3862c90009469b966ad63561e01c1669d84df82"
+      },
+      "grouping_outputs_identical": true
+    }
+  ],
+  "manifest_sha256": {
+    "train": "cdb8d9f591cd5ad4e7ed2cae661367e9e5ec7fdb468b67805f0d45101453ea9d",
+    "validation": "44cf5f89c5d7f4a8213b096fd39409277afa293aa9625f4e466bd64241c76711"
+  },
+  "qa_status": "PENDING_REVIEW",
+  "grants_verified": false,
+  "final_test_opened": false,
+  "base_documents": 20,
+  "templates": 4,
+  "counts_by_input": {
+    "text_pdf": 20,
+    "image": 40,
+    "scanned_pdf": 20
+  },
+  "failures_by_stage": {},
+  "inspection_status": "PASS_INTEGRITY_AND_KIE_CONTRACT_ONLY"
+}

@@ -1,0 +1,59 @@
+{
+  "version": "1.0.0-dev-candidate",
+  "archive_sha256": "6661c858c0564820a035ae0f62951647d19c74dd0c789aa4e56a072dfb4d9790",
+  "bytes": 13185327,
+  "integrity": {
+    "status": "PASS_INTEGRITY_ONLY",
+    "errors": [],
+    "counts": {
+      "total_sources": 80,
+      "reader_success": 80,
+      "reader_failed": 0
+    },
+    "independent_base_documents": 20,
+    "qa_status": "PENDING_REVIEW",
+    "grants_verified": false,
+    "final_test_included": false,
+    "scope": "Artifact bytes, source preservation, real block IDs, counts and split leakage only"
+  },
+  "summary": {
+    "total_sources": 80,
+    "independent_base_documents": 20,
+    "reader_success": 80,
+    "reader_failed": 0,
+    "fully_aligned_candidates": 80,
+    "partially_aligned_candidates": 0,
+    "reviewed_records": 0,
+    "qa_status": "PENDING_REVIEW",
+    "experiment_status": "PENDING_PROTOCOL",
+    "source_gold_independent_of_predictions": true,
+    "oracle_delivered": false,
+    "reader_commit": "e64fbf5e513c1e406339cfbecc1d01c3d1be4c21",
+    "reader_source_sha256": {
+      "ai\\document_reader\\backend.py": "a31c42989ef546e36cfabb73d4ce00459e4c5aab0cb6359d2d2bd8318b40a749",
+      "ai\\document_reader\\contract.py": "435690553f82215eab2655a25d1f333e40b7f28753774b6ee8d4d07c88b2cd64",
+      "ai\\document_reader\\pipeline.py": "01244f388a32c173f60ef8392579d5460d222bd960f9cccf88069a977569b42a",
+      "ai\\document_reader\\__init__.py": "f487cca00a45f1e125e7ce5e952ea3db504082e81b7d0a533158681207ec0d2d",
+      "ai\\ocr\\artifacts.py": "271a99f76f212b83e0cc2b58afb730e7a033355d96297ef8bf42797ca16b8a0d",
+      "ai\\ocr\\contract.py": "20fff74f3c4da42278a1c03cc9bd6c44f09d51c4c604b00d3fe76b30f09ecb5c",
+      "ai\\ocr\\field_analysis.py": "aced8f5955446ed54bfa3af0ad460c09ba0a440cd8630def6d17fd61c4eb0d9e",
+      "ai\\ocr\\pipeline.py": "7fe423e320706b309ab4604bc51f6dfd6fb995a5d8590dc2ebc13bf4272e2d4f",
+      "ai\\ocr\\__init__.py": "25ec90c319f38c0605302b9de63d06a230cadf6d402ee61f445f61bdc3534686"
+    },
+    "packages": {
+      "paddleocr": "3.0.3",
+      "paddlepaddle": "3.0.0",
+      "paddlex": "3.0.3",
+      "pypdfium2": "5.12.1",
+      "Pillow": "10.4.0"
+    },
+    "python": "3.12.10",
+    "selection_sha256": "d9f09fed1396f647295a320cfc19aa3d0183d794a65cb4e9b57267e7a9a8f6f5",
+    "final_test_included": false,
+    "train_manifest_sha256": "cdb8d9f591cd5ad4e7ed2cae661367e9e5ec7fdb468b67805f0d45101453ea9d",
+    "validation_manifest_sha256": "44cf5f89c5d7f4a8213b096fd39409277afa293aa9625f4e466bd64241c76711",
+    "failure_rows": 594,
+    "mapping_version": "source-spatial-candidate-0.3",
+    "gallery_includes_all_sources": true
+  }
+}

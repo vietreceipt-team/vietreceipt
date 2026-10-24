@@ -86,6 +86,10 @@ Synthetic/public data must keep dataset provenance and split identity. Synthetic
 
 See `docs/dataset-strategy.md`.
 
+TV2 development data and TV3 handoff: `docs/tv2-synthetic-v0.md`.
+Issue #47 acceptance status, public-source audit and verification evidence:
+`docs/data/tv2-status.md`. Generated development data is not a frozen final test.
+
 ## Architecture
 
 ```text

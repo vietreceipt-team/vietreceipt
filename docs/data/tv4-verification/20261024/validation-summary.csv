@@ -1,0 +1,4 @@
+metric,baseline,variant,delta,status,evaluated,required
+header_micro_accuracy,,,,WAITING_FOR_VERIFIED_V2_GOLD,0,20
+lines.complete_line_accuracy,,,,WAITING_FOR_VERIFIED_V2_GOLD,0,20
+lines.detection_f1,,,,WAITING_FOR_VERIFIED_V2_GOLD,0,20

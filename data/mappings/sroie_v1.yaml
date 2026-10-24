@@ -1,0 +1,13 @@
+version: public-mapping-0.2
+family: sroie
+native_format: task_3_key_value_JSON
+rules:
+  company: seller_name
+  address: seller_address
+  total: total_amount
+deferred:
+  date: "Retained natively; normalize only after snapshot-specific date format review."
+unsupported: [seller_tax_id, buyer_tax_id, invoice_symbol, line_items]
+metric_policy: "Report SROIE separately and score only supported_fields. Never infer currency from country."
+raw_policy: "Preserve native total string; strip explicit leading dollar or RM marker for numeric value only; do not infer canonical currency; blank total remains UNKNOWN."
+curated_family: sroie_curated

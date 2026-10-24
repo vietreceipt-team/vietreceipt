@@ -1,0 +1,24 @@
+{
+  "family": "cord",
+  "snapshot": "7f0115a4b758a71d6473b8d085751692da2fef98",
+  "source": "https://huggingface.co/datasets/naver-clova-ix/cord-v2",
+  "license_access": "CC-BY-4.0 NAVER CLOVA; original annotation retained",
+  "input_sha256": "302263f8d3c6af329307b8c675992d445a3b9a1ba98e3419c4e12c5a5b4d4baf",
+  "usable_samples": 7,
+  "rejected": [
+    {
+      "line": 1,
+      "error": "Ambiguous numeric grouping: 40,000."
+    },
+    {
+      "line": 9,
+      "error": "Unsupported numeric value: Rp0.000"
+    },
+    {
+      "line": 10,
+      "error": "Unsupported numeric value: @20.000"
+    }
+  ],
+  "status": "NEEDS_REVIEW",
+  "metrics_eligible_fields_only": true
+}
