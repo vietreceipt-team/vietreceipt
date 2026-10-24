@@ -1,6 +1,7 @@
 """Real PDFium Reader on a generated PDF; no OCR engine doubles or QA claims."""
 
 import copy
+import importlib.util
 import io
 import unittest
 from uuid import UUID
@@ -9,6 +10,13 @@ from ai.kie.v2 import extract_with_grouping
 from ai.kie.v2.config import GROUPING_CONFIGURATIONS, HEADER_FIELDS, LINE_FIELDS
 from ai.kie.v2.evaluation import metrics, validate_gold
 from tests.kie_v2_fixtures import KIE_RUN, OCR_RUN, RECEIPT
+
+
+READER_TEST_DEPENDENCIES = ("reportlab", "pypdfium2")
+READER_TEST_AVAILABLE = all(
+    importlib.util.find_spec(package) is not None
+    for package in READER_TEST_DEPENDENCIES
+)
 
 
 def reader_case():
@@ -94,6 +102,10 @@ def reader_case():
     return pdf, evidence, audit, gold
 
 
+@unittest.skipUnless(
+    READER_TEST_AVAILABLE,
+    "requires optional reportlab and pypdfium2 Reader test dependencies",
+)
 class ReaderGroupingTests(unittest.TestCase):
     def test_real_reader_output_alignment_and_both_groupings(self):
         _, evidence, _, gold = reader_case()
