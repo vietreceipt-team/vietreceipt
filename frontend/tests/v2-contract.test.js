@@ -30,6 +30,10 @@ test("evidence nhiều trang giữ block theo đúng trang",()=>{
   const evidence={schema_version:"document-2.0",pages:[{page_index:0,evidence:{blocks:[{block_id:"p0"}]}},{page_index:1,evidence:{blocks:[{block_id:"p1"}]}}]};
   assert.deepEqual(evidencePages(evidence).map((blocks)=>blocks[0].block_id),["p0","p1"]);
 });
+test("evidence dùng page_index, không dùng thứ tự trả về hoặc nén trang thiếu",()=>{
+  const evidence={schema_version:"document-2.0",pages:[{page_index:2,evidence:{blocks:[{block_id:"p2"}]}},{page_index:0,evidence:{blocks:[{block_id:"p0"}]}}]};
+  assert.deepEqual(evidencePages(evidence).map(blocks=>blocks.map(block=>block.block_id)),[["p0"],[],["p2"]]);
+});
 test("upload chỉ trả success sau HTTP 201 và multipart file",async()=>{
   const original=globalThis.fetch;let calls=0;
   globalThis.fetch=async(url,init)=>{calls++;assert.equal(url,"/api/v2/receipts");assert.equal(init.method,"POST");assert.equal(init.body.get("file").name,"a.pdf");return Response.json({...detail(),status:"UPLOADED"},{status:201});};

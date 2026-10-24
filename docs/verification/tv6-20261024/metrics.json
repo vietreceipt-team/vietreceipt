@@ -1,0 +1,11 @@
+{
+  "schema_version": "tv6-review-workflow-1.0",
+  "input_files": 4,
+  "passed": 4,
+  "failed": 0,
+  "independent_document_count": null,
+  "accuracy": null,
+  "user_study_participants": 0,
+  "baseline_main": "07c7cd00b0a12a555ec98f1ba45c7d1f1584e5eb",
+  "note": "Post-merge integration for Backend #70/KIE #69. Related synthetic examples only; no human study or final benchmark."
+}

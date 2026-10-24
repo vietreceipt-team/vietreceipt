@@ -90,3 +90,5 @@ html{overflow-x:clip}
 body,main{overflow-x:clip}
 
 @media(max-width:700px){.review-table{min-width:0;width:100%;display:block}.review-table thead{display:none}.review-table tbody,.review-table tr,.review-table th,.review-table td{display:block;width:100%;min-width:0}.review-table tr{margin-bottom:14px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}.review-table th{background:#f8fafc}.review-table td{border-left:0;border-right:0}}
+
+.app-v2 .review-value-status{display:block;width:fit-content;font-size:.72rem;line-height:1.5;margin-top:6px;padding:2px 6px;border-radius:5px}.app-v2 #pilot-controls{margin-top:16px;font-size:.8rem;color:#475569}
