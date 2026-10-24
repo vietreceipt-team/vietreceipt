@@ -1,0 +1,609 @@
+{
+  "scope": "SYNTHETIC_UNIT_DIAGNOSTIC_ONLY; no TV2 QA or benchmark eligibility",
+  "sample_id": "narrow-right-aligned",
+  "source": "tests/kie_v2_grouping_fixtures.py:narrow_numbers",
+  "evidence": {
+    "schema_version": "1.3",
+    "receipt_id": "00000000-0000-4000-8000-000000000049",
+    "ocr_run_id": "00000000-0000-4000-8000-000000000055",
+    "engine": {
+      "name": "synthetic-test-double",
+      "version": "synthetic-1"
+    },
+    "image": {
+      "width_px": 1000,
+      "height_px": 1400
+    },
+    "blocks": [
+      {
+        "block_id": "p0_b0",
+        "text": "Currency: VND",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.05,
+            "y": 0.1
+          },
+          {
+            "x": 0.35,
+            "y": 0.1
+          },
+          {
+            "x": 0.35,
+            "y": 0.114
+          },
+          {
+            "x": 0.05,
+            "y": 0.114
+          }
+        ],
+        "reading_order": 0
+      },
+      {
+        "block_id": "p0_b1",
+        "text": "Description",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.05,
+            "y": 0.3
+          },
+          {
+            "x": 0.3,
+            "y": 0.3
+          },
+          {
+            "x": 0.3,
+            "y": 0.314
+          },
+          {
+            "x": 0.05,
+            "y": 0.314
+          }
+        ],
+        "reading_order": 1
+      },
+      {
+        "block_id": "p0_b2",
+        "text": "Unit",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.32,
+            "y": 0.3
+          },
+          {
+            "x": 0.38,
+            "y": 0.3
+          },
+          {
+            "x": 0.38,
+            "y": 0.314
+          },
+          {
+            "x": 0.32,
+            "y": 0.314
+          }
+        ],
+        "reading_order": 2
+      },
+      {
+        "block_id": "p0_b3",
+        "text": "Quantity",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.4,
+            "y": 0.3
+          },
+          {
+            "x": 0.54,
+            "y": 0.3
+          },
+          {
+            "x": 0.54,
+            "y": 0.314
+          },
+          {
+            "x": 0.4,
+            "y": 0.314
+          }
+        ],
+        "reading_order": 3
+      },
+      {
+        "block_id": "p0_b4",
+        "text": "Unit price",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.56,
+            "y": 0.3
+          },
+          {
+            "x": 0.74,
+            "y": 0.3
+          },
+          {
+            "x": 0.74,
+            "y": 0.314
+          },
+          {
+            "x": 0.56,
+            "y": 0.314
+          }
+        ],
+        "reading_order": 4
+      },
+      {
+        "block_id": "p0_b5",
+        "text": "Amount",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.77,
+            "y": 0.3
+          },
+          {
+            "x": 0.96,
+            "y": 0.3
+          },
+          {
+            "x": 0.96,
+            "y": 0.314
+          },
+          {
+            "x": 0.77,
+            "y": 0.314
+          }
+        ],
+        "reading_order": 5
+      },
+      {
+        "block_id": "p0_b6",
+        "text": "Service A",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.05,
+            "y": 0.35
+          },
+          {
+            "x": 0.3,
+            "y": 0.35
+          },
+          {
+            "x": 0.3,
+            "y": 0.364
+          },
+          {
+            "x": 0.05,
+            "y": 0.364
+          }
+        ],
+        "reading_order": 6
+      },
+      {
+        "block_id": "p0_b7",
+        "text": "box",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.32,
+            "y": 0.35
+          },
+          {
+            "x": 0.38,
+            "y": 0.35
+          },
+          {
+            "x": 0.38,
+            "y": 0.364
+          },
+          {
+            "x": 0.32,
+            "y": 0.364
+          }
+        ],
+        "reading_order": 7
+      },
+      {
+        "block_id": "p0_b8",
+        "text": "2",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.52,
+            "y": 0.35
+          },
+          {
+            "x": 0.54,
+            "y": 0.35
+          },
+          {
+            "x": 0.54,
+            "y": 0.364
+          },
+          {
+            "x": 0.52,
+            "y": 0.364
+          }
+        ],
+        "reading_order": 8
+      },
+      {
+        "block_id": "p0_b9",
+        "text": "50000",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.69,
+            "y": 0.35
+          },
+          {
+            "x": 0.74,
+            "y": 0.35
+          },
+          {
+            "x": 0.74,
+            "y": 0.364
+          },
+          {
+            "x": 0.69,
+            "y": 0.364
+          }
+        ],
+        "reading_order": 9
+      },
+      {
+        "block_id": "p0_b10",
+        "text": "100000",
+        "confidence": 0.98,
+        "polygon": [
+          {
+            "x": 0.9,
+            "y": 0.35
+          },
+          {
+            "x": 0.96,
+            "y": 0.35
+          },
+          {
+            "x": 0.96,
+            "y": 0.364
+          },
+          {
+            "x": 0.9,
+            "y": 0.364
+          }
+        ],
+        "reading_order": 10
+      }
+    ],
+    "average_confidence": 0.98,
+    "duration_ms": 0
+  },
+  "expected_values_independently_specified": {
+    "description": "Service A",
+    "unit": "box",
+    "quantity": 2,
+    "unit_price": 50000,
+    "amount": 100000
+  },
+  "variants": {
+    "geometry_grouping_v2": {
+      "extractor": {
+        "name": "deterministic-invoice-kie",
+        "version": "2.0.4"
+      },
+      "configuration": {
+        "name": "invoice-baseline",
+        "version": "2.1.0"
+      },
+      "row": {
+        "description": {
+          "raw_text": "Service A",
+          "predicted_value": "Service A",
+          "normalized_value": "Service A",
+          "normalization": {
+            "rule": "identity_string",
+            "version": "normalization-v0.1"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b6"
+          ]
+        },
+        "unit": {
+          "raw_text": "box",
+          "predicted_value": "box",
+          "normalized_value": "box",
+          "normalization": {
+            "rule": "identity_string",
+            "version": "normalization-v0.1"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b7"
+          ]
+        },
+        "quantity": {
+          "raw_text": null,
+          "predicted_value": null,
+          "normalized_value": null,
+          "normalization": null,
+          "value_status": "UNKNOWN",
+          "confidence": null,
+          "heuristic_score": 0.0,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": true,
+          "review_reasons": [
+            "NO_CANDIDATE"
+          ],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": []
+        },
+        "unit_price": {
+          "raw_text": "2\n50000",
+          "predicted_value": "2\n50000",
+          "normalized_value": null,
+          "normalization": null,
+          "value_status": "AMBIGUOUS",
+          "confidence": null,
+          "heuristic_score": 0.8,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": true,
+          "review_reasons": [
+            "NORMALIZATION_FAILED",
+            "MULTIPLE_CANDIDATES"
+          ],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b8",
+            "p0_b9"
+          ]
+        },
+        "amount": {
+          "raw_text": "100000",
+          "predicted_value": "100000",
+          "normalized_value": 100000,
+          "normalization": {
+            "rule": "vnd_plain_integer",
+            "version": "normalization-v0.1"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b10"
+          ]
+        },
+        "line_id": "line-0001",
+        "source_block_ids": [
+          "p0_b6",
+          "p0_b7",
+          "p0_b8",
+          "p0_b9",
+          "p0_b10"
+        ],
+        "review_policy_version": "invoice-review-2.0.0",
+        "review_reasons": [
+          "NO_CANDIDATE",
+          "NORMALIZATION_FAILED",
+          "MULTIPLE_CANDIDATES"
+        ],
+        "machine_needs_review": true
+      },
+      "cells_correct": {
+        "description": true,
+        "unit": true,
+        "quantity": false,
+        "unit_price": false,
+        "amount": true
+      },
+      "row_counts": {
+        "matched": 1,
+        "predicted": 1,
+        "gold": 1
+      },
+      "row_detection_f1": 1.0,
+      "matched_cell_accuracy": 0.6,
+      "complete_line_accuracy": 0.0
+    },
+    "column_interval_grouping_v2_1": {
+      "extractor": {
+        "name": "deterministic-invoice-kie",
+        "version": "2.1.0"
+      },
+      "configuration": {
+        "name": "invoice-column-intervals",
+        "version": "2.1.0"
+      },
+      "row": {
+        "description": {
+          "raw_text": "Service A",
+          "predicted_value": "Service A",
+          "normalized_value": "Service A",
+          "normalization": {
+            "rule": "identity_string",
+            "version": "normalization-v0.1"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b6"
+          ]
+        },
+        "unit": {
+          "raw_text": "box",
+          "predicted_value": "box",
+          "normalized_value": "box",
+          "normalization": {
+            "rule": "identity_string",
+            "version": "normalization-v0.1"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b7"
+          ]
+        },
+        "quantity": {
+          "raw_text": "2",
+          "predicted_value": "2",
+          "normalized_value": 2.0,
+          "normalization": {
+            "rule": "quantity_decimal_no_grouping",
+            "version": "invoice-normalization-2.0.0"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b8"
+          ]
+        },
+        "unit_price": {
+          "raw_text": "50000",
+          "predicted_value": "50000",
+          "normalized_value": 50000,
+          "normalization": {
+            "rule": "vnd_plain_integer",
+            "version": "normalization-v0.1"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b9"
+          ]
+        },
+        "amount": {
+          "raw_text": "100000",
+          "predicted_value": "100000",
+          "normalized_value": 100000,
+          "normalization": {
+            "rule": "vnd_plain_integer",
+            "version": "normalization-v0.1"
+          },
+          "value_status": "PRESENT",
+          "confidence": null,
+          "heuristic_score": 0.95,
+          "score_version": "invoice-heuristic-2.0.0",
+          "machine_needs_review": false,
+          "review_reasons": [],
+          "review_policy_version": "invoice-review-2.0.0",
+          "source_block_ids": [
+            "p0_b10"
+          ]
+        },
+        "line_id": "line-0001",
+        "source_block_ids": [
+          "p0_b6",
+          "p0_b7",
+          "p0_b8",
+          "p0_b9",
+          "p0_b10"
+        ],
+        "review_policy_version": "invoice-review-2.0.0",
+        "review_reasons": [],
+        "machine_needs_review": false
+      },
+      "cells_correct": {
+        "description": true,
+        "unit": true,
+        "quantity": true,
+        "unit_price": true,
+        "amount": true
+      },
+      "row_counts": {
+        "matched": 1,
+        "predicted": 1,
+        "gold": 1
+      },
+      "row_detection_f1": 1.0,
+      "matched_cell_accuracy": 1.0,
+      "complete_line_accuracy": 1.0
+    }
+  },
+  "cause": "Confirmed for this synthetic case: baseline assigns the narrow quantity block to unit_price",
+  "implementation_sha256": "78f2604a2c549ca93405d34fadef4533b95ad55c0393950e7934163ea919fd12",
+  "kie_run_id": "00000000-0000-4000-8000-000000000053",
+  "expected_row": {
+    "line_id": "independent-synthetic-row",
+    "description": {
+      "annotation_status": "PRESENT",
+      "normalized_value": "Service A",
+      "raw_value": "Service A",
+      "source_block_ids": [
+        "p0_b6"
+      ]
+    },
+    "unit": {
+      "annotation_status": "PRESENT",
+      "normalized_value": "box",
+      "raw_value": "box",
+      "source_block_ids": [
+        "p0_b7"
+      ]
+    },
+    "quantity": {
+      "annotation_status": "PRESENT",
+      "normalized_value": 2,
+      "raw_value": "2",
+      "source_block_ids": [
+        "p0_b8"
+      ]
+    },
+    "unit_price": {
+      "annotation_status": "PRESENT",
+      "normalized_value": 50000,
+      "raw_value": "50000",
+      "source_block_ids": [
+        "p0_b9"
+      ]
+    },
+    "amount": {
+      "annotation_status": "PRESENT",
+      "normalized_value": 100000,
+      "raw_value": "100000",
+      "source_block_ids": [
+        "p0_b10"
+      ]
+    }
+  }
+}

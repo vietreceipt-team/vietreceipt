@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import time
 
@@ -6,13 +7,13 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from .contracts import cells, validate_evidence, validate_result
 from .errors import V2Error
+from .models import Attempt, Cell, Invoice, MachineRun, Outbox, timestamp, uid
 from .provenance import (
     callable_identity,
     model_artifacts,
     processing_config,
     runtime_identity,
 )
-from .models import Attempt, Cell, Invoice, MachineRun, Outbox, timestamp, uid
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +59,7 @@ class Processor:
                     kie_run_id=kie,
                     lease_until=time.time() + self.lease_seconds,
                     provenance=dict(
+                        source=None,
                         runtime=runtime_identity(),
                         config=dict(
                             processing_config(),
@@ -98,6 +100,7 @@ class Processor:
         stage = "DOCUMENT_READING"
         started = time.perf_counter()
         timing = {}
+        source_identity = None
         log.info(
             "Processing receipt_id=%s attempt_id=%s ocr_run_id=%s kie_run_id=%s",
             rid,
@@ -107,6 +110,11 @@ class Processor:
         )
         try:
             data, mime, _ = self.service.source(rid)
+            source_identity = dict(
+                sha256=hashlib.sha256(data).hexdigest(),
+                content_type=mime,
+                bytes=len(data),
+            )
             evidence = self.reader(
                 data, content_type=mime, receipt_id=rid, ocr_run_id=a["ocr_run_id"]
             )
@@ -177,6 +185,7 @@ class Processor:
                 attempt.stage = "PERSISTING"
                 attempt.provenance = dict(
                     attempt.provenance,
+                    source=source_identity,
                     model_artifacts_sha256=model_hashes,
                     timing_ms=dict(
                         timing, total=round((time.perf_counter() - started) * 1000, 3)
@@ -223,6 +232,7 @@ class Processor:
                 attempt.error = metadata
                 attempt.provenance = dict(
                     attempt.provenance,
+                    source=source_identity,
                     model_artifacts_sha256=model_hashes,
                     timing_ms=dict(
                         timing, total=round((time.perf_counter() - started) * 1000, 3)

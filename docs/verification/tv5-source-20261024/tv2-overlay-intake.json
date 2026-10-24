@@ -1,0 +1,9 @@
+{
+  "version": "2.0.0-pending-review-overlay",
+  "archive_sha256": "fca8aa088b54da280dbca776b7d654c339c0d3717fb368b4a96ace2140cce223",
+  "base_archive_sha256": "6661c858c0564820a035ae0f62951647d19c74dd0c789aa4e56a072dfb4d9790",
+  "qa_status": "PENDING_REVIEW",
+  "sample_count": 80,
+  "source_evidence_gold_modified": false,
+  "tv4_revision": "1e7b407d1314110ce2d8411211f55f49f7eb0ffd"
+}
