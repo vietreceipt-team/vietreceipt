@@ -1,0 +1,4022 @@
+--- a/.gitignore
++++ b/.gitignore
+@@ -229,6 +229,9 @@
+ data/candidates/
+ data/test_set/images/
+ results/candidate_sheets/
++results/dev/document-reader-v2/local-*/
++results/dev/document-reader-v2/local-*.log
++.tv3-tmp/
+ results/.DS_Store
+ .DS_Store
+ Thumbs.db
+--- a/ai/document_reader/pipeline.py
++++ b/ai/document_reader/pipeline.py
+@@ -228,7 +228,10 @@
+                         self._check_size(*source.size)
+                         image = ImageOps.exif_transpose(source).convert("RGB")
+                     evidence, meta = self._image(image, receipt_id, ocr_run_id)
+-                    pages, metadata = [evidence], [dict(meta, source="IMAGE_OCR")]
++                    pages, metadata = [evidence], [dict(
++                        meta, source="IMAGE_OCR", routing_reason="image_input", fallback=False,
++                        coordinate_system="normalized_exif_display_top_left",
++                    )]
+                 except (
+                     UnidentifiedImageError,
+                     OSError,
+@@ -270,6 +273,7 @@
+             )
+ 
+     def _image(self, image, receipt_id, run_id):
++        started = time.perf_counter()
+         width, height = image.size
+         self._check_size(width, height)
+         if self.config.max_side and max(image.size) > self.config.max_side:
+@@ -281,6 +285,7 @@
+             self._orientation(image) if self.config.orientation == "auto" else (0, None)
+         )
+         rotated = image.rotate(-angle, expand=True) if angle else image
++        ocr_started = time.perf_counter()
+         try:
+             result = self.ocr.run_ocr(rotated, receipt_id=receipt_id, ocr_run_id=run_id)
+         except Exception as exc:
+@@ -289,6 +294,7 @@
+                 "OCR engine failed; inspect worker diagnostics",
+                 retryable=True,
+             ) from exc
++        ocr_ms = (time.perf_counter() - ocr_started) * 1000
+         result["blocks"] = _reading_order(result["blocks"])
+         for block in result["blocks"]:
+             block["text"] = _clean_text(block["text"]).strip()
+@@ -308,6 +314,12 @@
+             "engine": result["engine"],
+             "width_px": width,
+             "height_px": height,
++            "confidence_semantics": "engine_score_not_calibrated_probability",
++            "stage_latency_ms": {
++                "preprocess_orientation": (ocr_started - started) * 1000,
++                "ocr": ocr_ms,
++                "geometry_order": (time.perf_counter() - ocr_started) * 1000 - ocr_ms,
++            },
+         }
+ 
+     def _orientation(self, image):
+@@ -374,7 +386,11 @@
+                         math.ceil(width * scale), math.ceil(height * scale)
+                     )
+                     start = time.perf_counter()
+-                    blocks, usable = self._pdf_text(page)
++                    # The OCR-all comparator must bypass text extraction entirely.
++                    # Otherwise a malformed/oversized text layer can prevent OCR.
++                    blocks, usable = ([], False) if self.config.force_pdf_ocr else self._pdf_text(page)
++                    text_ms = (time.perf_counter() - start) * 1000
++                    render_ms = 0.0
+                     if usable and not self.config.force_pdf_ocr:
+                         evidence = {
+                             "schema_version": "1.3",
+@@ -397,6 +413,7 @@
+                             "confidence_semantics": "not_applicable_legacy_sentinel_1",
+                         }
+                     else:
++                        render_started = time.perf_counter()
+                         try:
+                             with closing(page.render(scale=scale)) as bitmap:
+                                 image = bitmap.to_pil().convert("RGB")
+@@ -404,8 +421,19 @@
+                             raise ReaderError(
+                                 "PDF_RENDER_FAILED", "PDF page cannot be rendered"
+                             ) from exc
++                        render_ms = (time.perf_counter() - render_started) * 1000
+                         evidence, meta = self._image(image, receipt_id, run_id)
+                         meta["source"] = "PDF_OCR"
++                    stages = dict(meta.get("stage_latency_ms", {}))
++                    stages.update(pdf_text=text_ms, render=render_ms)
++                    meta.update(
++                        stage_latency_ms=stages,
++                        page_duration_ms=(time.perf_counter() - start) * 1000,
++                        routing_reason=("forced_ocr" if self.config.force_pdf_ocr else
++                                        "usable_text_layer" if usable else "unusable_text_layer"),
++                        fallback=not usable and not self.config.force_pdf_ocr,
++                        coordinate_system="normalized_crop_unrotated_top_left",
++                    )
+                     pages.append(evidence)
+                     metadata.append(
+                         dict(
+--- a/ai/document_reader/README.md
++++ b/ai/document_reader/README.md
+@@ -129,3 +129,43 @@
+ The CI suite uses a clearly labeled fake OCR engine and real PDF extraction and
+ rendering. Real-model results, if provided, are separate evidence; CI passing
+ does not demonstrate real OCR quality or the deployed end-to-end workflow.
++
++## Paired route experiment — issue #48 (23/10/2026)
++
++```sh
++python -m scripts.compare_pdf_routes --manifest results/tv3-fixtures/manifest.json --output results/dev/document-reader-v2/local-paired-run --orientation auto
++python -m scripts.verify_reader_handoff --run-dir results/dev/document-reader-v2/local-paired-run --output results/dev/document-reader-v2/local-handoff-check
++python -m unittest tests.test_compare_pdf_routes tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 -v
++```
++
++Both modes read identical bytes, with matching input SHA-256 and stable receipt
++identity but separate run UUIDs. `ocr_all` bypasses the PDF text layer completely;
++`route_aware` uses the existing per-page router. All images stay on the OCR path.
++The script accepts development/dev/validation only, never a final test manifest.
++Manifest sample paths must stay inside the manifest directory. Supply an optional
++`receipt_id` per sample to retain TV2's existing canonical UUID.
++
++Each mode keeps the complete predictions, page audit, frozen manifest, input
++hashes, package/configuration information and metrics. Top-level outputs:
++
++- `comparison.json/csv`: paired CER/WER, failure status, character deletions,
++  substitutions and insertions, timings and cold-start markers.
++- `pages.csv`: actual route, fallback, reason, PDF extraction/render/OCR/orientation
++  latency; PDF text confidence is empty (`N/A`), while its wire sentinel remains 1.
++- `handoff.json`: exact receipt/run IDs, source/evidence hashes and prediction
++  locations for TV2/TV4. Ground-truth alignment remains pending TV2 QA.
++- `error_examples.json`: text differences with contexts and actual page/block IDs,
++  polygons and reading order. These are review candidates; geometry and order
++  cannot be diagnosed from CER alone. Never treat an absent block as ground-truth
++  `NOT_PRESENT`.
++- `runtime.json`: native results pointer and explicit Docker smoke status.
++
++Each mode runs serially in a fresh reader; the first OCR request includes lazy
++model startup and is marked `cold_start_candidate`. Do not mix that request with
++warm inference for a speedup claim. One pass is a diagnostic, not a latency
++distribution. The command exits nonzero on any unexpected read failure while
++preserving that sample in denominators (empty prediction when referenced).
++
++The generator v1.1 adds tilted image, two-page text PDF and two-page scan PDF to
++the existing single-template diagnostics. It does not replace TV2's independent
++development set. See [handoff and runtime notes](../../docs/tv3-issue48-handoff.md).
+--- a/scripts/benchmark_document_reader.py
++++ b/scripts/benchmark_document_reader.py
+@@ -7,11 +7,12 @@
+ import mimetypes
+ import platform
+ import subprocess
++import time
+ from collections import defaultdict
+ from datetime import datetime, timezone
+ from importlib.metadata import PackageNotFoundError, version
+ from pathlib import Path
+-from uuid import uuid4
++from uuid import NAMESPACE_URL, uuid4, uuid5
+ 
+ import jiwer
+ 
+@@ -25,7 +26,7 @@
+     )
+ 
+ 
+-def benchmark(manifest_path, output, config):
++def load_manifest(manifest_path):
+     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+     samples = manifest["samples"]
+     if not samples or len({s["id"] for s in samples}) != len(samples):
+@@ -36,9 +37,20 @@
+             for c in sample["id"]
+         ):
+             raise ValueError("Unsafe sample ID")
++        source = (manifest_path.parent / sample["path"]).resolve()
++        if not source.is_relative_to(manifest_path.parent.resolve()):
++            raise ValueError("Sample path escapes manifest directory")
++    if not manifest.get("dataset") or not manifest.get("version") or not manifest.get("split"):
++        raise ValueError("Manifest requires dataset, version and split")
++    return manifest
++
++
++def benchmark(manifest_path, output, config, *, reader_factory=None):
++    manifest = load_manifest(manifest_path)
++    samples = manifest["samples"]
+     output.mkdir(parents=True, exist_ok=False)
+     (output / "predictions").mkdir()
+-    reader = DocumentReader(config=config)
++    reader = (reader_factory or DocumentReader)(config=config)
+     packages = {}
+     for package in (
+         "paddleocr",
+@@ -67,11 +79,13 @@
+             "git_dirty": bool(dirty.stdout.strip()) if dirty.returncode == 0 else None,
+             "source_sha256": {
+                 str(p): hashlib.sha256(p.read_bytes()).hexdigest()
+-                for folder in (Path("ai/document_reader"), Path("ai/ocr"))
++                for folder in (Path("ai/document_reader"), Path("ai/ocr"), Path("scripts"))
+                 for p in sorted(folder.glob("*.py"))
+             },
+             "python": platform.python_version(),
+             "platform": platform.platform(),
++            "machine": platform.machine(),
++            "timing_policy": "serial, includes lazy model initialization on first OCR call; inspect cold_start_candidate",
+             "created_at": datetime.now(timezone.utc).isoformat(),
+             "manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+             "ocr_model": "PP-OCRv3",
+@@ -83,6 +97,13 @@
+             "metric_policy": "micro CER/WER; collapse whitespace only; failed reads scored as empty predictions when reference exists",
+         },
+     )
++    dump(output / "inputs.json", [
++        {"id": s["id"], "path": s["path"], "sha256":
++         hashlib.sha256((manifest_path.parent / s["path"]).read_bytes()).hexdigest()
++         if (manifest_path.parent / s["path"]).is_file() else None}
++        for s in samples
++    ])
++    ocr_seen = False
+     rows, aggregates = (
+         [],
+         defaultdict(
+@@ -107,14 +128,24 @@
+             "cer": None,
+             "wer": None,
+             "duration_ms": None,
++            "char_deletions": None,
++            "char_substitutions": None,
++            "char_insertions": None,
++            "reference_chars": None,
++            "cold_start_candidate": False,
+         }
+         predicted = ""
++        started = time.perf_counter()
+         try:
+             data = source.read_bytes()
++            row["input_sha256"] = hashlib.sha256(data).hexdigest()
++            receipt_id = sample.get("receipt_id") or uuid5(
++                NAMESPACE_URL, f"{manifest['dataset']}:{manifest['version']}:{sample['id']}:{row['input_sha256']}"
++            )
+             evidence, metadata = reader.process_with_metadata(
+                 data,
+                 content_type=mimetypes.guess_type(source)[0],
+-                receipt_id=uuid4(),
++                receipt_id=receipt_id,
+                 ocr_run_id=uuid4(),
+             )
+             dump(output / "predictions" / (sample["id"] + ".json"), evidence)
+@@ -126,6 +157,9 @@
+                 b["text"] for p in evidence["pages"] for b in p["evidence"]["blocks"]
+             )
+             row["duration_ms"] = metadata["duration_ms"]
++            has_ocr = any(p["source"] != "PDF_TEXT" for p in metadata["pages"])
++            row["cold_start_candidate"] = has_ocr and not ocr_seen
++            ocr_seen |= has_ocr
+             if sample.get("expected_error"):
+                 row.update(
+                     status="unexpected_success", error="Expected failure did not occur"
+@@ -138,12 +172,16 @@
+                 else "failed",
+                 error=code,
+             )
++        row["wall_duration_ms"] = (time.perf_counter() - started) * 1000
++        row.setdefault("input_sha256", None)
+         reference = sample.get("reference")
+         counts = None
+         if reference is not None and reference.strip():
+             ref, hyp = " ".join(reference.split()), " ".join(predicted.split())
+             c, w = jiwer.process_characters(ref, hyp), jiwer.process_words(ref, hyp)
+-            row.update(cer=c.cer, wer=w.wer)
++            row.update(cer=c.cer, wer=w.wer, char_deletions=c.deletions,
++                       char_substitutions=c.substitutions, char_insertions=c.insertions,
++                       reference_chars=len(ref))
+             counts = (
+                 c.substitutions + c.deletions + c.insertions,
+                 len(ref),
+--- a/scripts/create_document_fixtures.py
++++ b/scripts/create_document_fixtures.py
+@@ -75,6 +75,7 @@
+     image.save(output / "clean.png")
+     image.save(output / "photo.jpg", quality=65)
+     image.filter(ImageFilter.GaussianBlur(1.3)).save(output / "blur.png")
++    image.rotate(7, expand=True, fillcolor="white").save(output / "tilt.png")
+     pixels = np.asarray(image).astype(np.float32)
+     noise = np.random.default_rng(48).normal(0, 12, pixels.shape)
+     Image.fromarray(np.clip(pixels + noise, 0, 255).astype(np.uint8)).save(
+@@ -91,6 +92,10 @@
+         image.rotate(-angle, expand=True).save(output / f"rotation-{angle}.png")
+     scan = scan_pdf(image)
+     (output / "scan.pdf").write_bytes(scan)
++    (output / "text-multipage.pdf").write_bytes(make_text_pdf(font_path=font_path, pages=2))
++    with pdfium.PdfDocument(scan) as doc, pdfium.PdfDocument(scan) as second:
++        doc.import_pages(second)
++        doc.save(output / "scan-multipage.pdf")
+     with pdfium.PdfDocument(text) as doc, pdfium.PdfDocument(scan) as scanned:
+         doc.import_pages(scanned)
+         doc.save(output / "mixed.pdf")
+@@ -101,9 +106,12 @@
+         ("clean.png", "clean"),
+         ("photo.jpg", "photo_like"),
+         ("blur.png", "blur"),
++        ("tilt.png", "tilt"),
+         ("noise.png", "noise"),
+         ("perspective.png", "perspective"),
+         ("scan.pdf", "scan_like"),
++        ("text-multipage.pdf", "text_pdf_multipage"),
++        ("scan-multipage.pdf", "scan_multipage"),
+         ("mixed.pdf", "mixed_pdf"),
+     ]:
+         rows.append(
+@@ -111,7 +119,7 @@
+                 "id": name.replace(".", "-"),
+                 "path": name,
+                 "condition": condition,
+-                "reference": " ".join(LINES * (2 if name == "mixed.pdf" else 1)),
++                "reference": " ".join(LINES * (2 if name in {"mixed.pdf", "text-multipage.pdf", "scan-multipage.pdf"} else 1)),
+             }
+         )
+     for angle in (90, 180, 270):
+@@ -133,7 +141,7 @@
+     )
+     manifest = {
+         "dataset": "tv3-synthetic-diagnostics",
+-        "version": "1.0",
++        "version": "1.1",
+         "split": "development",
+         "provenance": "Generated fictional invoice; all variants share one template. Not final test or generalization evidence.",
+         "samples": rows,
+--- /dev/null
++++ b/scripts/compare_pdf_routes.py
+@@ -0,0 +1,186 @@
++"""Paired OCR-all vs route-aware diagnostics on identical manifest bytes (TV3 #48)."""
++
++import argparse
++import csv
++import hashlib
++import json
++import shutil
++import unicodedata
++from dataclasses import replace
++from difflib import SequenceMatcher
++from pathlib import Path
++
++from ai.document_reader import ReaderConfig
++from ai.document_reader.contract import validate_document
++from scripts.benchmark_document_reader import benchmark, dump, load_manifest
++
++
++def read_json(path):
++    return json.loads(path.read_text(encoding="utf-8"))
++
++
++def write_csv(path, rows):
++    if not rows:
++        path.write_text("", encoding="utf-8")
++        return
++    with path.open("w", encoding="utf-8", newline="") as handle:
++        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
++        writer.writeheader()
++        writer.writerows(rows)
++
++
++def unaccent(text):
++    return "".join(c for c in unicodedata.normalize("NFD", text)
++                   if not unicodedata.combining(c)).replace("đ", "d").replace("Đ", "D")
++
++
++def error_examples(reference, document, *, limit=5):
++    """Text differences are candidates; never infer order/geometry from CER alone."""
++    reference = " ".join(reference.split())
++    tokens, spans, offset = [], [], 0
++    for page in document["pages"]:
++        for block in page["evidence"]["blocks"]:
++            text = " ".join(block["text"].split())
++            if not text:
++                continue
++            if tokens:
++                offset += 1
++            spans.append((offset, offset + len(text), page["page_index"], block))
++            offset += len(text)
++            tokens.append(text)
++    hypothesis = " ".join(tokens)
++    examples = []
++    for tag, a, b, c, d in SequenceMatcher(None, reference, hypothesis, autojunk=False).get_opcodes():
++        if tag == "equal":
++            continue
++        expected, actual = reference[a:b], hypothesis[c:d]
++        category = {"delete": "omission", "insert": "insertion", "replace": "substitution"}[tag]
++        if expected != actual and unaccent(expected) == unaccent(actual):
++            category = "diacritics"
++        linked = [
++            {"page_index": page, "block_id": block["block_id"],
++             "reading_order": block["reading_order"], "text": block["text"],
++             "polygon": block["polygon"]}
++            for start, end, page, block in spans
++            if start < max(c + 1, d) and end > c
++        ]
++        examples.append({
++            "category": category, "reference_span": [a, b], "prediction_span": [c, d],
++            "expected": expected, "actual": actual,
++            "reference_context": reference[max(0, a - 35):b + 35],
++            "prediction_context": hypothesis[max(0, c - 35):d + 35],
++            "evidence": linked, "review_status": "text_diff_candidate",
++        })
++        if len(examples) >= limit:
++            break
++    return examples
++
++
++def summarize(output, manifest, reports):
++    pairs, pages, handoff, examples = [], [], [], []
++    by_mode = {mode: {r["id"]: r for r in report["samples"]}
++               for mode, report in reports.items()}
++    for sample in manifest["samples"]:
++        sid = sample["id"]
++        a, b = by_mode["ocr_all"][sid], by_mode["route_aware"][sid]
++        if a["input_sha256"] != b["input_sha256"]:
++            raise ValueError(f"Paired input changed: {sid}")
++        row = {"id": sid, "condition": sample.get("condition", "unspecified"),
++               "input_sha256": a["input_sha256"]}
++        for mode, result in (("ocr_all", a), ("route_aware", b)):
++            for key in ("status", "error", "cer", "wer", "char_deletions",
++                        "char_substitutions", "char_insertions", "duration_ms",
++                        "wall_duration_ms", "cold_start_candidate"):
++                row[f"{mode}_{key}"] = result[key]
++            path = output / mode / "predictions" / f"{sid}.json"
++            if not path.exists():
++                continue
++            document = read_json(path)
++            validate_document(document)
++            metadata = read_json(path.with_suffix(".metadata.json"))
++            for page, meta in zip(document["pages"], metadata["pages"]):
++                stages = meta.get("stage_latency_ms", {})
++                pages.append({
++                    "id": sid, "mode": mode, "page_index": page["page_index"],
++                    "route": meta["source"], "routing_reason": meta["routing_reason"],
++                    "fallback": meta["fallback"],
++                    "orientation_clockwise": meta.get("orientation_clockwise", 0),
++                    "pdf_text_ms": stages.get("pdf_text", 0),
++                    "render_ms": stages.get("render", 0),
++                    "preprocess_orientation_ms": stages.get("preprocess_orientation", 0),
++                    "ocr_ms": stages.get("ocr", 0), "geometry_order_ms": stages.get("geometry_order", 0),
++                    "confidence": None if meta["source"] == "PDF_TEXT" else page["evidence"]["average_confidence"],
++                    "confidence_semantics": meta["confidence_semantics"],
++                })
++            handoff.append({
++                "id": sid, "mode": mode, "receipt_id": document["receipt_id"],
++                "ocr_run_id": document["ocr_run_id"], "input_sha256": result["input_sha256"],
++                "source_path": sample["path"],
++                "evidence_path": path.relative_to(output).as_posix(),
++                "evidence_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
++                "metadata_path": path.with_suffix(".metadata.json").relative_to(output).as_posix(),
++                "alignment_status": "awaiting_TV2_source_gold_and_QA",
++            })
++            if sample.get("reference"):
++                examples.extend(dict(e, id=sid, mode=mode, evidence_path=path.relative_to(output).as_posix())
++                                for e in error_examples(sample["reference"], document))
++        row["cer_delta_route_minus_ocr"] = b["cer"] - a["cer"] if a["cer"] is not None and b["cer"] is not None else None
++        pairs.append(row)
++    dump(output / "comparison.json", {
++        "dataset": manifest["dataset"], "version": manifest["version"], "split": manifest["split"],
++        "interpretation": "development diagnostics; not final accuracy or KIE scores",
++        "slices": {mode: report["slices"] for mode, report in reports.items()}, "samples": pairs,
++    })
++    write_csv(output / "comparison.csv", pairs)
++    write_csv(output / "pages.csv", pages)
++    dump(output / "handoff.json", {"dataset": manifest["dataset"], "samples": handoff})
++    dump(output / "error_examples.json", {
++        "policy": "Character diffs only; order/geometry/PDF rendering require source-overlay review. Omission can have no predicted block.",
++        "examples": examples,
++    })
++    dump(output / "runtime.json", {
++        "native": {"status": "see per-sample results", "configuration": "ocr_all/config.json"},
++        "docker": {"cli_available": shutil.which("docker") is not None,
++                   "smoke_status": "not_tested", "linux_arm64_scan_support": "not_verified"},
++    })
++    return pairs
++
++
++def compare(manifest_path, output, config, *, reader_factory=None):
++    manifest = load_manifest(manifest_path)
++    if manifest["split"].lower() not in {"development", "dev", "validation"}:
++        raise ValueError("Use a development/validation manifest; final test is locked")
++    if not any(Path(s["path"]).suffix.lower() == ".pdf" for s in manifest["samples"]):
++        raise ValueError("Paired PDF comparison requires PDF samples")
++    output.mkdir(parents=True, exist_ok=False)
++    reports = {}
++    # Freeze and hash the same input files; verify again after both passes.
++    frozen = {s["id"]: hashlib.sha256((manifest_path.parent / s["path"]).read_bytes()).hexdigest()
++              for s in manifest["samples"] if (manifest_path.parent / s["path"]).is_file()}
++    for mode, forced in (("ocr_all", True), ("route_aware", False)):
++        reports[mode] = benchmark(manifest_path, output / mode, replace(config, force_pdf_ocr=forced),
++                                  reader_factory=reader_factory)
++        for row in reports[mode]["samples"]:
++            if row["input_sha256"] != frozen.get(row["id"]):
++                raise ValueError("Input bytes changed during comparison")
++    return summarize(output, manifest, reports)
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--manifest", type=Path, required=True)
++    parser.add_argument("--output", type=Path, required=True)
++    parser.add_argument("--orientation", choices=["auto", "none"], default="auto")
++    parser.add_argument("--dpi", type=int, default=200)
++    parser.add_argument("--max-side", type=int, default=0)
++    parser.add_argument("--contrast", type=float, default=1)
++    args = parser.parse_args()
++    rows = compare(args.manifest, args.output, ReaderConfig(
++        orientation=args.orientation, dpi=args.dpi, max_side=args.max_side, contrast=args.contrast))
++    if any(row[f"{mode}_status"] in {"failed", "unexpected_success"}
++           for row in rows for mode in ("ocr_all", "route_aware")):
++        raise SystemExit(1)
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/scripts/verify_reader_handoff.py
+@@ -0,0 +1,62 @@
++"""Check saved real Reader evidence with TV4/TV5, without rewriting any IDs."""
++
++import argparse
++import hashlib
++from pathlib import Path
++from uuid import uuid4
++
++from ai.document_reader.contract import validate_document
++from ai.kie.v2 import extract_invoice
++from backend.app.v2.contracts import validate_evidence, validate_result
++from scripts.benchmark_document_reader import dump
++from scripts.compare_pdf_routes import read_json
++
++
++def verify(run_dir, output):
++    handoff = read_json(run_dir / "handoff.json")
++    output.mkdir(parents=True, exist_ok=False)
++    rows = []
++    for sample in handoff["samples"]:
++        path = (run_dir / sample["evidence_path"]).resolve()
++        if not path.is_relative_to(run_dir.resolve()):
++            raise ValueError("Evidence path escapes run directory")
++        if hashlib.sha256(path.read_bytes()).hexdigest() != sample["evidence_sha256"]:
++            raise ValueError("Evidence checksum mismatch")
++        document = read_json(path)
++        validate_document(document)
++        receipt_id, ocr_run_id = document["receipt_id"], document["ocr_run_id"]
++        if (receipt_id, ocr_run_id) != (sample["receipt_id"], sample["ocr_run_id"]):
++            raise ValueError("Handoff identity mismatch")
++        validate_evidence(document, receipt_id, ocr_run_id)
++        kie_run_id = uuid4()
++        result = extract_invoice(document, kie_run_id=kie_run_id)
++        validate_result(result, document, receipt_id, str(kie_run_id), ocr_run_id)
++        filename = f"{sample['mode']}-{sample['id']}.json"
++        if Path(filename).name != filename:
++            raise ValueError("Unsafe handoff sample name")
++        dump(output / filename, result)
++        rows.append({
++            "id": sample["id"], "mode": sample["mode"], "receipt_id": receipt_id,
++            "ocr_run_id": ocr_run_id, "kie_run_id": str(kie_run_id),
++            "reader_contract": "pass", "tv5_evidence_contract": "pass",
++            "tv4_kie_contract": "pass", "tv5_kie_contract": "pass",
++            "kie_result": filename, "accuracy": None,
++            "note": "Provider/schema check only; no independent gold or accuracy claim",
++        })
++    report = {"dataset": handoff["dataset"], "samples": rows,
++              "gold_alignment": "pending_TV2_QA", "id_rewriting": False}
++    dump(output / "verification.json", report)
++    return report
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--run-dir", type=Path, required=True)
++    parser.add_argument("--output", type=Path, required=True)
++    args = parser.parse_args()
++    report = verify(args.run_dir, args.output)
++    print(f"Validated {len(report['samples'])} evidence/KIE runs; gold alignment still pending")
++
++
++if __name__ == "__main__":
++    main()
+--- /dev/null
++++ b/tests/test_compare_pdf_routes.py
+@@ -0,0 +1,99 @@
++"""Test paired accounting with a fake OCR; these are not OCR quality scores."""
++
++import json
++import tempfile
++import unittest
++from pathlib import Path
++from unittest.mock import patch
++
++from ai.document_reader import DocumentReader, ReaderConfig
++from ai.ocr.pipeline import OCRPipeline
++from scripts.compare_pdf_routes import compare, error_examples, read_json
++from scripts.benchmark_document_reader import load_manifest
++from scripts.create_document_fixtures import make_text_pdf
++from tests.test_document_reader import Engine
++
++
++class CompareTests(unittest.TestCase):
++    def manifest(self, root):
++        (root / "text.pdf").write_bytes(make_text_pdf(["INVOICE DEMONSTRATION ABCDEFG 123456789"]))
++        (root / "bad.pdf").write_bytes(b"%PDF-1.7 broken")
++        manifest = {"dataset": "test-only-fake-ocr", "version": "1", "split": "development",
++                    "samples": [{"id": "text", "path": "text.pdf", "condition": "text_pdf",
++                                 "reference": "INVOICE DEMONSTRATION ABCDEFG 123456789"},
++                                {"id": "bad", "path": "bad.pdf", "reference": "ABC"}]}
++        path = root / "manifest.json"
++        path.write_text(json.dumps(manifest), encoding="utf-8")
++        return path
++
++    def test_pair_routes_failures_identity_and_confidence(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            manifest = self.manifest(root)
++            output = root / "run"
++            rows = compare(manifest, output, ReaderConfig(orientation="none"),
++                           reader_factory=lambda config: DocumentReader(config=config, ocr=OCRPipeline(Engine())))
++            self.assertEqual(rows[0]["route_aware_cer"], 0)
++            self.assertGreater(rows[0]["ocr_all_cer"], 0)
++            self.assertEqual(rows[1]["route_aware_cer"], 1)
++            self.assertEqual(rows[1]["ocr_all_cer"], 1)
++            handoff = read_json(output / "handoff.json")["samples"]
++            self.assertEqual(handoff[0]["receipt_id"], handoff[1]["receipt_id"])
++            self.assertNotEqual(handoff[0]["ocr_run_id"], handoff[1]["ocr_run_id"])
++            metadata = read_json(output / "route_aware/predictions/text.metadata.json")["pages"][0]
++            self.assertEqual(metadata["source"], "PDF_TEXT")
++            self.assertFalse(metadata["fallback"])
++            self.assertEqual(metadata["confidence_semantics"], "not_applicable_legacy_sentinel_1")
++            self.assertTrue(all(v >= 0 for v in metadata["stage_latency_ms"].values()))
++            report = read_json(output / "comparison.json")
++            self.assertEqual(report["slices"]["route_aware"]["all"]["failures"], 1)
++            with self.assertRaises(FileExistsError):
++                compare(manifest, output, ReaderConfig(orientation="none"))
++
++    def test_ocr_all_bypasses_unreadable_text_layer(self):
++        reader = DocumentReader(config=ReaderConfig(orientation="none", force_pdf_ocr=True),
++                                ocr=OCRPipeline(Engine()))
++        from uuid import uuid4
++        with patch.object(reader, "_pdf_text", side_effect=AssertionError("must not extract")):
++            _, audit = reader.process_with_metadata(make_text_pdf(), content_type="application/pdf",
++                                                    receipt_id=uuid4(), ocr_run_id=uuid4())
++        page = audit["pages"][0]
++        self.assertEqual(page["routing_reason"], "forced_ocr")
++        self.assertFalse(page["fallback"])
++
++    def test_scan_fallback_is_explicit(self):
++        from scripts.create_document_fixtures import scan_pdf
++        from PIL import Image
++        from uuid import uuid4
++        reader = DocumentReader(config=ReaderConfig(orientation="none"), ocr=OCRPipeline(Engine()))
++        _, audit = reader.process_with_metadata(scan_pdf(Image.new("RGB", (640, 820), "white")),
++                                                content_type="application/pdf", receipt_id=uuid4(), ocr_run_id=uuid4())
++        self.assertTrue(audit["pages"][0]["fallback"])
++        self.assertEqual(audit["pages"][0]["routing_reason"], "unusable_text_layer")
++
++    def test_manifest_escape_and_final_test_are_rejected(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            path = self.manifest(root)
++            data = read_json(path)
++            data["samples"][0]["path"] = "../private.pdf"
++            path.write_text(json.dumps(data), encoding="utf-8")
++            with self.assertRaises(ValueError):
++                load_manifest(path)
++            data["samples"][0]["path"] = "text.pdf"
++            data["split"] = "test"
++            path.write_text(json.dumps(data), encoding="utf-8")
++            with self.assertRaises(ValueError):
++                compare(path, root / "run", ReaderConfig())
++            self.assertFalse((root / "run").exists())
++
++    def test_diacritic_diff_keeps_actual_block_reference(self):
++        block = {"text": "Hoa", "block_id": "p0_b000000", "reading_order": 0,
++                 "polygon": [{"x": 0, "y": 0}] * 4}
++        errors = error_examples("Hoá", {"pages": [{"page_index": 0, "evidence": {"blocks": [block]}}]})
++        self.assertEqual(errors[0]["category"], "diacritics")
++        self.assertEqual(errors[0]["evidence"][0]["block_id"], block["block_id"])
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- /dev/null
++++ b/docs/tv3-issue48-handoff.md
+@@ -0,0 +1,124 @@
++# TV3 — Issue #48: OCR / PDF comparison and evidence handoff
++
++Prepared locally on 23/10/2026, Asia/Saigon. Scope: issue [#48](https://github.com/vietreceipt-team/vietreceipt/issues/48)
++and its 23/10 comment, following [#59](https://github.com/vietreceipt-team/vietreceipt/issues/59).
++Reader V2 from PR #55 is reused. No push, PR, issue update or message to teammates
++is performed by this local delivery.
++
++## Inputs and provenance
++
++The current workspace is a source archive without `.git`. Run configuration
++therefore records `git_commit: unavailable` and SHA-256 of the actual Python
++sources rather than inventing a local commit. GitHub main inspected on 23/10 was
++`061960f0e38549f27b3183ebc3008c58ef0e5570`; that is remote context, not a claim
++that the modified archive has that commit. Before publishing later, apply/review
++the local changes on a real Git checkout and rerun with its actual commit.
++
++TV2's data is not available locally. PR #60 was still draft at
++`c3d04d1679bf246f6e1cc253fd58c8e3d5675913` when inspected: SVG generator only,
++with PNG/PDF and annotation fixes requested in #47. PR #61 QA tooling was also
++draft at `3d0e955b23b9acec68b1310c6e2679bdba9463b8`. Neither is silently merged
++into this work. The local fixture family is fictional, development-only and
++shares one template; it cannot establish unseen-layout or final accuracy.
++
++## Reproduce the experiment
++
++Use pinned Python 3.12 dependencies in `requirements-document-reader.txt` and
++`requirements-document-reader-test.txt`. This machine retains a working runtime at
++`C:/Users/ADMIN/Downloads/vietreceipt_ocr_probe/.venv/Scripts/python.exe`.
++The model cache for these runs is the current workspace's `.paddlex-cache`.
++
++```powershell
++python -m scripts.create_document_fixtures --output results/dev/document-reader-v2/local-fixtures-20261023 --font C:/Windows/Fonts/arial.ttf
++python -m scripts.compare_pdf_routes --manifest results/dev/document-reader-v2/local-fixtures-20261023/manifest.json --output results/dev/document-reader-v2/local-paired-native-20261023 --orientation auto
++```
++
++Use a new output directory for every run. Both modes use the same source files
++and config except `force_pdf_ocr`. Keep all failures. CER/WER collapse whitespace
++only and retain Vietnamese accents/case. `char_deletions` measures deletions in
++the optimal character alignment, not a semantic missing-field count.
++
++Generated inputs: text PDF, clean PNG, JPEG, blur, 7-degree tilt, noise,
++perspective, scan PDF, two-page text PDF, two-page scan PDF, mixed two-page PDF,
++90/180/270-degree image rotation, corrupt PDF. Corrupt PDF has an expected typed
++failure and no reference text. Source transcriptions are diagnostics, not an
++oracle-text score presented as real OCR.
++
++## TV2 / TV4 handoff contract
++
++Open `handoff.json`, select a sample/mode and load its `evidence_path` relative to
++the run directory. Each strict document envelope contains:
++
++- `receipt_id`, `ocr_run_id`, `schema_version: document-2.0`;
++- zero-based `page_index`;
++- exact block `block_id`, `text`, `polygon`, `reading_order` inside `page.evidence`.
++
++IDs are unique inside a run; the durable reference is
++`(receipt_id, ocr_run_id, page_index, block_id)`. A block ID by itself is not a
++cross-run identity. The two comparison modes have separate run IDs and can have
++different segmentation. Do not reuse alignment IDs between modes.
++
++TV2 must keep source gold independent of OCR, then align gold to the **actual**
++selected evidence run and QA it. Do not synthesize placeholder block IDs, infer
++ground-truth absence from OCR omissions, or copy OCR predictions into gold.
++TV4 can pass the envelope directly to `ai.kie.v2.extract_invoice` without ID
++rewriting. Provider/schema acceptance does not establish extraction accuracy.
++
++## Coordinate transformations and confidence
++
++Polygons are normalized top-left coordinates, in TL/TR/BR/BL order.
++
++| Input | Coordinate frame |
++| --- | --- |
++| PNG/JPEG | Display orientation after EXIF, before OCR rotation/resize |
++| PDF text | Crop box, unrotated PDF.js viewport (`rotation=0`) |
++| PDF OCR | Same crop/unrotated frame, RGB PDFium render at configured DPI |
++
++PDF's intrinsic page rotation is recorded and reset to 0 for both extraction and
++rendering. Pixel dimensions are `ceil(page_points * dpi / 72)`. Aspect-preserving
++resize keeps normalized coordinates. For OCR clockwise correction angle `a`,
++the normalized OCR point `(x,y)` is restored to source as follows:
++
++| a | Source x | Source y |
++| --- | --- | --- |
++| 0 | x | y |
++| 90 | y | 1-x |
++| 180 | 1-x | 1-y |
++| 270 | 1-y | x |
++
++Points are then ordered/clamped to the source frame. Evidence is ordered using
++overlapping baselines and left-to-right position in the OCR reading frame;
++this does not reconstruct semantic table rows. All transformations/configuration
++are carried in the metadata sidecar, without changing the strict wire envelope.
++
++PDF direct text retains numeric confidence `1.0` only for transport compatibility.
++Its confidence is **N/A**, not 100% correctness. OCR engine confidence is an
++uncalibrated engine score; neither value is a KIE field confidence.
++
++## Runtime profiles and remaining acceptance
++
++The native Windows CPU run is a Reader/KIE provider check, not a full frontend /
++queue / database demo. Paddle's first use also needs its auxiliary font; prewarm
++models and fonts on the demo machine. Preserve the first restricted run log,
++which shows initialization failure, separately from the native rerun.
++
++Docker CLI is absent on this machine. Docker smoke and a native-vs-Docker timing
++comparison cannot be claimed here. Existing `docs/backend-v2-integration.md`
++reports text-PDF success on Docker Desktop ARM64 and native Paddle SIGSEGV for
++image/scan in Linux ARM64, even with one OpenMP thread. Changing Celery's pool
++does not establish a fix. The reported native macOS worker is historical
++evidence; this delivery adds a separate Windows native check. Keep ARM64
++image/scan support explicitly unverified until a real smoke succeeds.
++
++Still requires team input:
++
++1. TV2 delivers Reader-compatible PNG/PDF, a development manifest and QA source
++   transcriptions/source gold; keep final test locked and separate.
++2. Run the same paired script on that development manifest, review geometry and
++   order overlays, and provide representative field/table errors to TV4.
++3. TV2 independently QA-aligns source gold to the chosen run; TV4 confirms its
++   evaluator consumes those IDs. This has not happened merely because KIE runs.
++4. TV5 verifies the deployment's actual CPU/OS architecture and end-to-end demo.
++
++These dependencies prevent marking the entire GitHub issue DONE. The local
++scripts, diagnostic results and evidence package are deliverable now.
+--- /dev/null
++++ b/docs/tv3-issue48-results-20261023.md
+@@ -0,0 +1,109 @@
++# TV3 — Kết quả cục bộ cho issue #48, ngày 23/10/2026
++
++Đã hoàn thiện công cụ so sánh và chạy OCR thật trên Windows CPU. **Chưa push,
++chưa tạo PR và chưa cập nhật issue GitHub.** Phần đánh giá trên dữ liệu TV2 và
++nghiệm thu liên thành viên vẫn chờ đầu vào; không đánh dấu toàn bộ #48 là DONE.
++
++## Phạm vi đã làm
++
++- `scripts/compare_pdf_routes.py`: chạy `ocr_all` và `route_aware` trên cùng byte
++  đầu vào, kiểm tra SHA-256, giữ mọi mẫu lỗi và ghi CER/WER, số ký tự mất/thay/chèn.
++- Reader ghi route, lý do fallback, thời gian đọc PDF/render/orientation/OCR và
++  phép biến đổi tọa độ trong metadata riêng, giữ nguyên contract evidence.
++- `ocr_all` bỏ qua hẳn lớp chữ PDF. PDF direct text được báo confidence `N/A`;
++  giá trị 1.0 trong wire payload chỉ là sentinel tương thích.
++- Bổ sung ảnh nghiêng 7°, PDF chữ hai trang và PDF scan hai trang vào fixture
++  development. Giữ cả PDF mixed, ảnh mờ/nhiễu/phối cảnh và xoay 90/180/270°.
++- `scripts/verify_reader_handoff.py`: đưa evidence thật qua Reader contract,
++  TV5 evidence validator, TV4 KIE và TV5 KIE validator, không sửa ID thủ công.
++- Xuất sáu ví dụ lỗi được phân loại, hai evidence mẫu PDF chữ/ảnh, metadata,
++  phiên bản package, hash nguồn/dữ liệu/model và hướng dẫn bàn giao.
++
++## Kết quả chẩn đoán thật
++
++Dữ liệu `tv3-synthetic-diagnostics` **v1.1, development**: 14 tài liệu đọc được
++và 1 PDF hỏng có chủ đích. Tất cả biến thể dùng **một mẫu bố cục giả lập**,
++không phải tập TV2 hay đánh giá cuối. Mẫu số micro: 5.545 ký tự, 1.088 từ sau
++gộp khoảng trắng. Giữ nguyên dấu tiếng Việt và chữ hoa/thường.
++
++| Nhóm đầu vào | Số tài liệu | CER OCR all | CER route aware | WER route aware |
++| --- | ---: | ---: | ---: | ---: |
++| PDF chữ 1 trang | 1 | 16,26% | 0,00% | 0,00% |
++| PDF chữ 2 trang | 1 | 16,23% | 0,00% | 0,00% |
++| PNG sạch | 1 | 15,95% | 15,95% | 64,06% |
++| JPEG nén | 1 | 19,63% | 19,63% | 71,88% |
++| Ảnh mờ | 1 | 16,87% | 16,87% | 68,75% |
++| Ảnh nghiêng 7° | 1 | 30,06% | 30,06% | 76,56% |
++| Nhiễu | 1 | 15,95% | 15,95% | 64,06% |
++| Phối cảnh | 1 | 15,34% | 15,34% | 62,50% |
++| PDF scan 1 trang | 1 | 16,26% | 16,26% | 64,06% |
++| PDF scan 2 trang | 1 | 16,23% | 16,23% | 64,06% |
++| PDF mixed 2 trang | 1 | 16,23% | 8,12% | 32,03% |
++| Xoay 90/180/270° | 3 | 15,95% | 15,95% | 64,06% |
++| Toàn bộ tài liệu có tham chiếu | 14 | **17,15%** | **13,33%** | **50,37%** |
++
++WER của `ocr_all` toàn bộ là 65,44%. Cả hai chế độ đọc thành công 14/14 tài liệu
++hợp lệ; PDF hỏng trả đúng `PDF_READ_FAILED` ở cả hai. Mẫu PDF hỏng không có
++transcription nên không đưa vào mẫu số CER/WER. Lần chạy đầu trong sandbox lỗi
++khởi tạo font Paddle, được giữ riêng trong `local-paired-20261023`; các con số
++trên chỉ lấy từ lần chạy native thành công `local-paired-native-20261023`.
++
++Thời gian một lượt: PDF chữ 1 trang 26.806 ms OCR all (có khởi tạo model) so
++với 35 ms đọc trực tiếp; PDF chữ 2 trang 30.970 ms so với 52 ms; PDF mixed
++30.375 ms so với 15.213 ms. Các thời gian này mô tả lần chạy cục bộ, không phải
++ước lượng speedup ổn định hay phân phối latency. Có hoạt động kiểm thử song song
++trên máy; cần nhiều lần chạy và kiểm soát tải khi báo cáo hiệu năng chính thức.
++
++## Lỗi điển hình bàn giao TV4
++
++Chi tiết actual text, receipt/run UUID, page, block ID, reading order và polygon
++nằm trong [failure-examples-20261023.json](../results/dev/document-reader-v2/failure-examples-20261023.json).
++
++| ID | Mẫu | Loại lỗi | Ảnh hưởng cần kiểm tra |
++| --- | --- | --- | --- |
++| E01 | PNG sạch | Mất dấu tên người bán | Đối chiếu seller name; không suy ra text đúng vì số tiền đúng |
++| E02 | JPEG | Dính nhãn thuế/dấu phân cách/số tiền | KIE có thể không nhận ra nhãn thuế |
++| E03 | Ảnh mờ | Nhận nhầm nhãn ngày thành ký tự `@` | Chữ số ngày còn đúng nhưng nhãn lỗi |
++| E04 | Ảnh nghiêng | Đảo thứ tự header bảng | “Thành tiền” xuất hiện trước “Tên hàng” |
++| E05 | Ảnh nghiêng | Đảo thứ tự ô dòng hàng | Giá xuất hiện trước mô tả, ảnh hưởng ghép hàng |
++| E06 | PDF scan | Sai dấu nhãn số hóa đơn | Số `00001234` còn nguyên, nhãn bị hỏng |
++
++Đã nhìn nguồn ảnh nghiêng để xác nhận thứ tự bảng. Chưa xác lập lỗi geometry;
++không gán nguyên nhân sai tọa độ chỉ từ CER. Mở
++`results/dev/document-reader-v2/local-review-tilt-20261023/index.html` để đối chiếu
++nguồn, polygon và danh sách block. Giữ nguyên raw OCR khi bàn giao.
++
++## Kiểm chứng
++
++- **81/81** test Reader, OCR contract, OCR W2, paired comparison và KIE V2 đạt.
++  Log: `results/dev/document-reader-v2/local-tests-20261023.log`.
++- **28/28** evidence/KIE run (14 mẫu × 2 chế độ) qua cả validator TV3/TV4/TV5,
++  không đổi ID. Đây là xác minh provider/contract, **không phải KIE accuracy**.
++  [Log cấu trúc](../results/dev/document-reader-v2/handoff-verification-20261023.json).
++- Khi mở rộng sang bộ test KIE evaluator, có 2 test không đạt vì evaluator bắt
++  buộc `git rev-parse HEAD` nhưng archive hiện tại không có `.git`. Không sửa
++  evaluator hay giả commit để né điều kiện provenance. Bộ mở rộng đó đạt 53/55.
++- Git commit cục bộ: không có. Remote main đã đọc là
++  `061960f0e38549f27b3183ebc3008c58ef0e5570`. Hash thực tế và source snapshot
++  của lần inference được lưu riêng; không nhận remote commit làm commit của
++  code đã sửa. [Provenance](../results/dev/document-reader-v2/provenance-20261023.json).
++- Docker CLI không có trên máy, nên chưa chạy Docker smoke. Giới hạn Paddle
++  SIGSEGV ảnh/scan trên Linux ARM64 đã được tài liệu backend ghi nhận và vẫn
++  phải coi là chưa giải quyết.
++
++## File để xem và chạy tiếp
++
++- [Script so sánh](../scripts/compare_pdf_routes.py).
++- [Bảng paired JSON](../results/dev/document-reader-v2/paired-comparison-20261023.json)
++  và [CSV](../results/dev/document-reader-v2/paired-comparison-20261023.csv).
++- [Route và stage latency từng trang](../results/dev/document-reader-v2/page-routes-20261023.csv).
++- [Evidence PDF chữ](../results/dev/document-reader-v2/evidence-pdf-text-20261023.json)
++  và [evidence ảnh OCR](../results/dev/document-reader-v2/evidence-image-ocr-20261023.json).
++- [Quy trình bàn giao, tọa độ và runtime](tv3-issue48-handoff.md).
++- `results/dev/document-reader-v2/tv3-issue48-local.patch`: bản thay đổi cục bộ
++  so với remote main để review/áp dụng lại trên checkout Git sau này.
++
++Để hoàn tất nghiệm thu #48, cần TV2 bàn giao PNG/PDF development cùng manifest,
++transcription/source gold đã QA; sau đó chạy lại script, TV2 liên kết gold với
++evidence thật và TV4 xác nhận evaluator. Final test vẫn giữ khóa. Docker và demo
++toàn hệ thống cần TV5 kiểm tra trên môi trường triển khai thực tế.
+--- /dev/null
++++ b/results/dev/document-reader-v2/evidence-image-ocr-20261023.json
+@@ -0,0 +1,603 @@
++{
++  "schema_version": "document-2.0",
++  "receipt_id": "8888b2eb-bba7-5950-8163-bc685969f8db",
++  "ocr_run_id": "dfaa302d-7a09-4b8b-94df-c264634cf62a",
++  "pages": [
++    {
++      "page_index": 0,
++      "evidence": {
++        "schema_version": "1.3",
++        "receipt_id": "8888b2eb-bba7-5950-8163-bc685969f8db",
++        "ocr_run_id": "dfaa302d-7a09-4b8b-94df-c264634cf62a",
++        "engine": {
++          "name": "paddleocr",
++          "version": "3.0.3"
++        },
++        "image": {
++          "width_px": 1280,
++          "height_px": 1640
++        },
++        "blocks": [
++          {
++            "block_id": "p0_b000000",
++            "text": "HOA O'N THU' NGHIEM - KHONG Có GIA TR!",
++            "confidence": 0.948539,
++            "polygon": [
++              {
++                "x": 0.054688,
++                "y": 0.036585
++              },
++              {
++                "x": 0.528125,
++                "y": 0.038415
++              },
++              {
++                "x": 0.528125,
++                "y": 0.057927
++              },
++              {
++                "x": 0.054688,
++                "y": 0.055488
++              }
++            ],
++            "reading_order": 0
++          },
++          {
++            "block_id": "p0_b000001",
++            "text": "CONG TY MAU VIETRECEIPT",
++            "confidence": 0.99475,
++            "polygon": [
++              {
++                "x": 0.05625,
++                "y": 0.096951
++              },
++              {
++                "x": 0.357812,
++                "y": 0.097561
++              },
++              {
++                "x": 0.357812,
++                "y": 0.114634
++              },
++              {
++                "x": 0.05625,
++                "y": 0.114024
++              }
++            ],
++            "reading_order": 1
++          },
++          {
++            "block_id": "p0_b000002",
++            "text": "Ma só thué: 0000000000",
++            "confidence": 0.961004,
++            "polygon": [
++              {
++                "x": 0.054688,
++                "y": 0.156098
++              },
++              {
++                "x": 0.296094,
++                "y": 0.156707
++              },
++              {
++                "x": 0.296094,
++                "y": 0.173171
++              },
++              {
++                "x": 0.054688,
++                "y": 0.172561
++              }
++            ],
++            "reading_order": 2
++          },
++          {
++            "block_id": "p0_b000003",
++            "text": "Só hoä do'n: 00001234",
++            "confidence": 0.951381,
++            "polygon": [
++              {
++                "x": 0.055469,
++                "y": 0.214634
++              },
++              {
++                "x": 0.277344,
++                "y": 0.217073
++              },
++              {
++                "x": 0.277344,
++                "y": 0.234146
++              },
++              {
++                "x": 0.055469,
++                "y": 0.231707
++              }
++            ],
++            "reading_order": 3
++          },
++          {
++            "block_id": "p0_b000004",
++            "text": "Ngay lap: 24/09/2026",
++            "confidence": 0.951063,
++            "polygon": [
++              {
++                "x": 0.054688,
++                "y": 0.27622
++              },
++              {
++                "x": 0.261719,
++                "y": 0.27378
++              },
++              {
++                "x": 0.261719,
++                "y": 0.290244
++              },
++              {
++                "x": 0.054688,
++                "y": 0.292683
++              }
++            ],
++            "reading_order": 4
++          },
++          {
++            "block_id": "p0_b000005",
++            "text": "Ngui mua: KHACH HANG MAU",
++            "confidence": 0.993455,
++            "polygon": [
++              {
++                "x": 0.054688,
++                "y": 0.332927
++              },
++              {
++                "x": 0.375,
++                "y": 0.329878
++              },
++              {
++                "x": 0.375,
++                "y": 0.348171
++              },
++              {
++                "x": 0.054688,
++                "y": 0.35122
++              }
++            ],
++            "reading_order": 5
++          },
++          {
++            "block_id": "p0_b000006",
++            "text": "Tén hang",
++            "confidence": 0.839004,
++            "polygon": [
++              {
++                "x": 0.053906,
++                "y": 0.390854
++              },
++              {
++                "x": 0.146875,
++                "y": 0.392683
++              },
++              {
++                "x": 0.146094,
++                "y": 0.410366
++              },
++              {
++                "x": 0.053125,
++                "y": 0.407927
++              }
++            ],
++            "reading_order": 6
++          },
++          {
++            "block_id": "p0_b000007",
++            "text": "Do'n vi",
++            "confidence": 0.935421,
++            "polygon": [
++              {
++                "x": 0.192969,
++                "y": 0.392073
++              },
++              {
++                "x": 0.2625,
++                "y": 0.392073
++              },
++              {
++                "x": 0.2625,
++                "y": 0.409756
++              },
++              {
++                "x": 0.192969,
++                "y": 0.409756
++              }
++            ],
++            "reading_order": 7
++          },
++          {
++            "block_id": "p0_b000008",
++            "text": "Só luo'ng",
++            "confidence": 0.882645,
++            "polygon": [
++              {
++                "x": 0.307031,
++                "y": 0.389024
++              },
++              {
++                "x": 0.399219,
++                "y": 0.392073
++              },
++              {
++                "x": 0.398438,
++                "y": 0.410976
++              },
++              {
++                "x": 0.30625,
++                "y": 0.407927
++              }
++            ],
++            "reading_order": 8
++          },
++          {
++            "block_id": "p0_b000009",
++            "text": "Do'n gia",
++            "confidence": 0.910594,
++            "polygon": [
++              {
++                "x": 0.446094,
++                "y": 0.392683
++              },
++              {
++                "x": 0.525781,
++                "y": 0.392683
++              },
++              {
++                "x": 0.525781,
++                "y": 0.409756
++              },
++              {
++                "x": 0.446094,
++                "y": 0.409756
++              }
++            ],
++            "reading_order": 9
++          },
++          {
++            "block_id": "p0_b000010",
++            "text": "Thanh tién",
++            "confidence": 0.929333,
++            "polygon": [
++              {
++                "x": 0.571875,
++                "y": 0.390244
++              },
++              {
++                "x": 0.675781,
++                "y": 0.389024
++              },
++              {
++                "x": 0.675781,
++                "y": 0.406707
++              },
++              {
++                "x": 0.571875,
++                "y": 0.407927
++              }
++            ],
++            "reading_order": 10
++          },
++          {
++            "block_id": "p0_b000011",
++            "text": "Giäy in A4",
++            "confidence": 0.961853,
++            "polygon": [
++              {
++                "x": 0.054688,
++                "y": 0.44939
++              },
++              {
++                "x": 0.15625,
++                "y": 0.44939
++              },
++              {
++                "x": 0.15625,
++                "y": 0.468293
++              },
++              {
++                "x": 0.054688,
++                "y": 0.468293
++              }
++            ],
++            "reading_order": 11
++          },
++          {
++            "block_id": "p0_b000012",
++            "text": "Ram",
++            "confidence": 0.997713,
++            "polygon": [
++              {
++                "x": 0.201563,
++                "y": 0.45
++              },
++              {
++                "x": 0.252344,
++                "y": 0.45
++              },
++              {
++                "x": 0.252344,
++                "y": 0.467683
++              },
++              {
++                "x": 0.201563,
++                "y": 0.467683
++              }
++            ],
++            "reading_order": 12
++          },
++          {
++            "block_id": "p0_b000013",
++            "text": "2",
++            "confidence": 0.999964,
++            "polygon": [
++              {
++                "x": 0.295312,
++                "y": 0.44939
++              },
++              {
++                "x": 0.314063,
++                "y": 0.44939
++              },
++              {
++                "x": 0.314063,
++                "y": 0.468293
++              },
++              {
++                "x": 0.295312,
++                "y": 0.468293
++              }
++            ],
++            "reading_order": 13
++          },
++          {
++            "block_id": "p0_b000014",
++            "text": "50.000",
++            "confidence": 0.999961,
++            "polygon": [
++              {
++                "x": 0.358594,
++                "y": 0.45122
++              },
++              {
++                "x": 0.425781,
++                "y": 0.45122
++              },
++              {
++                "x": 0.425781,
++                "y": 0.466463
++              },
++              {
++                "x": 0.358594,
++                "y": 0.466463
++              }
++            ],
++            "reading_order": 14
++          },
++          {
++            "block_id": "p0_b000015",
++            "text": "100.000",
++            "confidence": 0.99995,
++            "polygon": [
++              {
++                "x": 0.475,
++                "y": 0.45122
++              },
++              {
++                "x": 0.553125,
++                "y": 0.45122
++              },
++              {
++                "x": 0.553125,
++                "y": 0.466463
++              },
++              {
++                "x": 0.475,
++                "y": 0.466463
++              }
++            ],
++            "reading_order": 15
++          },
++          {
++            "block_id": "p0_b000016",
++            "text": "But bi",
++            "confidence": 0.941519,
++            "polygon": [
++              {
++                "x": 0.053125,
++                "y": 0.508537
++              },
++              {
++                "x": 0.113281,
++                "y": 0.508537
++              },
++              {
++                "x": 0.113281,
++                "y": 0.52561
++              },
++              {
++                "x": 0.053125,
++                "y": 0.52561
++              }
++            ],
++            "reading_order": 16
++          },
++          {
++            "block_id": "p0_b000017",
++            "text": "Cay",
++            "confidence": 0.921095,
++            "polygon": [
++              {
++                "x": 0.157812,
++                "y": 0.506098
++              },
++              {
++                "x": 0.201563,
++                "y": 0.509756
++              },
++              {
++                "x": 0.199219,
++                "y": 0.528659
++              },
++              {
++                "x": 0.155469,
++                "y": 0.525
++              }
++            ],
++            "reading_order": 17
++          },
++          {
++            "block_id": "p0_b000018",
++            "text": "3",
++            "confidence": 0.99948,
++            "polygon": [
++              {
++                "x": 0.244531,
++                "y": 0.508537
++              },
++              {
++                "x": 0.260156,
++                "y": 0.508537
++              },
++              {
++                "x": 0.260156,
++                "y": 0.52561
++              },
++              {
++                "x": 0.244531,
++                "y": 0.52561
++              }
++            ],
++            "reading_order": 18
++          },
++          {
++            "block_id": "p0_b000019",
++            "text": "10.000",
++            "confidence": 0.999972,
++            "polygon": [
++              {
++                "x": 0.307812,
++                "y": 0.509146
++              },
++              {
++                "x": 0.374219,
++                "y": 0.509146
++              },
++              {
++                "x": 0.374219,
++                "y": 0.52439
++              },
++              {
++                "x": 0.307812,
++                "y": 0.52439
++              }
++            ],
++            "reading_order": 19
++          },
++          {
++            "block_id": "p0_b000020",
++            "text": "30.000",
++            "confidence": 0.999974,
++            "polygon": [
++              {
++                "x": 0.421094,
++                "y": 0.509146
++              },
++              {
++                "x": 0.489063,
++                "y": 0.509146
++              },
++              {
++                "x": 0.489063,
++                "y": 0.52439
++              },
++              {
++                "x": 0.421094,
++                "y": 0.52439
++              }
++            ],
++            "reading_order": 20
++          },
++          {
++            "block_id": "p0_b000021",
++            "text": "Cöng tién hang: 130.000",
++            "confidence": 0.937513,
++            "polygon": [
++              {
++                "x": 0.05625,
++                "y": 0.568293
++              },
++              {
++                "x": 0.292969,
++                "y": 0.568293
++              },
++              {
++                "x": 0.292969,
++                "y": 0.584756
++              },
++              {
++                "x": 0.05625,
++                "y": 0.584756
++              }
++            ],
++            "reading_order": 21
++          },
++          {
++            "block_id": "p0_b000022",
++            "text": "Thué GTGT: 13.000",
++            "confidence": 0.993558,
++            "polygon": [
++              {
++                "x": 0.055469,
++                "y": 0.62439
++              },
++              {
++                "x": 0.25,
++                "y": 0.62561
++              },
++              {
++                "x": 0.25,
++                "y": 0.642073
++              },
++              {
++                "x": 0.055469,
++                "y": 0.640854
++              }
++            ],
++            "reading_order": 22
++          },
++          {
++            "block_id": "p0_b000023",
++            "text": "Tóng thanh toän: 143.000 VND",
++            "confidence": 0.955829,
++            "polygon": [
++              {
++                "x": 0.054688,
++                "y": 0.682317
++              },
++              {
++                "x": 0.357031,
++                "y": 0.684146
++              },
++              {
++                "x": 0.357031,
++                "y": 0.702439
++              },
++              {
++                "x": 0.054688,
++                "y": 0.70122
++              }
++            ],
++            "reading_order": 23
++          }
++        ],
++        "average_confidence": 0.958565,
++        "duration_ms": 13656
++      }
++    }
++  ]
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/evidence-image-ocr-20261023.metadata.json
+@@ -0,0 +1,39 @@
++{
++  "config": {
++    "dpi": 200,
++    "max_bytes": 31457280,
++    "max_pages": 30,
++    "max_pixels": 40000000,
++    "max_pdf_chars": 200000,
++    "min_pdf_chars": 20,
++    "orientation": "auto",
++    "max_side": 0,
++    "contrast": 1,
++    "force_pdf_ocr": false
++  },
++  "pages": [
++    {
++      "orientation_clockwise": 0,
++      "orientation_model": "PP-LCNet_x1_0_doc_ori",
++      "orientation_score": 0.9269800186157227,
++      "engine": {
++        "name": "paddleocr",
++        "version": "3.0.3"
++      },
++      "width_px": 1280,
++      "height_px": 1640,
++      "confidence_semantics": "engine_score_not_calibrated_probability",
++      "stage_latency_ms": {
++        "preprocess_orientation": 437.8662000017357,
++        "ocr": 13680.453099994338,
++        "geometry_order": 0.7973000028869137
++      },
++      "source": "IMAGE_OCR",
++      "routing_reason": "image_input",
++      "fallback": false,
++      "coordinate_system": "normalized_exif_display_top_left"
++    }
++  ],
++  "duration_ms": 14156,
++  "input_sha256": "747d3192bd7bc222327aab24e9399f2ec39d8cc215c6de025629065f3bd2d03a"
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/evidence-pdf-text-20261023.json
+@@ -0,0 +1,603 @@
++{
++  "schema_version": "document-2.0",
++  "receipt_id": "eb3ff50c-efa4-5120-b5bf-501be1ba78b4",
++  "ocr_run_id": "65ff070d-359a-4931-827d-76b058741a58",
++  "pages": [
++    {
++      "page_index": 0,
++      "evidence": {
++        "schema_version": "1.3",
++        "receipt_id": "eb3ff50c-efa4-5120-b5bf-501be1ba78b4",
++        "ocr_run_id": "65ff070d-359a-4931-827d-76b058741a58",
++        "engine": {
++          "name": "pdfium-text",
++          "version": "5.12.1"
++        },
++        "image": {
++          "width_px": 1778,
++          "height_px": 2278
++        },
++        "blocks": [
++          {
++            "text": "HOÁ ĐƠN THỬ NGHIỆM - KHÔNG CÓ GIÁ TRỊ",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.056437,
++                "y": 0.03958
++              },
++              {
++                "x": 0.527275,
++                "y": 0.03958
++              },
++              {
++                "x": 0.527275,
++                "y": 0.057576
++              },
++              {
++                "x": 0.056437,
++                "y": 0.057576
++              }
++            ],
++            "block_id": "p0_b000000",
++            "reading_order": 0
++          },
++          {
++            "text": "CÔNG TY MẪU VIETRECEIPT",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.055781,
++                "y": 0.098117
++              },
++              {
++                "x": 0.357766,
++                "y": 0.098117
++              },
++              {
++                "x": 0.357766,
++                "y": 0.113602
++              },
++              {
++                "x": 0.055781,
++                "y": 0.113602
++              }
++            ],
++            "block_id": "p0_b000001",
++            "reading_order": 1
++          },
++          {
++            "text": "Mã số thuế: 0000000000",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.056306,
++                "y": 0.156722
++              },
++              {
++                "x": 0.295531,
++                "y": 0.156722
++              },
++              {
++                "x": 0.295531,
++                "y": 0.172139
++              },
++              {
++                "x": 0.056306,
++                "y": 0.172139
++              }
++            ],
++            "block_id": "p0_b000002",
++            "reading_order": 2
++          },
++          {
++            "text": "Số hoá đơn: 00001234",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.055672,
++                "y": 0.215259
++              },
++              {
++                "x": 0.277047,
++                "y": 0.215259
++              },
++              {
++                "x": 0.277047,
++                "y": 0.230693
++              },
++              {
++                "x": 0.055672,
++                "y": 0.230693
++              }
++            ],
++            "block_id": "p0_b000003",
++            "reading_order": 3
++          },
++          {
++            "text": "Ngày lập: 24/09/2026",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.05635,
++                "y": 0.276595
++              },
++              {
++                "x": 0.261516,
++                "y": 0.276595
++              },
++              {
++                "x": 0.261516,
++                "y": 0.292593
++              },
++              {
++                "x": 0.05635,
++                "y": 0.292593
++              }
++            ],
++            "block_id": "p0_b000004",
++            "reading_order": 4
++          },
++          {
++            "text": "Người mua: KHÁCH HÀNG MẪU",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.05635,
++                "y": 0.332263
++              },
++              {
++                "x": 0.375813,
++                "y": 0.332263
++              },
++              {
++                "x": 0.375813,
++                "y": 0.351129
++              },
++              {
++                "x": 0.05635,
++                "y": 0.351129
++              }
++            ],
++            "block_id": "p0_b000005",
++            "reading_order": 5
++          },
++          {
++            "text": "Tên hàng",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.055191,
++                "y": 0.393805
++              },
++              {
++                "x": 0.1456,
++                "y": 0.393805
++              },
++              {
++                "x": 0.1456,
++                "y": 0.409666
++              },
++              {
++                "x": 0.055191,
++                "y": 0.409666
++              }
++            ],
++            "block_id": "p0_b000006",
++            "reading_order": 6
++          },
++          {
++            "text": "Đơn vị",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.195541,
++                "y": 0.393873
++              },
++              {
++                "x": 0.258344,
++                "y": 0.393873
++              },
++              {
++                "x": 0.258344,
++                "y": 0.408795
++              },
++              {
++                "x": 0.195541,
++                "y": 0.408795
++              }
++            ],
++            "block_id": "p0_b000007",
++            "reading_order": 7
++          },
++          {
++            "text": "Số lượng",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.309138,
++                "y": 0.390868
++              },
++              {
++                "x": 0.397622,
++                "y": 0.390868
++              },
++              {
++                "x": 0.397622,
++                "y": 0.409666
++              },
++              {
++                "x": 0.309138,
++                "y": 0.409666
++              }
++            ],
++            "block_id": "p0_b000008",
++            "reading_order": 8
++          },
++          {
++            "text": "Đơn giá",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.447563,
++                "y": 0.393805
++              },
++              {
++                "x": 0.524169,
++                "y": 0.393805
++              },
++              {
++                "x": 0.524169,
++                "y": 0.409666
++              },
++              {
++                "x": 0.447563,
++                "y": 0.409666
++              }
++            ],
++            "block_id": "p0_b000009",
++            "reading_order": 9
++          },
++          {
++            "text": "Thành tiền",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.574066,
++                "y": 0.390868
++              },
++              {
++                "x": 0.675347,
++                "y": 0.390868
++              },
++              {
++                "x": 0.675347,
++                "y": 0.406285
++              },
++              {
++                "x": 0.574066,
++                "y": 0.406285
++              }
++            ],
++            "block_id": "p0_b000010",
++            "reading_order": 10
++          },
++          {
++            "text": "Giấy in A4",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.055847,
++                "y": 0.449405
++              },
++              {
++                "x": 0.154459,
++                "y": 0.449405
++              },
++              {
++                "x": 0.154459,
++                "y": 0.468202
++              },
++              {
++                "x": 0.055847,
++                "y": 0.468202
++              }
++            ],
++            "block_id": "p0_b000011",
++            "reading_order": 11
++          },
++          {
++            "text": "Ram",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.205712,
++                "y": 0.45241
++              },
++              {
++                "x": 0.248762,
++                "y": 0.45241
++              },
++              {
++                "x": 0.248762,
++                "y": 0.464822
++              },
++              {
++                "x": 0.205712,
++                "y": 0.464822
++              }
++            ],
++            "block_id": "p0_b000012",
++            "reading_order": 12
++          },
++          {
++            "text": "2",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.299272,
++                "y": 0.452359
++              },
++              {
++                "x": 0.309641,
++                "y": 0.452359
++              },
++              {
++                "x": 0.309641,
++                "y": 0.464634
++              },
++              {
++                "x": 0.299272,
++                "y": 0.464634
++              }
++            ],
++            "block_id": "p0_b000013",
++            "reading_order": 13
++          },
++          {
++            "text": "50.000",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.360194,
++                "y": 0.452359
++              },
++              {
++                "x": 0.425097,
++                "y": 0.452359
++              },
++              {
++                "x": 0.425097,
++                "y": 0.464822
++              },
++              {
++                "x": 0.360194,
++                "y": 0.464822
++              }
++            ],
++            "block_id": "p0_b000014",
++            "reading_order": 14
++          },
++          {
++            "text": "100.000",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.477006,
++                "y": 0.452359
++              },
++              {
++                "x": 0.552606,
++                "y": 0.452359
++              },
++              {
++                "x": 0.552606,
++                "y": 0.464822
++              },
++              {
++                "x": 0.477006,
++                "y": 0.464822
++              }
++            ],
++            "block_id": "p0_b000015",
++            "reading_order": 15
++          },
++          {
++            "text": "Bút bi",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.056284,
++                "y": 0.510878
++              },
++              {
++                "x": 0.109069,
++                "y": 0.510878
++              },
++              {
++                "x": 0.109069,
++                "y": 0.523359
++              },
++              {
++                "x": 0.056284,
++                "y": 0.523359
++              }
++            ],
++            "block_id": "p0_b000016",
++            "reading_order": 16
++          },
++          {
++            "text": "Cây",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.160125,
++                "y": 0.510741
++              },
++              {
++                "x": 0.197728,
++                "y": 0.510741
++              },
++              {
++                "x": 0.197728,
++                "y": 0.526739
++              },
++              {
++                "x": 0.160125,
++                "y": 0.526739
++              }
++            ],
++            "block_id": "p0_b000017",
++            "reading_order": 17
++          },
++          {
++            "text": "3",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.247319,
++                "y": 0.510895
++              },
++              {
++                "x": 0.257578,
++                "y": 0.510895
++              },
++              {
++                "x": 0.257578,
++                "y": 0.523376
++              },
++              {
++                "x": 0.247319,
++                "y": 0.523376
++              }
++            ],
++            "block_id": "p0_b000018",
++            "reading_order": 18
++          },
++          {
++            "text": "10.000",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.309422,
++                "y": 0.510895
++              },
++              {
++                "x": 0.372859,
++                "y": 0.510895
++              },
++              {
++                "x": 0.372859,
++                "y": 0.523359
++              },
++              {
++                "x": 0.309422,
++                "y": 0.523359
++              }
++            ],
++            "block_id": "p0_b000019",
++            "reading_order": 19
++          },
++          {
++            "text": "30.000",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.423303,
++                "y": 0.510895
++              },
++              {
++                "x": 0.488206,
++                "y": 0.510895
++              },
++              {
++                "x": 0.488206,
++                "y": 0.523376
++              },
++              {
++                "x": 0.423303,
++                "y": 0.523376
++              }
++            ],
++            "block_id": "p0_b000020",
++            "reading_order": 20
++          },
++          {
++            "text": "Cộng tiền hàng: 130.000",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.055781,
++                "y": 0.566478
++              },
++              {
++                "x": 0.293081,
++                "y": 0.566478
++              },
++              {
++                "x": 0.293081,
++                "y": 0.585276
++              },
++              {
++                "x": 0.055781,
++                "y": 0.585276
++              }
++            ],
++            "block_id": "p0_b000021",
++            "reading_order": 21
++          },
++          {
++            "text": "Thuế GTGT: 13.000",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.055191,
++                "y": 0.625015
++              },
++              {
++                "x": 0.2492,
++                "y": 0.625015
++              },
++              {
++                "x": 0.2492,
++                "y": 0.640449
++              },
++              {
++                "x": 0.055191,
++                "y": 0.640449
++              }
++            ],
++            "block_id": "p0_b000022",
++            "reading_order": 22
++          },
++          {
++            "text": "Tổng thanh toán: 143.000 VND",
++            "confidence": 1.0,
++            "polygon": [
++              {
++                "x": 0.055191,
++                "y": 0.683483
++              },
++              {
++                "x": 0.356103,
++                "y": 0.683483
++              },
++              {
++                "x": 0.356103,
++                "y": 0.702349
++              },
++              {
++                "x": 0.055191,
++                "y": 0.702349
++              }
++            ],
++            "block_id": "p0_b000023",
++            "reading_order": 23
++          }
++        ],
++        "average_confidence": 1.0,
++        "duration_ms": 14
++      }
++    }
++  ]
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/evidence-pdf-text-20261023.metadata.json
+@@ -0,0 +1,37 @@
++{
++  "config": {
++    "dpi": 200,
++    "max_bytes": 31457280,
++    "max_pages": 30,
++    "max_pixels": 40000000,
++    "max_pdf_chars": 200000,
++    "min_pdf_chars": 20,
++    "orientation": "auto",
++    "max_side": 0,
++    "contrast": 1,
++    "force_pdf_ocr": false
++  },
++  "pages": [
++    {
++      "source": "PDF_TEXT",
++      "confidence_semantics": "not_applicable_legacy_sentinel_1",
++      "stage_latency_ms": {
++        "pdf_text": 11.794099998951424,
++        "render": 0.0
++      },
++      "page_duration_ms": 14.69599999836646,
++      "routing_reason": "usable_text_layer",
++      "fallback": false,
++      "coordinate_system": "normalized_crop_unrotated_top_left",
++      "page_index": 0,
++      "intrinsic_rotation": 0,
++      "renderer": "pypdfium2",
++      "renderer_version": "5.12.1",
++      "dpi": 200,
++      "color_mode": "RGB",
++      "canonical_rotation": 0
++    }
++  ],
++  "duration_ms": 35,
++  "input_sha256": "325953bc6187e12277de7a08b06e24119756421ca4b5efc5b5aaccad4ddb3387"
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/failure-examples-20261023.json
+@@ -0,0 +1,440 @@
++{
++  "dataset": "tv3-synthetic-diagnostics",
++  "version": "1.1",
++  "split": "development",
++  "examples": [
++    {
++      "id": "E01",
++      "sample": "clean-png",
++      "mode": "route_aware",
++      "category": "diacritics",
++      "expected": "CÔNG TY MẪU VIETRECEIPT",
++      "actual": "CONG TY MAU VIETRECEIPT",
++      "receipt_id": "8888b2eb-bba7-5950-8163-bc685969f8db",
++      "ocr_run_id": "dfaa302d-7a09-4b8b-94df-c264634cf62a",
++      "page_index": 0,
++      "blocks": [
++        {
++          "block_id": "p0_b000001",
++          "text": "CONG TY MAU VIETRECEIPT",
++          "confidence": 0.99475,
++          "polygon": [
++            {
++              "x": 0.05625,
++              "y": 0.096951
++            },
++            {
++              "x": 0.357812,
++              "y": 0.097561
++            },
++            {
++              "x": 0.357812,
++              "y": 0.114634
++            },
++            {
++              "x": 0.05625,
++              "y": 0.114024
++            }
++          ],
++          "reading_order": 1
++        }
++      ],
++      "evidence_path": "local-paired-native-20261023/route_aware/predictions/clean-png.json",
++      "implication_for_TV4": "Seller accents are lost; numeric fields being intact does not establish text accuracy.",
++      "review": "source transcription checked; tilt source image visually inspected"
++    },
++    {
++      "id": "E02",
++      "sample": "photo-jpg",
++      "mode": "route_aware",
++      "category": "segmentation_and_diacritics",
++      "expected": "Thuế GTGT: 13.000",
++      "actual": "ThuéGTGT13.000",
++      "receipt_id": "5712b955-d199-525c-abbd-6b59dad834f6",
++      "ocr_run_id": "3554159b-a266-4e7b-95cd-bb207c8674ff",
++      "page_index": 0,
++      "blocks": [
++        {
++          "block_id": "p0_b000022",
++          "text": "ThuéGTGT13.000",
++          "confidence": 0.95558,
++          "polygon": [
++            {
++              "x": 0.05625,
++              "y": 0.62622
++            },
++            {
++              "x": 0.249219,
++              "y": 0.62622
++            },
++            {
++              "x": 0.249219,
++              "y": 0.640854
++            },
++            {
++              "x": 0.05625,
++              "y": 0.640854
++            }
++          ],
++          "reading_order": 22
++        }
++      ],
++      "evidence_path": "local-paired-native-20261023/route_aware/predictions/photo-jpg.json",
++      "implication_for_TV4": "Tax label, separators and amount are joined. KIE label matching must review the raw evidence.",
++      "review": "source transcription checked; tilt source image visually inspected"
++    },
++    {
++      "id": "E03",
++      "sample": "blur-png",
++      "mode": "route_aware",
++      "category": "substitution_and_diacritics",
++      "expected": "Ngày lập: 24/09/2026",
++      "actual": "Ngay l@p:24/09/2026",
++      "receipt_id": "0dc2baf3-fb98-509b-868f-da3837fd3402",
++      "ocr_run_id": "ad7c24b3-5ab0-4808-acd5-89e9b2a92615",
++      "page_index": 0,
++      "blocks": [
++        {
++          "block_id": "p0_b000004",
++          "text": "Ngay l@p:24/09/2026",
++          "confidence": 0.916813,
++          "polygon": [
++            {
++              "x": 0.054688,
++              "y": 0.275
++            },
++            {
++              "x": 0.2625,
++              "y": 0.275
++            },
++            {
++              "x": 0.2625,
++              "y": 0.293293
++            },
++            {
++              "x": 0.054688,
++              "y": 0.293293
++            }
++          ],
++          "reading_order": 4
++        }
++      ],
++      "evidence_path": "local-paired-native-20261023/route_aware/predictions/blur-png.json",
++      "implication_for_TV4": "The label contains a spurious @ while the date digits survive.",
++      "review": "source transcription checked; tilt source image visually inspected"
++    },
++    {
++      "id": "E04",
++      "sample": "tilt-png",
++      "mode": "route_aware",
++      "category": "reading_order",
++      "expected": "Tên hàng | Đơn vị | Số lượng | Đơn giá | Thành tiền",
++      "actual": "Thanh tien | só luong | Don gia | Ten hang | Do'n vi",
++      "receipt_id": "5f0ea25f-468d-52c8-9a3b-9d11b3e76836",
++      "ocr_run_id": "99db56d9-2314-4a53-8005-d76dfc036513",
++      "page_index": 0,
++      "blocks": [
++        {
++          "block_id": "p0_b000006",
++          "text": "Thanh tien",
++          "confidence": 0.937518,
++          "polygon": [
++            {
++              "x": 0.546875,
++              "y": 0.394619
++            },
++            {
++              "x": 0.636549,
++              "y": 0.384529
++            },
++            {
++              "x": 0.639266,
++              "y": 0.400224
++            },
++            {
++              "x": 0.549592,
++              "y": 0.410314
++            }
++          ],
++          "reading_order": 6
++        },
++        {
++          "block_id": "p0_b000007",
++          "text": "só luong",
++          "confidence": 0.840002,
++          "polygon": [
++            {
++              "x": 0.317935,
++              "y": 0.415359
++            },
++            {
++              "x": 0.398777,
++              "y": 0.410314
++            },
++            {
++              "x": 0.400815,
++              "y": 0.428251
++            },
++            {
++              "x": 0.319973,
++              "y": 0.433296
++            }
++          ],
++          "reading_order": 7
++        },
++        {
++          "block_id": "p0_b000008",
++          "text": "Don gia",
++          "confidence": 0.913546,
++          "polygon": [
++            {
++              "x": 0.438179,
++              "y": 0.40639
++            },
++            {
++              "x": 0.507473,
++              "y": 0.399664
++            },
++            {
++              "x": 0.509511,
++              "y": 0.415919
++            },
++            {
++              "x": 0.440217,
++              "y": 0.422646
++            }
++          ],
++          "reading_order": 8
++        },
++        {
++          "block_id": "p0_b000009",
++          "text": "Ten hang",
++          "confidence": 0.96381,
++          "polygon": [
++            {
++              "x": 0.099864,
++              "y": 0.438341
++            },
++            {
++              "x": 0.181386,
++              "y": 0.433296
++            },
++            {
++              "x": 0.183424,
++              "y": 0.449552
++            },
++            {
++              "x": 0.101902,
++              "y": 0.454596
++            }
++          ],
++          "reading_order": 9
++        },
++        {
++          "block_id": "p0_b000010",
++          "text": "Do'n vi",
++          "confidence": 0.984382,
++          "polygon": [
++            {
++              "x": 0.220109,
++              "y": 0.42713
++            },
++            {
++              "x": 0.280571,
++              "y": 0.422085
++            },
++            {
++              "x": 0.282609,
++              "y": 0.438341
++            },
++            {
++              "x": 0.222147,
++              "y": 0.443386
++            }
++          ],
++          "reading_order": 10
++        }
++      ],
++      "evidence_path": "local-paired-native-20261023/route_aware/predictions/tilt-png.json",
++      "implication_for_TV4": "Visual source review confirms left-to-right headers. Baseline clustering emits the rightmost header first.",
++      "review": "source transcription checked; tilt source image visually inspected"
++    },
++    {
++      "id": "E05",
++      "sample": "tilt-png",
++      "mode": "route_aware",
++      "category": "reading_order",
++      "expected": "Giấy in A4 | Ram | 2 | 50.000 | 100.000",
++      "actual": "50.000 | 100.000 | Ram | 2 | Gi&y in A4",
++      "receipt_id": "5f0ea25f-468d-52c8-9a3b-9d11b3e76836",
++      "ocr_run_id": "99db56d9-2314-4a53-8005-d76dfc036513",
++      "page_index": 0,
++      "blocks": [
++        {
++          "block_id": "p0_b000011",
++          "text": "50.000",
++          "confidence": 0.99998,
++          "polygon": [
++            {
++              "x": 0.369565,
++              "y": 0.466928
++            },
++            {
++              "x": 0.430027,
++              "y": 0.460202
++            },
++            {
++              "x": 0.432745,
++              "y": 0.475897
++            },
++            {
++              "x": 0.372283,
++              "y": 0.482623
++            }
++          ],
++          "reading_order": 11
++        },
++        {
++          "block_id": "p0_b000012",
++          "text": "100.000",
++          "confidence": 0.943098,
++          "polygon": [
++            {
++              "x": 0.470788,
++              "y": 0.456278
++            },
++            {
++              "x": 0.540082,
++              "y": 0.449552
++            },
++            {
++              "x": 0.54212,
++              "y": 0.465247
++            },
++            {
++              "x": 0.472826,
++              "y": 0.471973
++            }
++          ],
++          "reading_order": 12
++        },
++        {
++          "block_id": "p0_b000013",
++          "text": "Ram",
++          "confidence": 0.99808,
++          "polygon": [
++            {
++              "x": 0.235054,
++              "y": 0.479821
++            },
++            {
++              "x": 0.279891,
++              "y": 0.477018
++            },
++            {
++              "x": 0.281929,
++              "y": 0.492713
++            },
++            {
++              "x": 0.237092,
++              "y": 0.496076
++            }
++          ],
++          "reading_order": 13
++        },
++        {
++          "block_id": "p0_b000014",
++          "text": "2",
++          "confidence": 0.999901,
++          "polygon": [
++            {
++              "x": 0.317935,
++              "y": 0.470852
++            },
++            {
++              "x": 0.334239,
++              "y": 0.470852
++            },
++            {
++              "x": 0.334239,
++              "y": 0.488229
++            },
++            {
++              "x": 0.317935,
++              "y": 0.488229
++            }
++          ],
++          "reading_order": 14
++        },
++        {
++          "block_id": "p0_b000015",
++          "text": "Gi&y in A4",
++          "confidence": 0.947453,
++          "polygon": [
++            {
++              "x": 0.108696,
++              "y": 0.491592
++            },
++            {
++              "x": 0.196332,
++              "y": 0.484305
++            },
++            {
++              "x": 0.19837,
++              "y": 0.502242
++            },
++            {
++              "x": 0.110734,
++              "y": 0.509529
++            }
++          ],
++          "reading_order": 15
++        }
++      ],
++      "evidence_path": "local-paired-native-20261023/route_aware/predictions/tilt-png.json",
++      "implication_for_TV4": "Visual source review confirms row order. Prices precede description in emitted reading order; row grouping can be affected.",
++      "review": "source transcription checked; tilt source image visually inspected"
++    },
++    {
++      "id": "E06",
++      "sample": "scan-pdf",
++      "mode": "route_aware",
++      "category": "diacritics",
++      "expected": "Số hoá đơn: 00001234",
++      "actual": "Só hoä do'n: 00001234",
++      "receipt_id": "2fc21d28-e8cf-5ba3-9d77-0e5b58fe68eb",
++      "ocr_run_id": "4a85e4dc-1ce3-476b-81bf-9ceed5421c91",
++      "page_index": 0,
++      "blocks": [
++        {
++          "block_id": "p0_b000003",
++          "text": "Só hoä do'n: 00001234",
++          "confidence": 0.956215,
++          "polygon": [
++            {
++              "x": 0.055681,
++              "y": 0.215979
++            },
++            {
++              "x": 0.277278,
++              "y": 0.217735
++            },
++            {
++              "x": 0.277278,
++              "y": 0.233099
++            },
++            {
++              "x": 0.055681,
++              "y": 0.230904
++            }
++          ],
++          "reading_order": 3
++        }
++      ],
++      "evidence_path": "local-paired-native-20261023/route_aware/predictions/scan-pdf.json",
++      "implication_for_TV4": "Invoice number digits survive but its Vietnamese label is corrupted after render/OCR.",
++      "review": "source transcription checked; tilt source image visually inspected"
++    }
++  ],
++  "geometry_error": "not established; do not infer from CER"
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/handoff-verification-20261023.json
+@@ -0,0 +1,399 @@
++{
++  "dataset": "tv3-synthetic-diagnostics",
++  "samples": [
++    {
++      "id": "text-pdf",
++      "mode": "ocr_all",
++      "receipt_id": "eb3ff50c-efa4-5120-b5bf-501be1ba78b4",
++      "ocr_run_id": "d31a6f17-ee59-41a1-8bea-8bd1917063be",
++      "kie_run_id": "07fc4034-e201-4978-87e9-9cc50bf886d8",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-text-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "text-pdf",
++      "mode": "route_aware",
++      "receipt_id": "eb3ff50c-efa4-5120-b5bf-501be1ba78b4",
++      "ocr_run_id": "65ff070d-359a-4931-827d-76b058741a58",
++      "kie_run_id": "c0f59cf4-14a5-4a09-87fa-b0401033428f",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-text-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "clean-png",
++      "mode": "ocr_all",
++      "receipt_id": "8888b2eb-bba7-5950-8163-bc685969f8db",
++      "ocr_run_id": "d42da148-597c-438e-baeb-3c9f8d9ac504",
++      "kie_run_id": "618876ec-59f0-494c-b59a-d82ca22a17d2",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-clean-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "clean-png",
++      "mode": "route_aware",
++      "receipt_id": "8888b2eb-bba7-5950-8163-bc685969f8db",
++      "ocr_run_id": "dfaa302d-7a09-4b8b-94df-c264634cf62a",
++      "kie_run_id": "105da11c-0328-45aa-97ba-c22af3b100b9",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-clean-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "photo-jpg",
++      "mode": "ocr_all",
++      "receipt_id": "5712b955-d199-525c-abbd-6b59dad834f6",
++      "ocr_run_id": "dbebf4d7-7bb5-4241-8f18-ff3acdac4132",
++      "kie_run_id": "db9b1f69-504a-4b42-9e03-b06615286f51",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-photo-jpg.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "photo-jpg",
++      "mode": "route_aware",
++      "receipt_id": "5712b955-d199-525c-abbd-6b59dad834f6",
++      "ocr_run_id": "3554159b-a266-4e7b-95cd-bb207c8674ff",
++      "kie_run_id": "3f80983c-7b6d-4f8f-9a3f-3f4a67e4ca9b",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-photo-jpg.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "blur-png",
++      "mode": "ocr_all",
++      "receipt_id": "0dc2baf3-fb98-509b-868f-da3837fd3402",
++      "ocr_run_id": "fdfca28b-b01e-4c30-9749-de7ac5c7c020",
++      "kie_run_id": "8bda628a-4b04-4ea4-95f4-9269dcc3fa12",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-blur-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "blur-png",
++      "mode": "route_aware",
++      "receipt_id": "0dc2baf3-fb98-509b-868f-da3837fd3402",
++      "ocr_run_id": "ad7c24b3-5ab0-4808-acd5-89e9b2a92615",
++      "kie_run_id": "290c1810-234b-4e0b-bd2b-91e070246bad",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-blur-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "tilt-png",
++      "mode": "ocr_all",
++      "receipt_id": "5f0ea25f-468d-52c8-9a3b-9d11b3e76836",
++      "ocr_run_id": "e3cc32be-4847-4ad3-bf48-c05b9def4988",
++      "kie_run_id": "85c4ab0f-38f2-4bd6-9c81-c494c2106049",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-tilt-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "tilt-png",
++      "mode": "route_aware",
++      "receipt_id": "5f0ea25f-468d-52c8-9a3b-9d11b3e76836",
++      "ocr_run_id": "99db56d9-2314-4a53-8005-d76dfc036513",
++      "kie_run_id": "08391373-65bd-46c4-b684-8053fc9a0aa4",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-tilt-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "noise-png",
++      "mode": "ocr_all",
++      "receipt_id": "71b713db-6b7a-53ad-b4ca-d261d2e13e22",
++      "ocr_run_id": "5fc964cd-4477-4dc0-8c22-0cea1ff4b92a",
++      "kie_run_id": "c6d7edd9-12f0-4b3c-b111-2841945237f4",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-noise-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "noise-png",
++      "mode": "route_aware",
++      "receipt_id": "71b713db-6b7a-53ad-b4ca-d261d2e13e22",
++      "ocr_run_id": "b500f56f-8896-4ed2-9a26-1201adbd3c24",
++      "kie_run_id": "207a667a-54e8-43d3-adf4-cbede927cb87",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-noise-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "perspective-png",
++      "mode": "ocr_all",
++      "receipt_id": "5622084f-5a2b-5036-b81b-c9f27eb555b2",
++      "ocr_run_id": "3254217b-8fcc-4209-83d2-a1efb321a550",
++      "kie_run_id": "4272e4e9-ac01-48b3-ac6a-645e7186cb5a",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-perspective-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "perspective-png",
++      "mode": "route_aware",
++      "receipt_id": "5622084f-5a2b-5036-b81b-c9f27eb555b2",
++      "ocr_run_id": "eee7f167-e034-411b-9fbe-d17ff28b2d12",
++      "kie_run_id": "ae8a3c55-3091-4033-85f8-04ae3176c8f6",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-perspective-png.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "scan-pdf",
++      "mode": "ocr_all",
++      "receipt_id": "2fc21d28-e8cf-5ba3-9d77-0e5b58fe68eb",
++      "ocr_run_id": "dfa16d14-cd5e-42f3-a84d-ec1e32d1a0d7",
++      "kie_run_id": "7859fe8d-1e26-4df4-b9e2-07b076d77dc4",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-scan-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "scan-pdf",
++      "mode": "route_aware",
++      "receipt_id": "2fc21d28-e8cf-5ba3-9d77-0e5b58fe68eb",
++      "ocr_run_id": "4a85e4dc-1ce3-476b-81bf-9ceed5421c91",
++      "kie_run_id": "7d7219ea-e714-4869-b645-e25739995cf6",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-scan-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "text-multipage-pdf",
++      "mode": "ocr_all",
++      "receipt_id": "c7e97c8b-fe37-50e1-b37c-8d3262aaec9c",
++      "ocr_run_id": "d8106ac7-8fbb-4232-8988-eb9158d4700d",
++      "kie_run_id": "bd70dd1e-3d05-412b-939a-cca7c171b3b5",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-text-multipage-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "text-multipage-pdf",
++      "mode": "route_aware",
++      "receipt_id": "c7e97c8b-fe37-50e1-b37c-8d3262aaec9c",
++      "ocr_run_id": "aca62a56-716a-4f49-826b-ee18dcb74a8a",
++      "kie_run_id": "90d185cc-9548-4d91-937f-b8ed74540582",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-text-multipage-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "scan-multipage-pdf",
++      "mode": "ocr_all",
++      "receipt_id": "085406e1-2770-572d-a631-9218bf4314b0",
++      "ocr_run_id": "6baa7ea1-9dea-4c94-ba3a-63155ed94d75",
++      "kie_run_id": "c13c64dd-c33b-44cd-8d45-7fabc042ec4b",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-scan-multipage-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "scan-multipage-pdf",
++      "mode": "route_aware",
++      "receipt_id": "085406e1-2770-572d-a631-9218bf4314b0",
++      "ocr_run_id": "750e93b5-6446-4f9f-8c07-1be380fd0f06",
++      "kie_run_id": "98ba3c38-30bc-4e31-bf20-c31fcc4a06df",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-scan-multipage-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "mixed-pdf",
++      "mode": "ocr_all",
++      "receipt_id": "74542ad9-5776-5027-805b-f62503a9d083",
++      "ocr_run_id": "43b24f89-6769-45c1-89e3-3594b372232a",
++      "kie_run_id": "6b311bf1-7d2a-451c-98b9-30fcd6c2add9",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-mixed-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "mixed-pdf",
++      "mode": "route_aware",
++      "receipt_id": "74542ad9-5776-5027-805b-f62503a9d083",
++      "ocr_run_id": "d3c7e674-6c9f-498e-a272-cc9b918e9427",
++      "kie_run_id": "7297818e-56a1-44e8-a32b-4047dccf2782",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-mixed-pdf.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "rotation-90",
++      "mode": "ocr_all",
++      "receipt_id": "f6b2eb11-690d-5679-a9b1-2fb8473c566a",
++      "ocr_run_id": "599e8bda-70a7-4ddf-8785-f27ad1f08705",
++      "kie_run_id": "8eb5ca69-7de1-4e02-a6fe-fa66dab1af77",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-rotation-90.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "rotation-90",
++      "mode": "route_aware",
++      "receipt_id": "f6b2eb11-690d-5679-a9b1-2fb8473c566a",
++      "ocr_run_id": "d9c7c049-ff4f-492e-b701-c8d917efae53",
++      "kie_run_id": "2b628aa0-892f-467e-abe8-11c54794f396",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-rotation-90.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "rotation-180",
++      "mode": "ocr_all",
++      "receipt_id": "6cd9c2b7-f9bc-56b0-ba71-0a483e72283d",
++      "ocr_run_id": "ff29da69-071c-4444-be36-a53fad49d9ca",
++      "kie_run_id": "88986a95-9ddc-4abd-8c9c-d42d834ccb83",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-rotation-180.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "rotation-180",
++      "mode": "route_aware",
++      "receipt_id": "6cd9c2b7-f9bc-56b0-ba71-0a483e72283d",
++      "ocr_run_id": "25e9b715-01cd-4183-a0ca-ab4dc1ffd8bb",
++      "kie_run_id": "09a4c3e6-0fe9-4254-b6eb-13a5ebada923",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-rotation-180.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "rotation-270",
++      "mode": "ocr_all",
++      "receipt_id": "6f3a3d0f-a4c0-5c95-b56f-8f6dae074b37",
++      "ocr_run_id": "d76d83cb-76d5-4fb4-88ff-2dd08591644a",
++      "kie_run_id": "dd720fe9-71d2-4ed1-ab63-0712f0d88bba",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "ocr_all-rotation-270.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    },
++    {
++      "id": "rotation-270",
++      "mode": "route_aware",
++      "receipt_id": "6f3a3d0f-a4c0-5c95-b56f-8f6dae074b37",
++      "ocr_run_id": "7bdfc454-e4d6-4f9c-ae5f-9b54217e0a87",
++      "kie_run_id": "2cd5765c-0b66-49c3-b996-ca131ddad2c8",
++      "reader_contract": "pass",
++      "tv5_evidence_contract": "pass",
++      "tv4_kie_contract": "pass",
++      "tv5_kie_contract": "pass",
++      "kie_result": "route_aware-rotation-270.json",
++      "accuracy": null,
++      "note": "Provider/schema check only; no independent gold or accuracy claim"
++    }
++  ],
++  "gold_alignment": "pending_TV2_QA",
++  "id_rewriting": false
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/page-routes-20261023.csv
+@@ -0,0 +1,35 @@
++id,mode,page_index,route,routing_reason,fallback,orientation_clockwise,pdf_text_ms,render_ms,preprocess_orientation_ms,ocr_ms,geometry_order_ms,confidence,confidence_semantics
++text-pdf,ocr_all,0,PDF_OCR,forced_ocr,False,0,0.0006999980541877449,15.913900002487935,10419.288900004176,16323.89819999662,0.8066000009421259,0.962446,engine_score_not_calibrated_probability
++text-pdf,route_aware,0,PDF_TEXT,usable_text_layer,False,0,11.794099998951424,0.0,0,0,0,,not_applicable_legacy_sentinel_1
++clean-png,ocr_all,0,IMAGE_OCR,image_input,False,0,0,0,57.285299997602124,13306.788699999743,0.752799998736009,0.958565,engine_score_not_calibrated_probability
++clean-png,route_aware,0,IMAGE_OCR,image_input,False,0,0,0,437.8662000017357,13680.453099994338,0.7973000028869137,0.958565,engine_score_not_calibrated_probability
++photo-jpg,ocr_all,0,IMAGE_OCR,image_input,False,0,0,0,57.045000001380686,13291.429199998674,0.7709000055911019,0.934443,engine_score_not_calibrated_probability
++photo-jpg,route_aware,0,IMAGE_OCR,image_input,False,0,0,0,57.887299997673836,11839.794400002575,0.7808999944245443,0.934443,engine_score_not_calibrated_probability
++blur-png,ocr_all,0,IMAGE_OCR,image_input,False,0,0,0,50.522000005003065,12696.745499997633,0.6742999976268038,0.943433,engine_score_not_calibrated_probability
++blur-png,route_aware,0,IMAGE_OCR,image_input,False,0,0,0,50.83510000258684,12480.490499998268,0.7708999983151443,0.943433,engine_score_not_calibrated_probability
++tilt-png,ocr_all,0,IMAGE_OCR,image_input,False,0,0,0,62.15479999809759,13806.448700001056,0.799699999333825,0.964051,engine_score_not_calibrated_probability
++tilt-png,route_aware,0,IMAGE_OCR,image_input,False,0,0,0,59.77809999603778,13560.6970000008,0.8349999989150092,0.964051,engine_score_not_calibrated_probability
++noise-png,ocr_all,0,IMAGE_OCR,image_input,False,0,0,0,57.580399996368214,13339.293600001838,0.6369999973685481,0.955526,engine_score_not_calibrated_probability
++noise-png,route_aware,0,IMAGE_OCR,image_input,False,0,0,0,54.345399999874644,13336.812700006703,0.8133999945130199,0.955526,engine_score_not_calibrated_probability
++perspective-png,ocr_all,0,IMAGE_OCR,image_input,False,0,0,0,57.78459999419283,13624.533000001975,0.6199999988893978,0.957504,engine_score_not_calibrated_probability
++perspective-png,route_aware,0,IMAGE_OCR,image_input,False,0,0,0,48.23190000024624,13336.361000001489,0.7775999984005466,0.957504,engine_score_not_calibrated_probability
++scan-pdf,ocr_all,0,PDF_OCR,forced_ocr,False,0,0.0008999995770864189,73.73220000590663,75.49899999867193,14499.823899997864,0.7705000025453046,0.961959,engine_score_not_calibrated_probability
++scan-pdf,route_aware,0,PDF_OCR,unusable_text_layer,True,0,0.12579999747686088,75.597299997753,67.68680000095628,12947.402899997542,0.6930000017746352,0.961959,engine_score_not_calibrated_probability
++text-multipage-pdf,ocr_all,0,PDF_OCR,forced_ocr,False,0,0.0005999972927384079,18.88660000258824,72.93860000208952,15450.789299997268,0.7815999997546896,0.962446,engine_score_not_calibrated_probability
++text-multipage-pdf,ocr_all,1,PDF_OCR,forced_ocr,False,0,0.0006999980541877449,18.70770000095945,73.13869999779854,15281.018100002257,0.7617000010213815,0.962446,engine_score_not_calibrated_probability
++text-multipage-pdf,route_aware,0,PDF_TEXT,usable_text_layer,False,0,6.739700002071913,0.0,0,0,0,,not_applicable_legacy_sentinel_1
++text-multipage-pdf,route_aware,1,PDF_TEXT,usable_text_layer,False,0,5.2893999963998795,0.0,0,0,0,,not_applicable_legacy_sentinel_1
++scan-multipage-pdf,ocr_all,0,PDF_OCR,forced_ocr,False,0,0.0006999980541877449,73.71490000514314,78.81780000025174,14796.321500005433,0.4681999998865649,0.961959,engine_score_not_calibrated_probability
++scan-multipage-pdf,ocr_all,1,PDF_OCR,forced_ocr,False,0,0.000700005330145359,55.43010000110371,75.73560000309953,14692.887899997004,0.7734999962849542,0.961959,engine_score_not_calibrated_probability
++scan-multipage-pdf,route_aware,0,PDF_OCR,unusable_text_layer,True,0,0.12929999502375722,64.79740000213496,62.503499997546896,10958.536500002083,0.6767000013496727,0.961959,engine_score_not_calibrated_probability
++scan-multipage-pdf,route_aware,1,PDF_OCR,unusable_text_layer,True,0,0.08390000584768131,55.49020000034943,56.888099999923725,13833.923400001368,0.7891999994171783,0.961959,engine_score_not_calibrated_probability
++mixed-pdf,ocr_all,0,PDF_OCR,forced_ocr,False,0,0.000600004568696022,18.931300000986084,76.03160000144271,15333.08119999856,0.6526000070152804,0.962446,engine_score_not_calibrated_probability
++mixed-pdf,ocr_all,1,PDF_OCR,forced_ocr,False,0,0.000500003807246685,68.24990000313846,78.59939999616472,14747.223900005338,0.7618999952683225,0.961959,engine_score_not_calibrated_probability
++mixed-pdf,route_aware,0,PDF_TEXT,usable_text_layer,False,0,9.23230000626063,0.0,0,0,0,,not_applicable_legacy_sentinel_1
++mixed-pdf,route_aware,1,PDF_OCR,unusable_text_layer,True,0,0.09289999434258789,76.04040000296663,80.05560000310652,14991.108299996995,0.8375000033993274,0.961959,engine_score_not_calibrated_probability
++rotation-90,ocr_all,0,IMAGE_OCR,image_input,False,270,0,0,62.503900000592694,13091.105400002562,0.8135999960359186,0.958565,engine_score_not_calibrated_probability
++rotation-90,route_aware,0,IMAGE_OCR,image_input,False,270,0,0,68.58980000106385,13394.493100000545,0.7868999964557588,0.958565,engine_score_not_calibrated_probability
++rotation-180,ocr_all,0,IMAGE_OCR,image_input,False,180,0,0,60.851499998534564,12313.490800006548,0.5317999966791831,0.958565,engine_score_not_calibrated_probability
++rotation-180,route_aware,0,IMAGE_OCR,image_input,False,180,0,0,58.42879999545403,13250.470800005132,0.7811999967088923,0.958565,engine_score_not_calibrated_probability
++rotation-270,ocr_all,0,IMAGE_OCR,image_input,False,90,0,0,61.371399999188725,11541.234399999666,0.9333999987575226,0.958565,engine_score_not_calibrated_probability
++rotation-270,route_aware,0,IMAGE_OCR,image_input,False,90,0,0,63.06290000065928,13189.039299999422,0.7719999994151294,0.958565,engine_score_not_calibrated_probability
+--- /dev/null
++++ b/results/dev/document-reader-v2/paired-comparison-20261023.csv
+@@ -0,0 +1,16 @@
++id,condition,input_sha256,ocr_all_status,ocr_all_error,ocr_all_cer,ocr_all_wer,ocr_all_char_deletions,ocr_all_char_substitutions,ocr_all_char_insertions,ocr_all_duration_ms,ocr_all_wall_duration_ms,ocr_all_cold_start_candidate,route_aware_status,route_aware_error,route_aware_cer,route_aware_wer,route_aware_char_deletions,route_aware_char_substitutions,route_aware_char_insertions,route_aware_duration_ms,route_aware_wall_duration_ms,route_aware_cold_start_candidate,cer_delta_route_minus_ocr
++text-pdf,text_pdf,325953bc6187e12277de7a08b06e24119756421ca4b5efc5b5aaccad4ddb3387,ok,,0.16257668711656442,0.640625,2,45,6,26806,26875.223600000027,True,ok,,0.0,0.0,0,0,0,35,37.30650000215974,False,-0.16257668711656442
++clean-png,clean,747d3192bd7bc222327aab24e9399f2ec39d8cc215c6de025629065f3bd2d03a,ok,,0.15950920245398773,0.640625,1,46,5,13419,13423.038100001577,False,ok,,0.15950920245398773,0.640625,1,46,5,14156,14160.213099996326,True,0.0
++photo-jpg,photo_like,a4e95ffaad812cc0ac9a699a7f392441c08d4120e951c760d4e635a3d788ac52,ok,,0.19631901840490798,0.71875,11,48,5,13381,13386.512400000356,False,ok,,0.19631901840490798,0.71875,11,48,5,11932,11936.816000001272,False,0.0
++blur-png,blur,53942dee926547c9498bce976c730179307dcc9b730ad023ce9b63f363c7a6d7,ok,,0.1687116564417178,0.6875,5,47,3,12774,12778.002999999444,False,ok,,0.1687116564417178,0.6875,5,47,3,12566,12582.728299996234,False,0.0
++tilt-png,tilt,b3aeb3d77c4ebe167ae138da6798d7ff0f3ae08fa1f0651b7223851abb94a285,ok,,0.3006134969325153,0.765625,18,61,19,13923,13928.783999996085,False,ok,,0.3006134969325153,0.765625,18,61,19,13674,13678.039899998112,False,0.0
++noise-png,noise,20c2ad0de1b19e97063bf090dfd24427ed1a260b135737a9a243b311da6eba71,ok,,0.15950920245398773,0.640625,1,46,5,13447,13454.179200001818,False,ok,,0.15950920245398773,0.640625,1,46,5,13449,13457.042599999113,False,0.0
++perspective-png,perspective,58eea3c240741bee16f8f38f3717e36b1d5209be05af8c6bd9119b690bccfac8,ok,,0.15337423312883436,0.625,1,45,4,13710,13716.188800004602,False,ok,,0.15337423312883436,0.625,1,45,4,13421,13426.605200002086,False,0.0
++scan-pdf,scan_like,dd65e929bf11f9c6b137a1f37552ab7803c27b132c9f8b7c7f4f8a2ab1b4d2dc,ok,,0.16257668711656442,0.640625,1,46,6,14677,14679.568599996855,False,ok,,0.16257668711656442,0.640625,1,46,6,13111,13113.692899998568,False,0.0
++text-multipage-pdf,text_pdf_multipage,3b05694aa8b88d9fb62fec510a7de5f581b6e0fe928a21a9b17fa9b0135a7ab9,ok,,0.16232771822358347,0.640625,4,90,12,30970,30973.44560000056,False,ok,,0.0,0.0,0,0,0,52,56.37829999614041,False,-0.16232771822358347
++scan-multipage-pdf,scan_multipage,374543f28971fbb6e4c979c43fe0fb3ff25d8aa1807715d31cbb078b984bb56d,ok,,0.16232771822358347,0.640625,2,92,12,29825,29828.589100005047,False,ok,,0.16232771822358347,0.640625,2,92,12,25085,25088.755800003128,False,0.0
++mixed-pdf,mixed_pdf,f710c77bceab9a3838e356ae77284a47228663dd54ff818c66578a992d2921c5,ok,,0.16232771822358347,0.640625,3,91,12,30375,30378.49460000143,False,ok,,0.08116385911179173,0.3203125,1,46,6,15213,15217.951599996013,False,-0.08116385911179173
++rotation-90,rotation,894a91bce0f92aaf95e381e599393d129cb6e9181dd66904e23afd4fca8e9767,ok,,0.15950920245398773,0.640625,1,46,5,13204,13208.26020000095,False,ok,,0.15950920245398773,0.640625,1,46,5,13513,13516.64609999716,False,0.0
++rotation-180,rotation,091225710dfcbfafd5e05c5f348990e29b420ca55fd19390f32ac93c59ddc2dd,ok,,0.15950920245398773,0.640625,1,46,5,12417,12420.71020000003,False,ok,,0.15950920245398773,0.640625,1,46,5,13352,13356.256200000644,False,0.0
++rotation-270,rotation,c544775a81c6ea5bbe44da4090d7945788ce2d68e7206b4db350a63a3003a862,ok,,0.15950920245398773,0.640625,1,46,5,11645,11648.988299995835,False,ok,,0.15950920245398773,0.640625,1,46,5,13298,13302.211599999282,False,0.0
++corrupt,invalid,3af3705f6c6b6339d2763652305ac18935482a19c4fe88b9589472d1e82ac3a7,expected_failure,PDF_READ_FAILED,,,,,,,0.3763999993680045,False,expected_failure,PDF_READ_FAILED,,,,,,,0.34250000317115337,False,
+--- /dev/null
++++ b/results/dev/document-reader-v2/paired-comparison-20261023.json
+@@ -0,0 +1,712 @@
++{
++  "dataset": "tv3-synthetic-diagnostics",
++  "version": "1.1",
++  "split": "development",
++  "interpretation": "development diagnostics; not final accuracy or KIE scores",
++  "slices": {
++    "ocr_all": {
++      "all": {
++        "char_errors": 951,
++        "chars": 5545,
++        "word_errors": 712,
++        "words": 1088,
++        "referenced": 14,
++        "failures": 0,
++        "samples": 15,
++        "cer": 0.1715058611361587,
++        "wer": 0.6544117647058824
++      },
++      "text_pdf": {
++        "char_errors": 53,
++        "chars": 326,
++        "word_errors": 41,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.16257668711656442,
++        "wer": 0.640625
++      },
++      "clean": {
++        "char_errors": 52,
++        "chars": 326,
++        "word_errors": 41,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.15950920245398773,
++        "wer": 0.640625
++      },
++      "photo_like": {
++        "char_errors": 64,
++        "chars": 326,
++        "word_errors": 46,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.19631901840490798,
++        "wer": 0.71875
++      },
++      "blur": {
++        "char_errors": 55,
++        "chars": 326,
++        "word_errors": 44,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.1687116564417178,
++        "wer": 0.6875
++      },
++      "tilt": {
++        "char_errors": 98,
++        "chars": 326,
++        "word_errors": 49,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.3006134969325153,
++        "wer": 0.765625
++      },
++      "noise": {
++        "char_errors": 52,
++        "chars": 326,
++        "word_errors": 41,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.15950920245398773,
++        "wer": 0.640625
++      },
++      "perspective": {
++        "char_errors": 50,
++        "chars": 326,
++        "word_errors": 40,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.15337423312883436,
++        "wer": 0.625
++      },
++      "scan_like": {
++        "char_errors": 53,
++        "chars": 326,
++        "word_errors": 41,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.16257668711656442,
++        "wer": 0.640625
++      },
++      "text_pdf_multipage": {
++        "char_errors": 106,
++        "chars": 653,
++        "word_errors": 82,
++        "words": 128,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.16232771822358347,
++        "wer": 0.640625
++      },
++      "scan_multipage": {
++        "char_errors": 106,
++        "chars": 653,
++        "word_errors": 82,
++        "words": 128,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.16232771822358347,
++        "wer": 0.640625
++      },
++      "mixed_pdf": {
++        "char_errors": 106,
++        "chars": 653,
++        "word_errors": 82,
++        "words": 128,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.16232771822358347,
++        "wer": 0.640625
++      },
++      "rotation": {
++        "char_errors": 156,
++        "chars": 978,
++        "word_errors": 123,
++        "words": 192,
++        "referenced": 3,
++        "failures": 0,
++        "samples": 3,
++        "cer": 0.15950920245398773,
++        "wer": 0.640625
++      },
++      "invalid": {
++        "char_errors": 0,
++        "chars": 0,
++        "word_errors": 0,
++        "words": 0,
++        "referenced": 0,
++        "failures": 0,
++        "samples": 1,
++        "cer": null,
++        "wer": null
++      }
++    },
++    "route_aware": {
++      "all": {
++        "char_errors": 739,
++        "chars": 5545,
++        "word_errors": 548,
++        "words": 1088,
++        "referenced": 14,
++        "failures": 0,
++        "samples": 15,
++        "cer": 0.133273219116321,
++        "wer": 0.5036764705882353
++      },
++      "text_pdf": {
++        "char_errors": 0,
++        "chars": 326,
++        "word_errors": 0,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.0,
++        "wer": 0.0
++      },
++      "clean": {
++        "char_errors": 52,
++        "chars": 326,
++        "word_errors": 41,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.15950920245398773,
++        "wer": 0.640625
++      },
++      "photo_like": {
++        "char_errors": 64,
++        "chars": 326,
++        "word_errors": 46,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.19631901840490798,
++        "wer": 0.71875
++      },
++      "blur": {
++        "char_errors": 55,
++        "chars": 326,
++        "word_errors": 44,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.1687116564417178,
++        "wer": 0.6875
++      },
++      "tilt": {
++        "char_errors": 98,
++        "chars": 326,
++        "word_errors": 49,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.3006134969325153,
++        "wer": 0.765625
++      },
++      "noise": {
++        "char_errors": 52,
++        "chars": 326,
++        "word_errors": 41,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.15950920245398773,
++        "wer": 0.640625
++      },
++      "perspective": {
++        "char_errors": 50,
++        "chars": 326,
++        "word_errors": 40,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.15337423312883436,
++        "wer": 0.625
++      },
++      "scan_like": {
++        "char_errors": 53,
++        "chars": 326,
++        "word_errors": 41,
++        "words": 64,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.16257668711656442,
++        "wer": 0.640625
++      },
++      "text_pdf_multipage": {
++        "char_errors": 0,
++        "chars": 653,
++        "word_errors": 0,
++        "words": 128,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.0,
++        "wer": 0.0
++      },
++      "scan_multipage": {
++        "char_errors": 106,
++        "chars": 653,
++        "word_errors": 82,
++        "words": 128,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.16232771822358347,
++        "wer": 0.640625
++      },
++      "mixed_pdf": {
++        "char_errors": 53,
++        "chars": 653,
++        "word_errors": 41,
++        "words": 128,
++        "referenced": 1,
++        "failures": 0,
++        "samples": 1,
++        "cer": 0.08116385911179173,
++        "wer": 0.3203125
++      },
++      "rotation": {
++        "char_errors": 156,
++        "chars": 978,
++        "word_errors": 123,
++        "words": 192,
++        "referenced": 3,
++        "failures": 0,
++        "samples": 3,
++        "cer": 0.15950920245398773,
++        "wer": 0.640625
++      },
++      "invalid": {
++        "char_errors": 0,
++        "chars": 0,
++        "word_errors": 0,
++        "words": 0,
++        "referenced": 0,
++        "failures": 0,
++        "samples": 1,
++        "cer": null,
++        "wer": null
++      }
++    }
++  },
++  "samples": [
++    {
++      "id": "text-pdf",
++      "condition": "text_pdf",
++      "input_sha256": "325953bc6187e12277de7a08b06e24119756421ca4b5efc5b5aaccad4ddb3387",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.16257668711656442,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 2,
++      "ocr_all_char_substitutions": 45,
++      "ocr_all_char_insertions": 6,
++      "ocr_all_duration_ms": 26806,
++      "ocr_all_wall_duration_ms": 26875.223600000027,
++      "ocr_all_cold_start_candidate": true,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.0,
++      "route_aware_wer": 0.0,
++      "route_aware_char_deletions": 0,
++      "route_aware_char_substitutions": 0,
++      "route_aware_char_insertions": 0,
++      "route_aware_duration_ms": 35,
++      "route_aware_wall_duration_ms": 37.30650000215974,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": -0.16257668711656442
++    },
++    {
++      "id": "clean-png",
++      "condition": "clean",
++      "input_sha256": "747d3192bd7bc222327aab24e9399f2ec39d8cc215c6de025629065f3bd2d03a",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.15950920245398773,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 1,
++      "ocr_all_char_substitutions": 46,
++      "ocr_all_char_insertions": 5,
++      "ocr_all_duration_ms": 13419,
++      "ocr_all_wall_duration_ms": 13423.038100001577,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.15950920245398773,
++      "route_aware_wer": 0.640625,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 46,
++      "route_aware_char_insertions": 5,
++      "route_aware_duration_ms": 14156,
++      "route_aware_wall_duration_ms": 14160.213099996326,
++      "route_aware_cold_start_candidate": true,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "photo-jpg",
++      "condition": "photo_like",
++      "input_sha256": "a4e95ffaad812cc0ac9a699a7f392441c08d4120e951c760d4e635a3d788ac52",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.19631901840490798,
++      "ocr_all_wer": 0.71875,
++      "ocr_all_char_deletions": 11,
++      "ocr_all_char_substitutions": 48,
++      "ocr_all_char_insertions": 5,
++      "ocr_all_duration_ms": 13381,
++      "ocr_all_wall_duration_ms": 13386.512400000356,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.19631901840490798,
++      "route_aware_wer": 0.71875,
++      "route_aware_char_deletions": 11,
++      "route_aware_char_substitutions": 48,
++      "route_aware_char_insertions": 5,
++      "route_aware_duration_ms": 11932,
++      "route_aware_wall_duration_ms": 11936.816000001272,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "blur-png",
++      "condition": "blur",
++      "input_sha256": "53942dee926547c9498bce976c730179307dcc9b730ad023ce9b63f363c7a6d7",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.1687116564417178,
++      "ocr_all_wer": 0.6875,
++      "ocr_all_char_deletions": 5,
++      "ocr_all_char_substitutions": 47,
++      "ocr_all_char_insertions": 3,
++      "ocr_all_duration_ms": 12774,
++      "ocr_all_wall_duration_ms": 12778.002999999444,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.1687116564417178,
++      "route_aware_wer": 0.6875,
++      "route_aware_char_deletions": 5,
++      "route_aware_char_substitutions": 47,
++      "route_aware_char_insertions": 3,
++      "route_aware_duration_ms": 12566,
++      "route_aware_wall_duration_ms": 12582.728299996234,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "tilt-png",
++      "condition": "tilt",
++      "input_sha256": "b3aeb3d77c4ebe167ae138da6798d7ff0f3ae08fa1f0651b7223851abb94a285",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.3006134969325153,
++      "ocr_all_wer": 0.765625,
++      "ocr_all_char_deletions": 18,
++      "ocr_all_char_substitutions": 61,
++      "ocr_all_char_insertions": 19,
++      "ocr_all_duration_ms": 13923,
++      "ocr_all_wall_duration_ms": 13928.783999996085,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.3006134969325153,
++      "route_aware_wer": 0.765625,
++      "route_aware_char_deletions": 18,
++      "route_aware_char_substitutions": 61,
++      "route_aware_char_insertions": 19,
++      "route_aware_duration_ms": 13674,
++      "route_aware_wall_duration_ms": 13678.039899998112,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "noise-png",
++      "condition": "noise",
++      "input_sha256": "20c2ad0de1b19e97063bf090dfd24427ed1a260b135737a9a243b311da6eba71",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.15950920245398773,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 1,
++      "ocr_all_char_substitutions": 46,
++      "ocr_all_char_insertions": 5,
++      "ocr_all_duration_ms": 13447,
++      "ocr_all_wall_duration_ms": 13454.179200001818,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.15950920245398773,
++      "route_aware_wer": 0.640625,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 46,
++      "route_aware_char_insertions": 5,
++      "route_aware_duration_ms": 13449,
++      "route_aware_wall_duration_ms": 13457.042599999113,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "perspective-png",
++      "condition": "perspective",
++      "input_sha256": "58eea3c240741bee16f8f38f3717e36b1d5209be05af8c6bd9119b690bccfac8",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.15337423312883436,
++      "ocr_all_wer": 0.625,
++      "ocr_all_char_deletions": 1,
++      "ocr_all_char_substitutions": 45,
++      "ocr_all_char_insertions": 4,
++      "ocr_all_duration_ms": 13710,
++      "ocr_all_wall_duration_ms": 13716.188800004602,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.15337423312883436,
++      "route_aware_wer": 0.625,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 45,
++      "route_aware_char_insertions": 4,
++      "route_aware_duration_ms": 13421,
++      "route_aware_wall_duration_ms": 13426.605200002086,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "scan-pdf",
++      "condition": "scan_like",
++      "input_sha256": "dd65e929bf11f9c6b137a1f37552ab7803c27b132c9f8b7c7f4f8a2ab1b4d2dc",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.16257668711656442,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 1,
++      "ocr_all_char_substitutions": 46,
++      "ocr_all_char_insertions": 6,
++      "ocr_all_duration_ms": 14677,
++      "ocr_all_wall_duration_ms": 14679.568599996855,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.16257668711656442,
++      "route_aware_wer": 0.640625,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 46,
++      "route_aware_char_insertions": 6,
++      "route_aware_duration_ms": 13111,
++      "route_aware_wall_duration_ms": 13113.692899998568,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "text-multipage-pdf",
++      "condition": "text_pdf_multipage",
++      "input_sha256": "3b05694aa8b88d9fb62fec510a7de5f581b6e0fe928a21a9b17fa9b0135a7ab9",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.16232771822358347,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 4,
++      "ocr_all_char_substitutions": 90,
++      "ocr_all_char_insertions": 12,
++      "ocr_all_duration_ms": 30970,
++      "ocr_all_wall_duration_ms": 30973.44560000056,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.0,
++      "route_aware_wer": 0.0,
++      "route_aware_char_deletions": 0,
++      "route_aware_char_substitutions": 0,
++      "route_aware_char_insertions": 0,
++      "route_aware_duration_ms": 52,
++      "route_aware_wall_duration_ms": 56.37829999614041,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": -0.16232771822358347
++    },
++    {
++      "id": "scan-multipage-pdf",
++      "condition": "scan_multipage",
++      "input_sha256": "374543f28971fbb6e4c979c43fe0fb3ff25d8aa1807715d31cbb078b984bb56d",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.16232771822358347,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 2,
++      "ocr_all_char_substitutions": 92,
++      "ocr_all_char_insertions": 12,
++      "ocr_all_duration_ms": 29825,
++      "ocr_all_wall_duration_ms": 29828.589100005047,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.16232771822358347,
++      "route_aware_wer": 0.640625,
++      "route_aware_char_deletions": 2,
++      "route_aware_char_substitutions": 92,
++      "route_aware_char_insertions": 12,
++      "route_aware_duration_ms": 25085,
++      "route_aware_wall_duration_ms": 25088.755800003128,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "mixed-pdf",
++      "condition": "mixed_pdf",
++      "input_sha256": "f710c77bceab9a3838e356ae77284a47228663dd54ff818c66578a992d2921c5",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.16232771822358347,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 3,
++      "ocr_all_char_substitutions": 91,
++      "ocr_all_char_insertions": 12,
++      "ocr_all_duration_ms": 30375,
++      "ocr_all_wall_duration_ms": 30378.49460000143,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.08116385911179173,
++      "route_aware_wer": 0.3203125,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 46,
++      "route_aware_char_insertions": 6,
++      "route_aware_duration_ms": 15213,
++      "route_aware_wall_duration_ms": 15217.951599996013,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": -0.08116385911179173
++    },
++    {
++      "id": "rotation-90",
++      "condition": "rotation",
++      "input_sha256": "894a91bce0f92aaf95e381e599393d129cb6e9181dd66904e23afd4fca8e9767",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.15950920245398773,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 1,
++      "ocr_all_char_substitutions": 46,
++      "ocr_all_char_insertions": 5,
++      "ocr_all_duration_ms": 13204,
++      "ocr_all_wall_duration_ms": 13208.26020000095,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.15950920245398773,
++      "route_aware_wer": 0.640625,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 46,
++      "route_aware_char_insertions": 5,
++      "route_aware_duration_ms": 13513,
++      "route_aware_wall_duration_ms": 13516.64609999716,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "rotation-180",
++      "condition": "rotation",
++      "input_sha256": "091225710dfcbfafd5e05c5f348990e29b420ca55fd19390f32ac93c59ddc2dd",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.15950920245398773,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 1,
++      "ocr_all_char_substitutions": 46,
++      "ocr_all_char_insertions": 5,
++      "ocr_all_duration_ms": 12417,
++      "ocr_all_wall_duration_ms": 12420.71020000003,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.15950920245398773,
++      "route_aware_wer": 0.640625,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 46,
++      "route_aware_char_insertions": 5,
++      "route_aware_duration_ms": 13352,
++      "route_aware_wall_duration_ms": 13356.256200000644,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "rotation-270",
++      "condition": "rotation",
++      "input_sha256": "c544775a81c6ea5bbe44da4090d7945788ce2d68e7206b4db350a63a3003a862",
++      "ocr_all_status": "ok",
++      "ocr_all_error": "",
++      "ocr_all_cer": 0.15950920245398773,
++      "ocr_all_wer": 0.640625,
++      "ocr_all_char_deletions": 1,
++      "ocr_all_char_substitutions": 46,
++      "ocr_all_char_insertions": 5,
++      "ocr_all_duration_ms": 11645,
++      "ocr_all_wall_duration_ms": 11648.988299995835,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "ok",
++      "route_aware_error": "",
++      "route_aware_cer": 0.15950920245398773,
++      "route_aware_wer": 0.640625,
++      "route_aware_char_deletions": 1,
++      "route_aware_char_substitutions": 46,
++      "route_aware_char_insertions": 5,
++      "route_aware_duration_ms": 13298,
++      "route_aware_wall_duration_ms": 13302.211599999282,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": 0.0
++    },
++    {
++      "id": "corrupt",
++      "condition": "invalid",
++      "input_sha256": "3af3705f6c6b6339d2763652305ac18935482a19c4fe88b9589472d1e82ac3a7",
++      "ocr_all_status": "expected_failure",
++      "ocr_all_error": "PDF_READ_FAILED",
++      "ocr_all_cer": null,
++      "ocr_all_wer": null,
++      "ocr_all_char_deletions": null,
++      "ocr_all_char_substitutions": null,
++      "ocr_all_char_insertions": null,
++      "ocr_all_duration_ms": null,
++      "ocr_all_wall_duration_ms": 0.3763999993680045,
++      "ocr_all_cold_start_candidate": false,
++      "route_aware_status": "expected_failure",
++      "route_aware_error": "PDF_READ_FAILED",
++      "route_aware_cer": null,
++      "route_aware_wer": null,
++      "route_aware_char_deletions": null,
++      "route_aware_char_substitutions": null,
++      "route_aware_char_insertions": null,
++      "route_aware_duration_ms": null,
++      "route_aware_wall_duration_ms": 0.34250000317115337,
++      "route_aware_cold_start_candidate": false,
++      "cer_delta_route_minus_ocr": null
++    }
++  ]
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/provenance-20261023.json
+@@ -0,0 +1,158 @@
++{
++  "remote_main_inspected": "061960f0e38549f27b3183ebc3008c58ef0e5570",
++  "local_git_commit": null,
++  "local_source_type": "archive without .git; see exact source hashes and local source snapshots",
++  "configs": {
++    "ocr_all": {
++      "config": {
++        "dpi": 200,
++        "max_bytes": 31457280,
++        "max_pages": 30,
++        "max_pixels": 40000000,
++        "max_pdf_chars": 200000,
++        "min_pdf_chars": 20,
++        "orientation": "auto",
++        "max_side": 0,
++        "contrast": 1,
++        "force_pdf_ocr": true
++      },
++      "packages": {
++        "paddleocr": "3.0.3",
++        "paddlepaddle": "3.0.0",
++        "paddlex": "3.0.3",
++        "pypdfium2": "5.12.1",
++        "Pillow": "10.4.0",
++        "numpy": "1.26.4",
++        "jiwer": "3.0.3"
++      },
++      "git_commit": "unavailable",
++      "git_dirty": null,
++      "source_sha256": {
++        "ai\\document_reader\\__init__.py": "9a936ca98fb637e180ce9707dedf2341e19f8e9cc96fd0b49172eece7cfd0ee9",
++        "ai\\document_reader\\backend.py": "c52cbc70bb12291ebdaebbf6fcbe5b36d5edb934900cacab2213c37f6d834245",
++        "ai\\document_reader\\contract.py": "3b632fc67b940f29dda38d0a561fe0be4f2f68381c62a43a659deef1862e12b8",
++        "ai\\document_reader\\pipeline.py": "3e2ea853478078343aa6cf7292e90b3a963e81a3bbaaaaacc3fd8131f719acbe",
++        "ai\\ocr\\__init__.py": "867f85ec6bda66780ca5f01246e9774e6c7573ac2dccc47dc6e660b65982de60",
++        "ai\\ocr\\artifacts.py": "0d9174390c70bdc29c54bc9fe0e5b9c4c86669d92b0fd5bb0d7ebfffcb9dd6e4",
++        "ai\\ocr\\contract.py": "d584c230d6265788302982388baebdea9da32f4f51ed5b172cc4cc9084cfb633",
++        "ai\\ocr\\field_analysis.py": "ab06ef18b272c6283f7226199101edeaf0ac1a237faebf2060f80a8efeba2b35",
++        "ai\\ocr\\pipeline.py": "da1438a4a0ec8d112bb667c2d8b8bc112ebeb30e77ca23269d076f1e24a50513",
++        "scripts\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++        "scripts\\benchmark_document_reader.py": "f3ef8579fcef64e1af50c9d1327854b12f27192d3444b59f05181f3c78651806",
++        "scripts\\build_candidate_pool.py": "32844ab4815d76c48fbbc92a614bb879c956086ead4821a3afde96d6e637ef06",
++        "scripts\\compare_pdf_routes.py": "807b07a796089d588ba596ca39cfb0da64c90b8807c2bdfb71a724aea2fdec6f",
++        "scripts\\create_document_fixtures.py": "9cf977de48401d012466d606f2434f0a97ad9536d5716b4d91d68d675da2327d",
++        "scripts\\demo_document_reader.py": "538c53734a296e07a92af1ef8f427a348a5c9a35c0cf31b525ac0afcdf8e16f2",
++        "scripts\\evaluate.py": "c3fdaf01267c7180cea62760df119f83362411d06ba1882f06f560f74045aa1a",
++        "scripts\\evaluate_field_aware.py": "ae6d2792f1c884170663d06c505b30f507f94d232b73306062873db5edee0d35",
++        "scripts\\evaluate_invoice_kie.py": "042cf6629153ebac0ef221d5eb703cdd2ebed7fb0a57257763102d4e2a82ea79",
++        "scripts\\evaluate_kie.py": "983e37027a6d70458d2d441fa27c5a13f20ee0db6338eee8132376e99c35e8a2",
++        "scripts\\export_openapi_v2.py": "4200593cdab4ad8169e39c3cb0e6b3824b09320f742f326c3110a07ee98c020b",
++        "scripts\\lock_test_set.py": "6c970a88e4dfebb31a9faef494c8a00a48c21d0829e1b14139769b484f098498",
++        "scripts\\migrate_legacy_ocr_outputs.py": "bbff664932fb4d07697a9b9c418490e75028858f46828d0f354ad642fbe899a1",
++        "scripts\\run_baseline.py": "c776893b8a2e8804fe05b9f51ec72bc006b29c9c3cfdc169e3a3080c13f01c8b",
++        "scripts\\validate_annotation_ocr.py": "5a2e4d55f9cfaa2f446affed9d1b91eb7245568a715391ae922cc175778064bb"
++      },
++      "python": "3.12.14",
++      "platform": "Windows-11-10.0.26200-SP0",
++      "machine": "AMD64",
++      "timing_policy": "serial, includes lazy model initialization on first OCR call; inspect cold_start_candidate",
++      "created_at": "2026-10-23T05:30:47.016286+00:00",
++      "manifest_sha256": "2e55c7c294d3e6710d3aa6dd732729e51250d878f895b9e0644566e096fbfd40",
++      "ocr_model": "PP-OCRv3",
++      "orientation_model": "PP-LCNet_x1_0_doc_ori",
++      "use_textline_orientation": false,
++      "language": "vi",
++      "metric_policy": "micro CER/WER; collapse whitespace only; failed reads scored as empty predictions when reference exists"
++    },
++    "route_aware": {
++      "config": {
++        "dpi": 200,
++        "max_bytes": 31457280,
++        "max_pages": 30,
++        "max_pixels": 40000000,
++        "max_pdf_chars": 200000,
++        "min_pdf_chars": 20,
++        "orientation": "auto",
++        "max_side": 0,
++        "contrast": 1,
++        "force_pdf_ocr": false
++      },
++      "packages": {
++        "paddleocr": "3.0.3",
++        "paddlepaddle": "3.0.0",
++        "paddlex": "3.0.3",
++        "pypdfium2": "5.12.1",
++        "Pillow": "10.4.0",
++        "numpy": "1.26.4",
++        "jiwer": "3.0.3"
++      },
++      "git_commit": "unavailable",
++      "git_dirty": null,
++      "source_sha256": {
++        "ai\\document_reader\\__init__.py": "9a936ca98fb637e180ce9707dedf2341e19f8e9cc96fd0b49172eece7cfd0ee9",
++        "ai\\document_reader\\backend.py": "c52cbc70bb12291ebdaebbf6fcbe5b36d5edb934900cacab2213c37f6d834245",
++        "ai\\document_reader\\contract.py": "3b632fc67b940f29dda38d0a561fe0be4f2f68381c62a43a659deef1862e12b8",
++        "ai\\document_reader\\pipeline.py": "3e2ea853478078343aa6cf7292e90b3a963e81a3bbaaaaacc3fd8131f719acbe",
++        "ai\\ocr\\__init__.py": "867f85ec6bda66780ca5f01246e9774e6c7573ac2dccc47dc6e660b65982de60",
++        "ai\\ocr\\artifacts.py": "0d9174390c70bdc29c54bc9fe0e5b9c4c86669d92b0fd5bb0d7ebfffcb9dd6e4",
++        "ai\\ocr\\contract.py": "d584c230d6265788302982388baebdea9da32f4f51ed5b172cc4cc9084cfb633",
++        "ai\\ocr\\field_analysis.py": "ab06ef18b272c6283f7226199101edeaf0ac1a237faebf2060f80a8efeba2b35",
++        "ai\\ocr\\pipeline.py": "da1438a4a0ec8d112bb667c2d8b8bc112ebeb30e77ca23269d076f1e24a50513",
++        "scripts\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
++        "scripts\\benchmark_document_reader.py": "f3ef8579fcef64e1af50c9d1327854b12f27192d3444b59f05181f3c78651806",
++        "scripts\\build_candidate_pool.py": "32844ab4815d76c48fbbc92a614bb879c956086ead4821a3afde96d6e637ef06",
++        "scripts\\compare_pdf_routes.py": "807b07a796089d588ba596ca39cfb0da64c90b8807c2bdfb71a724aea2fdec6f",
++        "scripts\\create_document_fixtures.py": "9cf977de48401d012466d606f2434f0a97ad9536d5716b4d91d68d675da2327d",
++        "scripts\\demo_document_reader.py": "538c53734a296e07a92af1ef8f427a348a5c9a35c0cf31b525ac0afcdf8e16f2",
++        "scripts\\evaluate.py": "c3fdaf01267c7180cea62760df119f83362411d06ba1882f06f560f74045aa1a",
++        "scripts\\evaluate_field_aware.py": "ae6d2792f1c884170663d06c505b30f507f94d232b73306062873db5edee0d35",
++        "scripts\\evaluate_invoice_kie.py": "042cf6629153ebac0ef221d5eb703cdd2ebed7fb0a57257763102d4e2a82ea79",
++        "scripts\\evaluate_kie.py": "983e37027a6d70458d2d441fa27c5a13f20ee0db6338eee8132376e99c35e8a2",
++        "scripts\\export_openapi_v2.py": "4200593cdab4ad8169e39c3cb0e6b3824b09320f742f326c3110a07ee98c020b",
++        "scripts\\lock_test_set.py": "6c970a88e4dfebb31a9faef494c8a00a48c21d0829e1b14139769b484f098498",
++        "scripts\\migrate_legacy_ocr_outputs.py": "bbff664932fb4d07697a9b9c418490e75028858f46828d0f354ad642fbe899a1",
++        "scripts\\run_baseline.py": "c776893b8a2e8804fe05b9f51ec72bc006b29c9c3cfdc169e3a3080c13f01c8b",
++        "scripts\\validate_annotation_ocr.py": "5a2e4d55f9cfaa2f446affed9d1b91eb7245568a715391ae922cc175778064bb"
++      },
++      "python": "3.12.14",
++      "platform": "Windows-11-10.0.26200-SP0",
++      "machine": "AMD64",
++      "timing_policy": "serial, includes lazy model initialization on first OCR call; inspect cold_start_candidate",
++      "created_at": "2026-10-23T05:34:57.813928+00:00",
++      "manifest_sha256": "2e55c7c294d3e6710d3aa6dd732729e51250d878f895b9e0644566e096fbfd40",
++      "ocr_model": "PP-OCRv3",
++      "orientation_model": "PP-LCNet_x1_0_doc_ori",
++      "use_textline_orientation": false,
++      "language": "vi",
++      "metric_policy": "micro CER/WER; collapse whitespace only; failed reads scored as empty predictions when reference exists"
++    }
++  },
++  "fixture_font_sha256": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a",
++  "model_files_sha256": {
++    "official_models/latin_PP-OCRv3_mobile_rec/.gitattributes": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
++    "official_models/latin_PP-OCRv3_mobile_rec/config.json": "c82fc54a5c8e8d80c946f1302e70cf91d31fb1b787702f3ef2264102affc3819",
++    "official_models/latin_PP-OCRv3_mobile_rec/inference.json": "022b9fd837182ee83bb699d3d1cee7d05811997c887cae179a8c128ea29da3fa",
++    "official_models/latin_PP-OCRv3_mobile_rec/inference.pdiparams": "fa6f22a8b2a669c7d5b4dfd2607491abd4cd2467adf7077c9cc70ce8c47b61d9",
++    "official_models/latin_PP-OCRv3_mobile_rec/inference.yml": "f193ba660245a417090b757722f955930a2af750ac9258166cc006fe147e6794",
++    "official_models/latin_PP-OCRv3_mobile_rec/README.md": "007528e844e94c03653c8d1d80e5f38b39de89bebed451b8d9af87da31a5160a",
++    "official_models/PP-LCNet_x1_0_doc_ori/.gitattributes": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
++    "official_models/PP-LCNet_x1_0_doc_ori/config.json": "e49f6be2fe4034232b05fb80d983a7b9bde4592d4a52812129c9a348057d3147",
++    "official_models/PP-LCNet_x1_0_doc_ori/inference.json": "3580978602f309c3554508dd85d4fe09b73a7e0d80d7f9e63258f5b72c390c69",
++    "official_models/PP-LCNet_x1_0_doc_ori/inference.pdiparams": "e8d6e7c5d264507e40e58a655779059d616b20d7441ea22047d829eb3931989c",
++    "official_models/PP-LCNet_x1_0_doc_ori/inference.yml": "9e195eb729a8173588cd0e8a852c8b373aa606e79e77b4ac7d8346f5426caf26",
++    "official_models/PP-LCNet_x1_0_doc_ori/README.md": "e38ea9c16eba0e14e12216418085e8974481d7c0fc3aed4e7df5cf1869c2c97a",
++    "official_models/PP-LCNet_x1_0_textline_ori/img_textline180_demo_res.jpg": "69aa9e920a574c44b625e3929155e7193c488447612be04dd95feed74d4e231b",
++    "official_models/PP-LCNet_x1_0_textline_ori/img_textline180_demo_res.json": "b5da01345cee9639e44572607d0afa5292afc3d93fd7b0a2b27f60cfb8d32650",
++    "official_models/PP-LCNet_x1_0_textline_ori/inference.json": "b81929eeaff8e52db0fafb49c9fbfc5bc0572f81641fe0179cc52096323fb4d4",
++    "official_models/PP-LCNet_x1_0_textline_ori/inference.pdiparams": "0de2bcf996cf553e2b848dd7b1769dafffc6917b1ccdf55c1d8efe7909fbf743",
++    "official_models/PP-LCNet_x1_0_textline_ori/inference.yml": "8d5120d0e1a30a9df7ed46aa9119da3796ed066777089d1c1d705f132d5e90f9",
++    "official_models/PP-OCRv3_mobile_det/.gitattributes": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
++    "official_models/PP-OCRv3_mobile_det/config.json": "c9d07ea65624c3df541a634a302fe76d53baecf98b5ee9678910b955638d7d80",
++    "official_models/PP-OCRv3_mobile_det/inference.json": "26c59bd5c5bea8b63efecb9115c35b7eea300081bd8703dc464da4aa19825b98",
++    "official_models/PP-OCRv3_mobile_det/inference.pdiparams": "7e9518c6ab706fe87842a8de1c098f990e67f9212b67c9ef8bc4bca6dc17b91a",
++    "official_models/PP-OCRv3_mobile_det/inference.yml": "ccfc8b069bb0d5505ecefa6defc54140c10bf0194fde5395aba0a1a99e5ea90f",
++    "official_models/PP-OCRv3_mobile_det/README.md": "b56d9e9d1a85aa59a69db6f5e546e69897a8c9e85d0b2076953402a7607eacc1"
++  },
++  "verification_script_sha256": "aca4d036341ceb43e7c6cec45b0f89d9263f8aa58df76c852fe8928a9188b427"
++}
+\ No newline at end of file
+--- /dev/null
++++ b/results/dev/document-reader-v2/runtime-20261023.json
+@@ -0,0 +1,11 @@
++{
++  "native": {
++    "status": "see per-sample results",
++    "configuration": "ocr_all/config.json"
++  },
++  "docker": {
++    "cli_available": false,
++    "smoke_status": "not_tested",
++    "linux_arm64_scan_support": "not_verified"
++  }
++}
+\ No newline at end of file

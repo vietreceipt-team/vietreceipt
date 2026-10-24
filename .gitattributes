@@ -1,0 +1,8 @@
+# Frozen benchmark artifacts retain the exact bytes used by their checksum ledgers.
+results/dev/document-reader-v2/** -text whitespace=cr-at-eol
+results/dev/tv2-reader-v0/** -text whitespace=cr-at-eol
+results/dev/tv2-reader-v02/** -text whitespace=cr-at-eol
+# Archived patch snapshots contain required blank context-line prefixes.
+results/dev/document-reader-v2/*.patch -text whitespace=-blank-at-eol,cr-at-eol
+results/dev/tv2-reader-v0/*.patch -text whitespace=-blank-at-eol,cr-at-eol
+tests/fixtures/kie49/reader-tv2/** -text

@@ -1,0 +1,39 @@
+{
+  "config": {
+    "dpi": 200,
+    "max_bytes": 31457280,
+    "max_pages": 30,
+    "max_pixels": 40000000,
+    "max_pdf_chars": 200000,
+    "min_pdf_chars": 20,
+    "orientation": "auto",
+    "max_side": 0,
+    "contrast": 1,
+    "force_pdf_ocr": false
+  },
+  "pages": [
+    {
+      "orientation_clockwise": 0,
+      "orientation_model": "PP-LCNet_x1_0_doc_ori",
+      "orientation_score": 0.9269800186157227,
+      "engine": {
+        "name": "paddleocr",
+        "version": "3.0.3"
+      },
+      "width_px": 1280,
+      "height_px": 1640,
+      "confidence_semantics": "engine_score_not_calibrated_probability",
+      "stage_latency_ms": {
+        "preprocess_orientation": 437.8662000017357,
+        "ocr": 13680.453099994338,
+        "geometry_order": 0.7973000028869137
+      },
+      "source": "IMAGE_OCR",
+      "routing_reason": "image_input",
+      "fallback": false,
+      "coordinate_system": "normalized_exif_display_top_left"
+    }
+  ],
+  "duration_ms": 14156,
+  "input_sha256": "747d3192bd7bc222327aab24e9399f2ec39d8cc215c6de025629065f3bd2d03a"
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "sample_id": "VRSYN-002",
+    "annotation_schema_errors": [],
+    "kie_validate_gold_error": "ValueError: Gold identity, fields or dataset provenance mismatch",
+    "pdf_text_char_counts": {
+      "VRSYN-002.pdf": [
+        388
+      ],
+      "VRSYN-002__blur_image_only.pdf": [
+        0
+      ],
+      "VRSYN-002__clean_image_only.pdf": [
+        0
+      ],
+      "VRSYN-002__noise_image_only.pdf": [
+        0
+      ],
+      "VRSYN-002__skew_image_only.pdf": [
+        0
+      ]
+    }
+  },
+  {
+    "sample_id": "VRSYN-005",
+    "annotation_schema_errors": [],
+    "kie_validate_gold_error": "ValueError: Gold identity, fields or dataset provenance mismatch",
+    "pdf_text_char_counts": {
+      "VRSYN-005.pdf": [
+        358
+      ],
+      "VRSYN-005__blur_image_only.pdf": [
+        0
+      ],
+      "VRSYN-005__clean_image_only.pdf": [
+        0
+      ],
+      "VRSYN-005__noise_image_only.pdf": [
+        0
+      ],
+      "VRSYN-005__skew_image_only.pdf": [
+        0
+      ]
+    }
+  },
+  {
+    "sample_id": "VRSYN-008",
+    "annotation_schema_errors": [],
+    "kie_validate_gold_error": "ValueError: Gold identity, fields or dataset provenance mismatch",
+    "pdf_text_char_counts": {
+      "VRSYN-008.pdf": [
+        317
+      ],
+      "VRSYN-008__blur_image_only.pdf": [
+        0
+      ],
+      "VRSYN-008__clean_image_only.pdf": [
+        0
+      ],
+      "VRSYN-008__noise_image_only.pdf": [
+        0
+      ],
+      "VRSYN-008__skew_image_only.pdf": [
+        0
+      ]
+    }
+  }
+]

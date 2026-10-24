@@ -7,11 +7,12 @@ import json
 import mimetypes
 import platform
 import subprocess
+import time
 from collections import defaultdict
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
-from uuid import uuid4
+from uuid import NAMESPACE_URL, uuid4, uuid5
 
 import jiwer
 
@@ -25,7 +26,7 @@ def dump(path, value):
     )
 
 
-def benchmark(manifest_path, output, config):
+def load_manifest(manifest_path):
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     samples = manifest["samples"]
     if not samples or len({s["id"] for s in samples}) != len(samples):
@@ -36,9 +37,23 @@ def benchmark(manifest_path, output, config):
             for c in sample["id"]
         ):
             raise ValueError("Unsafe sample ID")
+        source = (manifest_path.parent / sample["path"]).resolve()
+        if not source.is_relative_to(manifest_path.parent.resolve()):
+            raise ValueError("Sample path escapes manifest directory")
+        expected_hash = sample.get("input_sha256")
+        if expected_hash and hashlib.sha256(source.read_bytes()).hexdigest() != expected_hash:
+            raise ValueError(f"Input checksum mismatch: {sample['id']}")
+    if not manifest.get("dataset") or not manifest.get("version") or not manifest.get("split"):
+        raise ValueError("Manifest requires dataset, version and split")
+    return manifest
+
+
+def benchmark(manifest_path, output, config, *, reader_factory=None):
+    manifest = load_manifest(manifest_path)
+    samples = manifest["samples"]
     output.mkdir(parents=True, exist_ok=False)
     (output / "predictions").mkdir()
-    reader = DocumentReader(config=config)
+    reader = (reader_factory or DocumentReader)(config=config)
     packages = {}
     for package in (
         "paddleocr",
@@ -67,11 +82,13 @@ def benchmark(manifest_path, output, config):
             "git_dirty": bool(dirty.stdout.strip()) if dirty.returncode == 0 else None,
             "source_sha256": {
                 str(p): hashlib.sha256(p.read_bytes()).hexdigest()
-                for folder in (Path("ai/document_reader"), Path("ai/ocr"))
+                for folder in (Path("ai/document_reader"), Path("ai/ocr"), Path("scripts"))
                 for p in sorted(folder.glob("*.py"))
             },
             "python": platform.python_version(),
             "platform": platform.platform(),
+            "machine": platform.machine(),
+            "timing_policy": "serial, includes lazy model initialization on first OCR call; inspect cold_start_candidate",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
             "ocr_model": "PP-OCRv3",
@@ -83,6 +100,13 @@ def benchmark(manifest_path, output, config):
             "metric_policy": "micro CER/WER; collapse whitespace only; failed reads scored as empty predictions when reference exists",
         },
     )
+    dump(output / "inputs.json", [
+        {"id": s["id"], "path": s["path"], "sha256":
+         hashlib.sha256((manifest_path.parent / s["path"]).read_bytes()).hexdigest()
+         if (manifest_path.parent / s["path"]).is_file() else None}
+        for s in samples
+    ])
+    ocr_seen = False
     rows, aggregates = (
         [],
         defaultdict(
@@ -107,14 +131,24 @@ def benchmark(manifest_path, output, config):
             "cer": None,
             "wer": None,
             "duration_ms": None,
+            "char_deletions": None,
+            "char_substitutions": None,
+            "char_insertions": None,
+            "reference_chars": None,
+            "cold_start_candidate": False,
         }
         predicted = ""
+        started = time.perf_counter()
         try:
             data = source.read_bytes()
+            row["input_sha256"] = hashlib.sha256(data).hexdigest()
+            receipt_id = sample.get("receipt_id") or uuid5(
+                NAMESPACE_URL, f"{manifest['dataset']}:{manifest['version']}:{sample['id']}:{row['input_sha256']}"
+            )
             evidence, metadata = reader.process_with_metadata(
                 data,
                 content_type=mimetypes.guess_type(source)[0],
-                receipt_id=uuid4(),
+                receipt_id=receipt_id,
                 ocr_run_id=uuid4(),
             )
             dump(output / "predictions" / (sample["id"] + ".json"), evidence)
@@ -126,6 +160,9 @@ def benchmark(manifest_path, output, config):
                 b["text"] for p in evidence["pages"] for b in p["evidence"]["blocks"]
             )
             row["duration_ms"] = metadata["duration_ms"]
+            has_ocr = any(p["source"] != "PDF_TEXT" for p in metadata["pages"])
+            row["cold_start_candidate"] = has_ocr and not ocr_seen
+            ocr_seen |= has_ocr
             if sample.get("expected_error"):
                 row.update(
                     status="unexpected_success", error="Expected failure did not occur"
@@ -138,12 +175,16 @@ def benchmark(manifest_path, output, config):
                 else "failed",
                 error=code,
             )
+        row["wall_duration_ms"] = (time.perf_counter() - started) * 1000
+        row.setdefault("input_sha256", None)
         reference = sample.get("reference")
         counts = None
         if reference is not None and reference.strip():
             ref, hyp = " ".join(reference.split()), " ".join(predicted.split())
             c, w = jiwer.process_characters(ref, hyp), jiwer.process_words(ref, hyp)
-            row.update(cer=c.cer, wer=w.wer)
+            row.update(cer=c.cer, wer=w.wer, char_deletions=c.deletions,
+                       char_substitutions=c.substitutions, char_insertions=c.insertions,
+                       reference_chars=len(ref))
             counts = (
                 c.substitutions + c.deletions + c.insertions,
                 len(ref),

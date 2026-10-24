@@ -1,0 +1,426 @@
+{
+  "reference_status": "synthetic source, provisional; not verified KIE gold",
+  "geometry_conclusion": "No geometry defect established; ordering examples do not prove polygon error",
+  "examples": [
+    {
+      "id": "E01",
+      "variant_id": "VRSYN-002__skew",
+      "mode": "ocr_all",
+      "category": "reading_order_header",
+      "expected_source_row_order": [
+        "Mat hang / Dich vu",
+        "SL",
+        "Don gia",
+        "Thanh tien"
+      ],
+      "actual": [
+        "SL",
+        "Don gia",
+        "Thanh tien",
+        "Mat hang/ Dich vu"
+      ],
+      "blocks": [
+        {
+          "block_id": "p0_b000005",
+          "text": "SL",
+          "confidence": 0.96403,
+          "polygon": [
+            {
+              "x": 0.61,
+              "y": 0.424497
+            },
+            {
+              "x": 0.637778,
+              "y": 0.424497
+            },
+            {
+              "x": 0.637778,
+              "y": 0.458054
+            },
+            {
+              "x": 0.61,
+              "y": 0.458054
+            }
+          ],
+          "reading_order": 5
+        },
+        {
+          "block_id": "p0_b000006",
+          "text": "Don gia",
+          "confidence": 0.992906,
+          "polygon": [
+            {
+              "x": 0.715556,
+              "y": 0.421141
+            },
+            {
+              "x": 0.776667,
+              "y": 0.419463
+            },
+            {
+              "x": 0.776667,
+              "y": 0.451342
+            },
+            {
+              "x": 0.715556,
+              "y": 0.45302
+            }
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p0_b000007",
+          "text": "Thanh tien",
+          "confidence": 0.99757,
+          "polygon": [
+            {
+              "x": 0.86,
+              "y": 0.41443
+            },
+            {
+              "x": 0.941111,
+              "y": 0.41443
+            },
+            {
+              "x": 0.941111,
+              "y": 0.442953
+            },
+            {
+              "x": 0.86,
+              "y": 0.442953
+            }
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p0_b000008",
+          "text": "Mat hang/ Dich vu",
+          "confidence": 0.968034,
+          "polygon": [
+            {
+              "x": 0.055556,
+              "y": 0.456376
+            },
+            {
+              "x": 0.192222,
+              "y": 0.449664
+            },
+            {
+              "x": 0.193333,
+              "y": 0.479866
+            },
+            {
+              "x": 0.056667,
+              "y": 0.484899
+            }
+          ],
+          "reading_order": 8
+        }
+      ],
+      "receipt_id": "99fbceaa-6108-5e7a-85b0-60d6ca7c11eb",
+      "ocr_run_id": "c3a30d5d-e0ee-4cd4-8e68-8a53a738718e",
+      "page_index": 0,
+      "evidence_path": "paired-20261023/ocr_all/predictions/VRSYN-002__skew.json",
+      "note": "Serialize order differs from source header row; polygons still follow printed content",
+      "review": "Source SVG text inspected; skew source viewed; predictions never used to author reference"
+    },
+    {
+      "id": "E02",
+      "variant_id": "VRSYN-002__skew",
+      "mode": "ocr_all",
+      "category": "reading_order_line_item",
+      "expected_source_row_order": [
+        "1. So tay",
+        "4",
+        "18.000",
+        "72.000"
+      ],
+      "actual": [
+        "72.000",
+        "4",
+        "18.000",
+        "1. So tay"
+      ],
+      "blocks": [
+        {
+          "block_id": "p0_b000009",
+          "text": "72.000",
+          "confidence": 0.998392,
+          "polygon": [
+            {
+              "x": 0.885556,
+              "y": 0.471477
+            },
+            {
+              "x": 0.941111,
+              "y": 0.468121
+            },
+            {
+              "x": 0.942222,
+              "y": 0.498322
+            },
+            {
+              "x": 0.886667,
+              "y": 0.501678
+            }
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p0_b000010",
+          "text": "4",
+          "confidence": 0.999867,
+          "polygon": [
+            {
+              "x": 0.617778,
+              "y": 0.486577
+            },
+            {
+              "x": 0.633333,
+              "y": 0.486577
+            },
+            {
+              "x": 0.633333,
+              "y": 0.516779
+            },
+            {
+              "x": 0.617778,
+              "y": 0.516779
+            }
+          ],
+          "reading_order": 10
+        },
+        {
+          "block_id": "p0_b000011",
+          "text": "18.000",
+          "confidence": 0.998495,
+          "polygon": [
+            {
+              "x": 0.722222,
+              "y": 0.479866
+            },
+            {
+              "x": 0.775556,
+              "y": 0.47651
+            },
+            {
+              "x": 0.776667,
+              "y": 0.508389
+            },
+            {
+              "x": 0.723333,
+              "y": 0.511745
+            }
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p0_b000012",
+          "text": "1. So tay",
+          "confidence": 0.938727,
+          "polygon": [
+            {
+              "x": 0.056667,
+              "y": 0.516779
+            },
+            {
+              "x": 0.128889,
+              "y": 0.516779
+            },
+            {
+              "x": 0.128889,
+              "y": 0.545302
+            },
+            {
+              "x": 0.056667,
+              "y": 0.545302
+            }
+          ],
+          "reading_order": 12
+        }
+      ],
+      "receipt_id": "99fbceaa-6108-5e7a-85b0-60d6ca7c11eb",
+      "ocr_run_id": "c3a30d5d-e0ee-4cd4-8e68-8a53a738718e",
+      "page_index": 0,
+      "evidence_path": "paired-20261023/ocr_all/predictions/VRSYN-002__skew.json",
+      "note": "Amount emitted before description; table row grouping should use geometry and review",
+      "review": "Source SVG text inspected; skew source viewed; predictions never used to author reference"
+    },
+    {
+      "id": "E03",
+      "variant_id": "VRSYN-002__clean_image_only",
+      "mode": "ocr_all",
+      "category": "punctuation_omission",
+      "expected_source_row_order": [
+        "Ma hoa don: HD-0002"
+      ],
+      "actual": [
+        "MahoadonHD-0002"
+      ],
+      "blocks": [
+        {
+          "block_id": "p0_b000003",
+          "text": "MahoadonHD-0002",
+          "confidence": 0.98016,
+          "polygon": [
+            {
+              "x": 0.058333,
+              "y": 0.16478
+            },
+            {
+              "x": 0.211667,
+              "y": 0.16478
+            },
+            {
+              "x": 0.211667,
+              "y": 0.186164
+            },
+            {
+              "x": 0.058333,
+              "y": 0.186164
+            }
+          ],
+          "reading_order": 3
+        }
+      ],
+      "receipt_id": "99fbceaa-6108-5e7a-85b0-60d6ca7c11eb",
+      "ocr_run_id": "6668f21f-66a8-40dd-a0f2-ac2f0531f5ee",
+      "page_index": 0,
+      "evidence_path": "paired-20261023/ocr_all/predictions/VRSYN-002__clean_image_only.json",
+      "note": "Colon omitted in invoice label; invoice value itself preserved",
+      "review": "Source SVG text inspected; skew source viewed; predictions never used to author reference"
+    },
+    {
+      "id": "E04",
+      "variant_id": "VRSYN-002__blur_image_only",
+      "mode": "ocr_all",
+      "category": "punctuation_omission",
+      "expected_source_row_order": [
+        "Ngay: 2026-02-02"
+      ],
+      "actual": [
+        "Ngay2026-02-02"
+      ],
+      "blocks": [
+        {
+          "block_id": "p0_b000004",
+          "text": "Ngay2026-02-02",
+          "confidence": 0.97763,
+          "polygon": [
+            {
+              "x": 0.0575,
+              "y": 0.203774
+            },
+            {
+              "x": 0.184167,
+              "y": 0.2
+            },
+            {
+              "x": 0.184167,
+              "y": 0.230189
+            },
+            {
+              "x": 0.0575,
+              "y": 0.233962
+            }
+          ],
+          "reading_order": 4
+        }
+      ],
+      "receipt_id": "99fbceaa-6108-5e7a-85b0-60d6ca7c11eb",
+      "ocr_run_id": "e2d7c8e9-1208-4a54-9a34-b198cbee2db7",
+      "page_index": 0,
+      "evidence_path": "paired-20261023/ocr_all/predictions/VRSYN-002__blur_image_only.json",
+      "note": "Colon omitted in date label; date digits preserved",
+      "review": "Source SVG text inspected; skew source viewed; predictions never used to author reference"
+    },
+    {
+      "id": "E05",
+      "variant_id": "VRSYN-005__clean_image_only",
+      "mode": "ocr_all",
+      "category": "punctuation_omission",
+      "expected_source_row_order": [
+        "Thue VAT (10%):"
+      ],
+      "actual": [
+        "Thue VAT10%:"
+      ],
+      "blocks": [
+        {
+          "block_id": "p0_b000019",
+          "text": "Thue VAT10%:",
+          "confidence": 0.951382,
+          "polygon": [
+            {
+              "x": 0.660833,
+              "y": 0.778961
+            },
+            {
+              "x": 0.790833,
+              "y": 0.781625
+            },
+            {
+              "x": 0.790833,
+              "y": 0.809587
+            },
+            {
+              "x": 0.66,
+              "y": 0.806924
+            }
+          ],
+          "reading_order": 19
+        }
+      ],
+      "receipt_id": "2b18d4b4-1c88-5d9b-8499-181adf54c179",
+      "ocr_run_id": "f11e8b86-99d9-4cba-9fe8-8d34fa233ec6",
+      "page_index": 0,
+      "evidence_path": "paired-20261023/ocr_all/predictions/VRSYN-005__clean_image_only.json",
+      "note": "Parentheses omitted in VAT label; no proven KIE failure",
+      "review": "Source SVG text inspected; skew source viewed; predictions never used to author reference"
+    },
+    {
+      "id": "E06",
+      "variant_id": "VRSYN-002__blur",
+      "mode": "ocr_all",
+      "category": "character_substitution_footer",
+      "expected_source_row_order": [
+        "SYNTHETIC SAMPLE - NOT A REAL INVOICE - VRSYN-002 / layout_b"
+      ],
+      "actual": [
+        "SYNTHETIC SAMPLE-NOT A REAL INVOICE-VRSYN-002/1ayout_b"
+      ],
+      "blocks": [
+        {
+          "block_id": "p0_b000027",
+          "text": "SYNTHETIC SAMPLE-NOT A REAL INVOICE-VRSYN-002/1ayout_b",
+          "confidence": 0.943209,
+          "polygon": [
+            {
+              "x": 0.058889,
+              "y": 0.912752
+            },
+            {
+              "x": 0.471111,
+              "y": 0.91443
+            },
+            {
+              "x": 0.471111,
+              "y": 0.942953
+            },
+            {
+              "x": 0.058889,
+              "y": 0.941275
+            }
+          ],
+          "reading_order": 27
+        }
+      ],
+      "receipt_id": "99fbceaa-6108-5e7a-85b0-60d6ca7c11eb",
+      "ocr_run_id": "fae6b5aa-4e19-4d64-9551-2c020523098f",
+      "page_index": 0,
+      "evidence_path": "paired-20261023/ocr_all/predictions/VRSYN-002__blur.json",
+      "note": "Footer layout identifier letter l recognized as digit 1; not a business amount error",
+      "review": "Source SVG text inspected; skew source viewed; predictions never used to author reference"
+    }
+  ]
+}

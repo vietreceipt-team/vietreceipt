@@ -229,6 +229,9 @@ data/raw/
 data/candidates/
 data/test_set/images/
 results/candidate_sheets/
+results/dev/document-reader-v2/local-*/
+results/dev/document-reader-v2/local-*.log
+.tv3-tmp/
 results/.DS_Store
 .DS_Store
 Thumbs.db
