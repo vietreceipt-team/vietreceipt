@@ -338,6 +338,122 @@ class EvaluationV2Tests(unittest.TestCase):
         self.assertEqual(report["headers"]["buyer_name"]["false_value"], 1)
         self.assertEqual(report["headers"]["buyer_name"]["exact_match"], 0)
 
+    def test_header_exact_value_protocol_matrix(self):
+        """TV1 M01-M09: values, five states, UNKNOWN mask, and failures."""
+        field = "buyer_name"
+
+        def score(
+            *,
+            gold_status="PRESENT",
+            gold_value="Công ty Khách Mẫu",
+            predicted_status="PRESENT",
+            predicted_value="Công ty Khách Mẫu",
+            failed=False,
+        ):
+            result = extract_invoice(self.source, kie_run_id=KIE_RUN)
+            self.gold["fields"][field].update(
+                annotation_status=gold_status,
+                normalized_value=gold_value,
+            )
+            result["fields"][field].update(
+                value_status=predicted_status,
+                normalized_value=predicted_value,
+            )
+            report = metrics([(None if failed else result, self.gold)])
+            return report, report["headers"][field]
+
+        report, measured = score()
+        self.assertEqual(
+            (
+                measured["true_positive"],
+                measured["false_positive"],
+                measured["false_negative"],
+            ),
+            (1, 0, 0),
+        )
+        self.assertEqual(measured["f1"], 1)
+
+        report, measured = score(predicted_value="wrong")
+        self.assertEqual(
+            (
+                measured["true_positive"],
+                measured["false_positive"],
+                measured["false_negative"],
+            ),
+            (0, 1, 1),
+        )
+        self.assertEqual(measured["f1"], 0)
+
+        _, measured = score(predicted_status="UNKNOWN", predicted_value=None)
+        self.assertEqual(
+            (measured["false_positive"], measured["false_negative"]), (0, 1)
+        )
+
+        _, measured = score(
+            gold_status="NOT_PRESENT",
+            gold_value=None,
+            predicted_status="PRESENT",
+            predicted_value="unexpected",
+        )
+        self.assertEqual(
+            (measured["false_positive"], measured["false_negative"]), (1, 0)
+        )
+
+        _, measured = score(
+            gold_status="NOT_PRESENT",
+            gold_value=None,
+            predicted_status="NOT_PRESENT",
+            predicted_value=None,
+        )
+        self.assertEqual(measured["exact_match"], 1)
+        self.assertIsNone(measured["f1"])
+
+        _, measured = score(
+            gold_status="UNKNOWN",
+            gold_value=None,
+            predicted_status="PRESENT",
+            predicted_value="ignored",
+        )
+        self.assertEqual((measured["scored"], measured["unknown"]), (0, 1))
+        self.assertEqual(measured["gold_status_counts"]["UNKNOWN"], 1)
+        self.assertEqual(
+            sum(measured["predicted_status_counts_on_known_gold"].values()), 0
+        )
+
+        for status in ("UNREADABLE", "AMBIGUOUS"):
+            with self.subTest(status=status):
+                _, measured = score(
+                    gold_status=status,
+                    gold_value=None,
+                    predicted_status=status,
+                    predicted_value=None,
+                )
+                self.assertEqual(measured["exact_match"], 1)
+                self.assertEqual(measured["gold_status_counts"][status], 1)
+                self.assertIsNone(measured["f1"])
+
+        unknown_report, _ = score(gold_status="UNKNOWN", gold_value=None)
+        self.assertIsNone(unknown_report["complete_header_accuracy"])
+        self.assertEqual(unknown_report["header_status_counts"]["gold"]["UNKNOWN"], 1)
+
+        failed_report, measured = score(failed=True)
+        self.assertEqual(measured["false_negative"], 1)
+        self.assertEqual(failed_report["lines"]["failed_documents"], 1)
+        self.assertEqual(failed_report["complete_invoice_accuracy"], 0)
+
+        micro = report["header_exact_value_extraction"]
+        self.assertEqual(micro["metric_definition"], "exact-value-extraction-1.0")
+        self.assertEqual(
+            micro["f1"],
+            2
+            * micro["true_positive"]
+            / (
+                2 * micro["true_positive"]
+                + micro["false_positive"]
+                + micro["false_negative"]
+            ),
+        )
+
     def test_one_to_one_matching_does_not_use_cell_values(self):
         result = extract_invoice(self.source, kie_run_id=KIE_RUN)
         row = result["line_items"][0]
@@ -405,6 +521,9 @@ class EvaluationV2Tests(unittest.TestCase):
         result["line_items"] = [copy.deepcopy(row), copy.deepcopy(row)]
         split = metrics([(result, self.gold)])["lines"]
         self.assertEqual(split["matched_rows"], 1)
+        self.assertEqual(split["detection_true_positive"], 1)
+        self.assertEqual(split["detection_false_positive"], 1)
+        self.assertEqual(split["detection_false_negative"], 0)
         self.assertEqual(split["detection_precision"], 0.5)
         self.assertAlmostEqual(split["detection_f1"], 2 / 3)
         self.gold["line_items"].append(copy.deepcopy(self.gold["line_items"][0]))
@@ -412,6 +531,8 @@ class EvaluationV2Tests(unittest.TestCase):
         result["line_items"] = [row]
         merged = metrics([(result, self.gold)])["lines"]
         self.assertEqual(merged["detection_recall"], 0.5)
+        self.assertEqual(merged["detection_false_positive"], 0)
+        self.assertEqual(merged["detection_false_negative"], 1)
         self.assertEqual(merged["detection_precision"], 1)
         self.assertAlmostEqual(merged["detection_f1"], 2 / 3)
         # Shared evidence can saturate detection while all content is wrong.
