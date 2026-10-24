@@ -1,5 +1,7 @@
 # TV6 — chạy lại bằng chứng trình duyệt
 
+Khi chuẩn bị bảo vệ, dùng [kịch bản demo và bộ ví dụ đã chọn](tv6-defense-demo.md). Theo dõi mã nền và lượt kiểm tra sau các PR mới tại [biên bản integration 24/10](tv6-integration-20261024.md).
+
 ## Test giao diện với provider kiểm thử
 
 ```sh

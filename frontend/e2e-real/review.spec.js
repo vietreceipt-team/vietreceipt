@@ -55,10 +55,18 @@ for (const sample of manifest.samples) test(`${sample.condition}: real upload ‚Ü
     await expect(page.locator(".viewer-page canvas")).toBeVisible();
     const before = await get("/machine-results"); dump(join(folder, "machine-before.json"), before); dump(join(folder, "detail-before.json"), detail);
     const attempt = before.attempts.find(a => a.status === "SUCCEEDED" && a.kie_run_id === detail.latest_kie_run_id);
+    expect(attempt.provenance.source).toEqual({sha256: sample.sha256, content_type: mime[sample.path.split(".").pop()], bytes: source.length});
+    record.worker_input_sha256 = attempt.provenance.source.sha256;
     expect(attempt.provenance.config.providers).toEqual({V2_DOCUMENT_READER_CALLABLE: "ai.document_reader.backend:read_document", V2_KIE_CALLABLE: "ai.kie.v2:extract_invoice"});
     expect(attempt.provenance.config.callables).toEqual({reader: "backend.app.v2.providers:configured_reader", kie: "backend.app.v2.providers:configured_kie"});
     const evidence = await get("/evidence"); dump(join(folder, "evidence.json"), evidence);
+    if (sample.id === "challenge") {
+      await page.locator('[data-cell="header||invoice_number"] [data-inspect]').click();
+      await expect(page.locator(".inspector")).toContainText("M√°y ƒë·ªçc");
+      await expect(page.locator(".inspector")).toContainText("00001234 COPY");
+    }
     await page.screenshot({path: join(folder, "01-machine.png"), fullPage: true});
+    if (sample.id === "challenge") await page.locator("#close-inspector").click();
 
     if (sample.id === "challenge") {
       expect(detail.fields.invoice_number.effective_status).toBe("PRESENT");
@@ -106,7 +114,14 @@ for (const sample of manifest.samples) test(`${sample.condition}: real upload ‚Ü
     for (const format of ["json", "csv", "xlsx"]) {
       const waiting = page.waitForEvent("download"); await page.locator(`[data-export="${format}"]`).click();
       const download = await waiting; await download.saveAs(join(folder, `reviewed.${format === "csv" ? "zip" : format}`));
-      if (format === "json") expect(JSON.parse(readFileSync(join(folder, "reviewed.json"))).header.invoice_number).toBe("00001234");
+      if (format === "json") {
+        const payload = JSON.parse(readFileSync(join(folder, "reviewed.json")));
+        expect(payload.header.invoice_number).toBe("00001234");
+        if (sample.id === "challenge") {
+          expect(payload.header.invoice_symbol).toBeNull();
+          expect(payload.value_statuses.header.invoice_symbol).toBe("UNREADABLE");
+        }
+      }
     }
     const after = await get("/machine-results"); dump(join(folder, "machine-after.json"), after); expect(after).toEqual(before);
     dump(join(folder, "detail-reviewed.json"), reviewed); dump(join(folder, "history.json"), await get("/history"));

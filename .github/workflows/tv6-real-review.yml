@@ -2,6 +2,20 @@ name: TV6 real-provider browser review
 on:
   pull_request:
     paths: ['frontend/**', 'scripts/create_tv6_review_demo.py', '.github/workflows/tv6-real-review.yml']
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'ai/document_reader/**'
+      - 'ai/ocr/**'
+      - 'ai/kie/**'
+      - 'schemas/**'
+      - 'openapi/**'
+      - 'requirements*.txt'
+      - 'scripts/create_v2_demo.py'
+      - 'scripts/create_tv6_review_demo.py'
+      - '.github/workflows/tv6-real-review.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -90,13 +104,22 @@ jobs:
               folder = Path('frontend/real-results') / name
               payload = json.loads((folder / 'reviewed.json').read_text())
               assert payload['header']['invoice_number'] == '00001234'
+              if name == 'challenge':
+                  assert payload['header']['invoice_symbol'] is None
+                  assert payload['value_statuses']['header']['invoice_symbol'] == 'UNREADABLE'
               with zipfile.ZipFile(folder / 'reviewed.zip') as archive:
                   assert archive.testzip() is None
                   rows = list(csv.DictReader(io.StringIO(archive.read('invoice_headers.csv').decode('utf-8-sig'))))
                   assert rows[0]['invoice_number'] == '00001234'
+                  if name == 'challenge':
+                      assert rows[0]['invoice_symbol'] == ''
+                      assert rows[0]['invoice_symbol_status'] == 'UNREADABLE'
               book = load_workbook(folder / 'reviewed.xlsx', read_only=True)
               rows = list(book['Invoices'].values)
               assert rows[1][rows[0].index('invoice_number')] == '00001234'
+              if name == 'challenge':
+                  assert rows[1][rows[0].index('invoice_symbol')] is None
+                  assert rows[1][rows[0].index('invoice_symbol_status')] == 'UNREADABLE'
               book.close()
           PY
       - name: Upload synthetic evidence including failures
