@@ -1,0 +1,34 @@
+{
+  "schema_version": "backend-evaluation-1.0",
+  "started_at": "2026-10-23T13:18:51.699430+00:00",
+  "manifest_sha256": "139f41d4f02c8c81fffc3adf7eeca9ffe3c5baf6052f9db49bd282f0797be6e9",
+  "runner_commit": "f17581f24ff181429545d685f0f5fb6508bff560",
+  "runner_dirty": false,
+  "runner_python": "3.12.14",
+  "mode": "real",
+  "timeout_seconds": 240.0,
+  "poll_interval_seconds": 1.0,
+  "synthetic_review": false,
+  "timing_policy": "Client upload and queue+processing wall time; actual worker stage durations/config/commit are in machine/attempts. Includes subprocess startup and model load; not a warm inference benchmark.",
+  "metric_policy": "Raw machine artifacts only; reviewed exports are workflow evidence, never AI accuracy. No accuracy score is claimed.",
+  "dataset": {
+    "dataset": "vietreceipt_synthetic",
+    "version": "0.2.0",
+    "split": "validation",
+    "synthetic": true,
+    "qa_status": "PENDING_REVIEW",
+    "purpose": "development_workflow_capture_only",
+    "provenance": {
+      "declared_source_revision": "8a603300071d6dbfebd23e8f22a8c9cbac90ff48",
+      "train_manifest_sha256": "cdb8d9f591cd5ad4e7ed2cae661367e9e5ec7fdb468b67805f0d45101453ea9d",
+      "validation_manifest_sha256": "44cf5f89c5d7f4a8213b096fd39409277afa293aa9625f4e466bd64241c76711",
+      "freeze_scope": "development sample membership and artifact hashes only",
+      "base_documents": 5,
+      "final_test_included": false,
+      "selection": "All validation sources, without filtering on prior reader success"
+    }
+  },
+  "artifact_schema_version": "backend-capture-1.1",
+  "machine_predictions": "machine_predictions.jsonl",
+  "sample_count": 20
+}

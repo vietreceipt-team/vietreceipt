@@ -1,0 +1,22 @@
+{
+  "scope": "Saved real Reader output on synthetic TRAIN source; regression only, no independent gold QA",
+  "revision": "8a603300071d6dbfebd23e8f22a8c9cbac90ff48",
+  "files": {
+    "text_pdf": {
+      "evidence_sha256": "aac7a3542b7416d892ff3cb7dc257d678136ed2a8b5e0ecf8356d3bd34d465d0",
+      "source_sha256": "b7ee8b50aacfec5765ec6708d92f351bb2d0f232f83123baaaa368dff38dd313"
+    },
+    "clean_png": {
+      "evidence_sha256": "a99d53ec500b235cea06a881786b5fe295c052cd0b16842cb6c0e0d296c2f888",
+      "source_sha256": "394930960c8858b1e4e8d82f94fee9d1065cb54dfcd10677fb3e79a34c0bc03c"
+    },
+    "clean_pdf": {
+      "evidence_sha256": "f9f3a2a693c8452b3361644807997d2a344061866c1ff21c57bd65405de2d8d0",
+      "source_sha256": "6d7968fcb085565aa890371f90bef0afef2dfc64aee63177a942c73aceb580be"
+    },
+    "blur_png": {
+      "evidence_sha256": "ee72fdad1641b96d0d6c5e2754895c8ae8b5d9118d3606a416e8015f13799640",
+      "source_sha256": "263479a3859f8b26d15d04f7169265459abc41987f63ba21038b7db1fd1948fe"
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "scope": "SOFTWARE_DIAGNOSTIC_ONLY; generated PDF, real PDFium Reader, independent test values; NOT verified TV2 gold",
+  "sample_id": "generated-text-pdf",
+  "sample_count": 1,
+  "gold_rows": 2,
+  "engine": {
+    "name": "pdfium-text",
+    "version": "5.12.1"
+  },
+  "measurements": {
+    "geometry_grouping_v2": {
+      "header_micro_accuracy": 1.0,
+      "lines": {
+        "gold_rows": 2,
+        "predicted_rows": 2,
+        "matched_rows": 2,
+        "complete_rows": 2,
+        "extra_rows": 0,
+        "documents": 1,
+        "complete_header": 1,
+        "complete_table": 1,
+        "complete_invoice": 1,
+        "detection_precision": 1.0,
+        "detection_recall": 1.0,
+        "detection_f1": 1.0,
+        "extra_row_rate": 0.0,
+        "matched_cells_scored": 10,
+        "matched_cells_correct": 10,
+        "per_column_correct": {
+          "description": 2,
+          "unit": 2,
+          "quantity": 2,
+          "unit_price": 2,
+          "amount": 2
+        },
+        "matched_row_cell_correctness": 1.0,
+        "per_column_correctness": {
+          "description": 1.0,
+          "unit": 1.0,
+          "quantity": 1.0,
+          "unit_price": 1.0,
+          "amount": 1.0
+        },
+        "complete_line_accuracy": 1.0
+      }
+    },
+    "column_interval_grouping_v2_1": {
+      "header_micro_accuracy": 1.0,
+      "lines": {
+        "gold_rows": 2,
+        "predicted_rows": 2,
+        "matched_rows": 2,
+        "complete_rows": 2,
+        "extra_rows": 0,
+        "documents": 1,
+        "complete_header": 1,
+        "complete_table": 1,
+        "complete_invoice": 1,
+        "detection_precision": 1.0,
+        "detection_recall": 1.0,
+        "detection_f1": 1.0,
+        "extra_row_rate": 0.0,
+        "matched_cells_scored": 10,
+        "matched_cells_correct": 10,
+        "per_column_correct": {
+          "description": 2,
+          "unit": 2,
+          "quantity": 2,
+          "unit_price": 2,
+          "amount": 2
+        },
+        "matched_row_cell_correctness": 1.0,
+        "per_column_correctness": {
+          "description": 1.0,
+          "unit": 1.0,
+          "quantity": 1.0,
+          "unit_price": 1.0,
+          "amount": 1.0
+        },
+        "complete_line_accuracy": 1.0
+      }
+    }
+  },
+  "local_artifacts": "results/kie49/reader-smoke",
+  "artifact_sha256": {
+    "column_interval_grouping_v2_1.json": "51bebc3f39f69d7cdec76cc7852eebbc0f2146b06a37018ac207d91b4eb02ebb",
+    "evidence.json": "8cc82ad5f61dda44a14f4604a4dd40436f9681402f4d994bd098f75015c453e5",
+    "geometry_grouping_v2.json": "8850e6cb461bdf10275651b54d17c507d6ec255ccfb263da62f024ea0d6aca4d",
+    "reader-audit.json": "6d5afee029b1f1c98bf1c49343ebb73d7c92651f11af79f3f070fdb7d9976bd3",
+    "source-values-aligned-test-only.json": "bd114c62e413a8a6bd86a4eb17931a09f89b5297d853e0297f21c3472f37a47a",
+    "source.pdf": "3b536c802f2b7fc11e7e721f61c1d4b54ec9083f12b4ba9ce70b188cb042ca8e"
+  },
+  "implementation_sha256": "78f2604a2c549ca93405d34fadef4533b95ad55c0393950e7934163ea919fd12",
+  "real_image_ocr_tested": false,
+  "paddleocr_runtime_available": false
+}

@@ -144,14 +144,20 @@ UNREADABLE_SOURCE, SOURCE_ROLE_UNCLEAR, CONSISTENCY_WARNING, UNSUPPORTED_CURRENC
 
 ## Evaluation protocol
 
+For the proposed issue #49 precision/F1 definitions, strict paired development
+runner, explicit variant configuration and failure coverage, see
+[grouping experiment protocol](kie-v2-grouping-experiment.md). Protocol approval
+and TV2 aligned gold remain pending; the default provider remains the baseline.
+
 ```bash
 .venv/bin/python scripts/evaluate_invoice_kie.py
 .venv/bin/python scripts/evaluate_invoice_kie.py --manifest /path/to/authorized/frozen-manifest.json
 ```
 
 Without eligible data, exit code is **2**, status `WAITING_FOR_VERIFIED_V2_GOLD`,
-`evaluated: 0`, and `metrics`, `modes`, `propagation_gap` are null. No metrics file
-or fake thesis score is committed. Reports print JSON to stdout. All records are
+`evaluated: 0`, and `metrics`, `modes`, `propagation_gap` are null. No benchmark score
+is fabricated. Reports print JSON to stdout; `--output` also saves JSON/CSV in a
+new run directory. All records are
 preflighted before extraction; any missing/unverified/mismatched artifact fails
 the entire evaluation closed.
 
@@ -164,7 +170,7 @@ TV2 manifest protocol (illustrative placeholders, not an eligible dataset):
   "split": "test",
   "synthetic": true,
   "template_regime": "unseen-template",
-  "configuration": {"name": "invoice-vnd-baseline", "version": "2.0.0"},
+  "configuration": {"name": "invoice-baseline", "version": "2.1.0"},
   "frozen": true,
   "frozen_at": "2026-09-29T00:00:00Z",
   "qa_status": "VERIFIED",
@@ -196,16 +202,22 @@ they are not silently treated as paired evidence.
 
 Each of 13 headers reports exact status+normalized-value match, precision/recall/F1,
 miss/wrong/false-value/unresolved counts and review rate. A wrong PRESENT value is
-both a false positive and false negative. Zero-denominator metrics are null.
+both a false positive and false negative. Since evaluator 2.2.0, gold UNKNOWN is
+excluded from header/cell/presence denominators and strict completion eligibility;
+coverage and scoreable counts are reported. NOT_PRESENT, UNREADABLE and AMBIGUOUS
+remain status-plus-null targets. Row detection still includes all gold rows.
+Zero-denominator metrics are null.
 Rows are matched one-to-one by maximum cardinality of shared annotated source IDs,
 with overlap/source order tie-breaking, independent of the predicted cell values.
 The report includes:
 
-- line detection recall = matched / gold rows;
+- line detection precision = matched / predicted rows; recall = matched / gold rows;
+- line detection F1 = 2 × matched / (predicted + gold rows);
 - extra-row rate = unmatched predicted / predicted rows;
 - matched-row cell correctness and correctness for each of five columns;
-- complete-line accuracy = fully correct matched rows / all gold rows;
-- complete-table, complete-header and complete-invoice accuracy.
+- complete-line accuracy = fully correct matched rows / gold rows with all five cells known;
+- complete-table, complete-header and complete-invoice accuracy (13 headers +
+  line items only; **tax_breakdown is not scored** by the current annotation schema).
 
 Real/oracle metrics are separate; a per-field oracle-minus-real gap is emitted only
 for a fully paired sample set. Error taxonomy counts include candidate, role,
