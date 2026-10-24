@@ -3,4 +3,4 @@
 # scripts/run_baseline.py because PaddleOCR 3.0.3 supports Vietnamese (`vi`)
 # with PP-OCRv3, not PP-OCRv4.
 -r requirements-ocr-runtime.txt
-jsonschema[format]==4.23.0
+jsonschema[format]==4.26.0
