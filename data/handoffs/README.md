@@ -16,3 +16,7 @@ See docs/data/tv4-handoff.md and docs/data/coordination-required.md.
 
 The SHA-256 sidecar and package JSON preserve the published artifact identity.
 The package contains no public receipt images and no model weights.
+
+## Lead feedback follow-up
+
+The [artifact index](lead-feedback/artifact-index.json) lists exact archive hashes and availability. The [80-record review queue](lead-feedback/review-queue.csv) is unassigned and pending independent review. See [acceptance status](../../docs/data/lead-feedback-acceptance.md). No reviewed/final release is claimed. The public quarantine archive is local only; its metadata reports are tracked in data/registry/quarantine.

@@ -36,7 +36,11 @@ class ReviewReceiptTests(unittest.TestCase):
         )
         dump(
             self.root / "evaluator-train-manifest.json",
-            dict(records=[dict(record_id="fixture", **refs)]),
+            dict(sample_count=1, records=[dict(record_id="fixture", **refs)]),
+        )
+        dump(
+            self.root / "evaluator-validation-manifest.json",
+            dict(sample_count=0, records=[]),
         )
         self.review = dict(
             record_id="fixture",
@@ -64,6 +68,16 @@ class ReviewReceiptTests(unittest.TestCase):
         result = self.run_check()
         self.assertEqual(result["review_receipts_complete"], 1)
         self.assertFalse(result["grants_verified"])
+
+    def test_omitting_review_queue_does_not_pass(self):
+        dump(self.root / "evaluation-intake.json", dict(review_records=[]))
+        result = self.run_check()
+        self.assertEqual(result["required"], 1)
+        self.assertEqual(result["status"], "PENDING_INDEPENDENT_REVIEW")
+
+    def test_null_reviewer_is_reported_without_crash(self):
+        self.review["reviewed_by"] = None
+        self.assertEqual(self.run_check()["review_receipts_complete"], 0)
 
     def test_self_review_rejected(self):
         self.review["reviewed_by"] = self.review["annotation_author"]

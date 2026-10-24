@@ -1,3 +1,5 @@
+> Feedback lead 24/10/2026: [bảng nghiệm thu từng mục, artifact và việc cần phối hợp](lead-feedback-acceptance.md). Đã giữ riêng 38 mẫu public chưa map; 80 mẫu vẫn cần reviewer độc lập. Không pull/fetch trong lần xử lý này.
+
 # Việc cần phối hợp để nghiệm thu #47 và bàn giao TV4
 
 Cập nhật 24/10/2026: TV4 đã publish PR #69. Xem [yêu cầu mới, kết quả xử lý và hướng dẫn review](tv4-review-followup.md).

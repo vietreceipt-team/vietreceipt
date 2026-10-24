@@ -13,6 +13,32 @@ def check(root):
     intake = json.loads((root / "evaluation-intake.json").read_text(encoding="utf-8"))
     failures = []
     ready = 0
+    cohort = {}
+    for split in ("train", "validation"):
+        manifest = json.loads(
+            (root / f"evaluator-{split}-manifest.json").read_text(encoding="utf-8")
+        )
+        if manifest["sample_count"] != len(manifest["records"]):
+            failures.append(
+                dict(record_id="__cohort__", reasons=["Manifest count mismatch"])
+            )
+        for record in manifest["records"]:
+            key = (split, record["record_id"])
+            if key in cohort:
+                failures.append(
+                    dict(record_id=key[1], reasons=["Duplicate cohort record"])
+                )
+            cohort[key] = record
+    keys = [(r["split"], r["record_id"]) for r in intake["review_records"]]
+    if not cohort or len(keys) != len(set(keys)) or set(keys) != set(cohort):
+        failures.append(
+            dict(
+                record_id="__cohort__",
+                reasons=[
+                    "Review queue must cover the entire original cohort exactly once"
+                ],
+            )
+        )
     for row in intake["review_records"]:
         reasons = []
         try:
@@ -21,14 +47,7 @@ def check(root):
             )
             if review["record_id"] != row["record_id"]:
                 raise ValueError("Review identity mismatch")
-            manifest = json.loads(
-                (root / f"evaluator-{row['split']}-manifest.json").read_text(
-                    encoding="utf-8"
-                )
-            )
-            record = next(
-                r for r in manifest["records"] if r["record_id"] == row["record_id"]
-            )
+            record = cohort[(row["split"], row["record_id"])]
             required = (
                 "source",
                 "source_gold",
@@ -45,8 +64,11 @@ def check(root):
                     or sha(resolve(root, ref["path"])) != ref["sha256"]
                 ):
                     reasons.append("Changed or substituted artifact: " + key)
-            reviewer = review.get("reviewed_by", "").strip()
-            author = review.get("annotation_author", "").strip()
+            reviewer = review.get("reviewed_by")
+            author = review.get("annotation_author")
+            if not isinstance(reviewer, str) or not isinstance(author, str):
+                raise ValueError("Reviewer and annotation author must be strings")
+            reviewer, author = reviewer.strip(), author.strip()
             if not reviewer or not author or reviewer.casefold() == author.casefold():
                 reasons.append(
                     "Named independent reviewer and annotation author required"
@@ -77,7 +99,7 @@ def check(root):
         status="REVIEW_RECEIPTS_COMPLETE"
         if not failures
         else "PENDING_INDEPENDENT_REVIEW",
-        required=len(intake["review_records"]),
+        required=len(cohort),
         review_receipts_complete=ready,
         failures=failures,
         grants_verified=False,

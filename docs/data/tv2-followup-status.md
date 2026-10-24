@@ -1,3 +1,5 @@
+> Feedback lead 24/10/2026: [bảng nghiệm thu từng mục, artifact và việc cần phối hợp](lead-feedback-acceptance.md). Đã giữ riêng 38 mẫu public chưa map; 80 mẫu vẫn cần reviewer độc lập. Không pull/fetch trong lần xử lý này.
+
 > Cập nhật 24/10/2026: [TV4 đã publish contract; TV2 đã chuẩn bị manifest và phiếu review mới](tv4-review-followup.md). Các mô tả chưa publish bên dưới là lịch sử của lần bàn giao 23/10. QA vẫn PENDING_REVIEW.
 
 # TV2 follow-up: phần tự xử lý và phụ thuộc nghiệm thu

@@ -1,0 +1,969 @@
+{
+  "status": "PENDING_INDEPENDENT_REVIEW",
+  "required": 80,
+  "review_receipts_complete": 0,
+  "failures": [
+    {
+      "record_id": "VRSYN2-00001__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00001__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00001__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00001__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00002__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00002__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00002__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00002__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00003__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00003__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00003__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00003__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00007__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00007__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00007__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00007__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00008__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00008__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00008__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00008__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00009__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00009__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00009__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00009__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00013__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00013__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00013__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00013__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00014__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00014__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00014__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00014__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00015__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00015__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00015__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00015__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00019__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00019__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00019__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00019__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00020__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00020__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00020__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00020__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00021__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00021__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00021__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00021__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00025__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00025__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00025__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00025__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00026__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00026__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00026__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00026__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00027__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00027__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00027__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00027__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00004__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00004__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00004__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00004__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00010__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00010__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00010__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00010__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00016__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00016__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00016__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00016__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00022__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00022__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00022__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00022__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00028__text_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00028__clean_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00028__clean_pdf",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    },
+    {
+      "record_id": "VRSYN2-00028__blur_png",
+      "reasons": [
+        "Named independent reviewer and annotation author required",
+        "Actual timezone-aware review date required",
+        "Approval pending: independent_reviewer_confirmed",
+        "Approval pending: source_gold_approved",
+        "Approval pending: source_regions_approved",
+        "Approval pending: source_rows_approved",
+        "Approval pending: block_alignment_approved"
+      ]
+    }
+  ],
+  "grants_verified": false,
+  "note": "Receipt validation cannot prove a human actually reviewed. Owner approval, semantic alignment validation and protocol/config sign-off remain required."
+}

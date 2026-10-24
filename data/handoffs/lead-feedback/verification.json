@@ -1,0 +1,31 @@
+{
+  "status": "PASS_ARTIFACT_INTEGRITY_ONLY",
+  "public_quarantine": [
+    {
+      "family": "vietnamese_bill",
+      "quarantined": 13,
+      "native_and_image_hashes": "PASS"
+    },
+    {
+      "family": "cord",
+      "quarantined": 24,
+      "native_and_image_hashes": "PASS"
+    },
+    {
+      "family": "sroie_curated",
+      "quarantined": 1,
+      "native_and_image_hashes": "PASS"
+    }
+  ],
+  "total_quarantined": 38,
+  "original_source_lines_preserved_byte_for_byte": true,
+  "independently_reviewed": 0,
+  "required_reviews": 80,
+  "independent_mock_available": false,
+  "final_release_available": false,
+  "pull_fetch_merge_performed": false,
+  "tests_passed": 32,
+  "ruff": "PASS",
+  "zip_integrity": "PASS",
+  "qa_status": "PENDING_INDEPENDENT_REVIEW"
+}

@@ -1,3 +1,7 @@
+## Lead feedback follow-up
+
+Retain all 38 unmapped public records in a separate quarantine with original images/native labels, pinned source identity, hashes and rejection reasons. Publish metadata reports, an 80-record independent review queue and a handoff artifact index. Add explicit acceptance/owner requirements for independent source/alignment review, independently authored mock data and the post-review TV4/TV5 release. Review receipts now reject an incomplete cohort or invalid reviewer types. No source labels, generator or QA status were changed. No pull/fetch/merge was performed.
+
 ## TV4 contract follow-up (2026-10-24)
 
 Prepare exact invoice-evaluation-2.2.0 A/B manifests and 80 hash-bound independent review forms against TV4 PR #69. Publish a small additive intake overlay; source/evidence/gold v1 remain unchanged. Replay passes 80/80 paired contracts; 25 TV2 tests and 49 TV4 tests pass. Scored runs remain blocked (exit 2) with empty verified_by and PENDING_REVIEW; no accuracy or delta claims. Owner review, protocol/config sign-off and independent mock data remain required. See docs/data/tv4-review-followup.md.

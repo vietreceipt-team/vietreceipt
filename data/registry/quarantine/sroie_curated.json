@@ -1,0 +1,35 @@
+{
+  "family": "sroie_curated",
+  "snapshot": "bffe40c26759f3376ec2b3ae9031dbba54cd587c",
+  "source": "https://huggingface.co/datasets/jsdnrs/ICDAR2019-SROIE",
+  "license_access": "CC-BY-4.0 curator NOTICE; source labels retained; original organizer archive not claimed",
+  "mapping_version": "public-mapping-0.2",
+  "input_sha256": "c94d49dfebd9d1b431bae0c24cd0aef551504c74b5fb08e96e847c3cd24c8a06",
+  "rejection_report_sha256": "2a2edfbcf7c2bb3e338a3625254d31c2258b50b1678dc7164b6d21c886a0ab12",
+  "native_records": 626,
+  "mapped_records": 625,
+  "quarantined_records": 1,
+  "images_retained": 1,
+  "retention_failures": 0,
+  "label_changes": false,
+  "gold_generated": false,
+  "qa_status": "PENDING_OWNER_REVIEW",
+  "records": [
+    {
+      "family": "sroie_curated",
+      "snapshot": "bffe40c26759f3376ec2b3ae9031dbba54cd587c",
+      "mapping_version": "public-mapping-0.2",
+      "source_line": 348,
+      "original_sample_id": "X51006556824",
+      "split": "train",
+      "reason": "Unsupported numeric value: -1.73",
+      "native_record_path": "line-000348/native-record.jsonl",
+      "native_record_sha256": "4ed04ecf9dc352a44752d4997f8fb0e4a5c7cda3888ec8fcb32eedc690abdfda",
+      "source_image_path": "line-000348/source.jpg",
+      "source_image_sha256": "6aef994e17a59ce0f0bde09ac55a8cc89ea3cae19d213e5c04d5c96fca6ac57c",
+      "source_retention_error": "",
+      "disposition": "QUARANTINED_NOT_MAPPED",
+      "final_eligible": false
+    }
+  ]
+}
