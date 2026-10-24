@@ -1,0 +1,23 @@
+{
+  "status": "WAITING_FOR_VERIFIED_SOURCE_GOLD",
+  "metrics": null,
+  "evaluated": 0,
+  "schema_version": "backend-source-evaluation-1.0",
+  "evaluator_version": "invoice-evaluation-2.2.0",
+  "matching_version": "page-bbox-positive-iou-cardinality-1.0",
+  "coordinate_profile": "normalized-top-left-canonical-1.0",
+  "scope": "13_headers+line_items_tax_excluded",
+  "reasons": [
+    "WAITING_FOR_VERIFIED_SOURCE_GOLD"
+  ],
+  "scorer": {
+    "commit": "cdeb42124cce3b5f4b872f757ca4eba7b9764bcf",
+    "dirty": false,
+    "source_sha256": {
+      "scripts/evaluate_source_backend_v2.py": "5db011b1f97925bf2a1b0a45310b6940334112a51e6f60ba41d0d4e144061d8d",
+      "ai/kie/v2/source_evaluation.py": "fa13c2fe96e54a54806fda6c5749d7e385e70642739d79ab3171f9d7dfd5a65f",
+      "ai/kie/v2/evaluation.py": "3fad69fb574487f3bc668cf846ffb13a510b102863182212dbfd7398ea81d04c",
+      "schemas/backend-source-evaluation.v1.schema.json": "833296a2102a5aaff4e2461f26916ec611f1f938cca144daf067834947aacfbb"
+    }
+  }
+}
