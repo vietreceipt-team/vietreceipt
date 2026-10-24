@@ -1,0 +1,30 @@
+test_changed_bytes_rejected (tests.test_tv4_review_receipts.ReviewReceiptTests.test_changed_bytes_rejected) ... ok
+test_complete_receipt_never_grants_verified (tests.test_tv4_review_receipts.ReviewReceiptTests.test_complete_receipt_never_grants_verified) ... ok
+test_missing_approval_and_naive_date_rejected (tests.test_tv4_review_receipts.ReviewReceiptTests.test_missing_approval_and_naive_date_rejected) ... ok
+test_self_review_rejected (tests.test_tv4_review_receipts.ReviewReceiptTests.test_self_review_rejected) ... ok
+test_source_label_changes_require_owner (tests.test_tv4_review_receipts.ReviewReceiptTests.test_source_label_changes_require_owner) ... ok
+test_substituted_valid_hash_rejected (tests.test_tv4_review_receipts.ReviewReceiptTests.test_substituted_valid_hash_rejected) ... ok
+test_links_only_actual_block_ids (tests.test_tv4_handoff.HandoffTests.test_links_only_actual_block_ids) ... ok
+test_missing_ocr_preserves_present_gold (tests.test_tv4_handoff.HandoffTests.test_missing_ocr_preserves_present_gold) ... ok
+test_public_empty_total_remains_unavailable (tests.test_tv4_handoff.HandoffTests.test_public_empty_total_remains_unavailable) ... ok
+test_public_raw_text_currency_marker_does_not_infer_currency (tests.test_tv4_handoff.HandoffTests.test_public_raw_text_currency_marker_does_not_infer_currency) ... ok
+test_vietnamese_decimal_quantity_and_raw_thousands_retained (tests.test_tv4_handoff.HandoffTests.test_vietnamese_decimal_quantity_and_raw_thousands_retained) ... ok
+test_wrong_ocr_text_keeps_spatial_candidate_for_review (tests.test_tv4_handoff.HandoffTests.test_wrong_ocr_text_keeps_spatial_candidate_for_review) ... ok
+test_ambiguous_number_rejected (tests.test_tv2_data.TV2DataTests.test_ambiguous_number_rejected) ... ok
+test_deterministic_pdf_labels_and_transcripts (tests.test_tv2_data.TV2DataTests.test_deterministic_pdf_labels_and_transcripts) ... ok
+test_evaluation_tables_preserve_nested_cells_and_waiting (tests.test_tv2_data.TV2DataTests.test_evaluation_tables_preserve_nested_cells_and_waiting) ... ok
+test_final_freeze_rejects_unreviewed_development (tests.test_tv2_data.TV2DataTests.test_final_freeze_rejects_unreviewed_development) ... ok
+test_native_ids_are_scoped_by_official_split_and_content_leakage_rejected (tests.test_tv2_data.TV2DataTests.test_native_ids_are_scoped_by_official_split_and_content_leakage_rejected) ... ok
+test_native_vietnamese_rows_empty_cells_and_money (tests.test_tv2_data.TV2DataTests.test_native_vietnamese_rows_empty_cells_and_money) ... ok
+test_partial_public_mask_excludes_unsupported_headers (tests.test_tv2_data.TV2DataTests.test_partial_public_mask_excludes_unsupported_headers) ... ok
+test_pdf_actually_matches_visible_transcript (tests.test_tv2_data.TV2DataTests.test_pdf_actually_matches_visible_transcript) ... ok
+test_public_mapping_preserves_unavailable_fields (tests.test_tv2_data.TV2DataTests.test_public_mapping_preserves_unavailable_fields) ... ok
+test_real_reader_and_kie_text_pdf (tests.test_tv2_data.TV2DataTests.test_real_reader_and_kie_text_pdf) ... ok
+test_refuse_overwrite_and_split_after_augmentation (tests.test_tv2_data.TV2DataTests.test_refuse_overwrite_and_split_after_augmentation) ... ok
+test_reviewed_link_copy_preserves_source_and_rejects_unknown_blocks (tests.test_tv2_data.TV2DataTests.test_reviewed_link_copy_preserves_source_and_rejects_unknown_blocks) ... ok
+test_variants_keep_base_split_and_unique_ids (tests.test_tv2_data.TV2DataTests.test_variants_keep_base_split_and_unique_ids) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 11.897s
+
+OK

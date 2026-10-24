@@ -1,3 +1,7 @@
+## TV4 contract follow-up (2026-10-24)
+
+Prepare exact invoice-evaluation-2.2.0 A/B manifests and 80 hash-bound independent review forms against TV4 PR #69. Publish a small additive intake overlay; source/evidence/gold v1 remain unchanged. Replay passes 80/80 paired contracts; 25 TV2 tests and 49 TV4 tests pass. Scored runs remain blocked (exit 2) with empty verified_by and PENDING_REVIEW; no accuracy or delta claims. Owner review, protocol/config sign-off and independent mock data remain required. See docs/data/tv4-review-followup.md.
+
 ## Summary
 
 Addresses the feedback on #60 and continues #47 with a self-contained TV4 development/validation handoff.

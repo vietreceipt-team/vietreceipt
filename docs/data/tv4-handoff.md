@@ -1,3 +1,5 @@
+> Follow-up 2026-10-24: use the [TV4 evaluator intake overlay and review workflow](tv4-review-followup.md). TV4 PR #69 now publishes the contract. The original v1 package remains unchanged.
+
 # TV2 development / validation package for TV4
 
 ## Reproduce on the current dataset

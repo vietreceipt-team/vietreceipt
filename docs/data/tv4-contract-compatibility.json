@@ -1,22 +1,33 @@
 {
-  "checked_commit": "e64fbf5e513c1e406339cfbecc1d01c3d1be4c21",
-  "evaluator_path": "scripts\\evaluate_invoice_kie.py",
-  "evaluator_sha256": "6239e62acb286f0eb5966df3239fd7a8a8238d68fae0ecff4a51ca818eda7395",
-  "supports_output_cli": false,
-  "grouping_test_available": false,
-  "requested_command": "python scripts/evaluate_invoice_kie.py --manifest DEV_MANIFEST --output OUTPUT_DIR",
-  "status": "WAITING_FOR_TV4_PUBLISHED_CONTRACT",
-  "changes_to_tv4_runtime": false,
-  "experiment_proposal": {
-    "baseline": "geometry_grouping_v2",
-    "variant": "relation_grouping_v2_1",
-    "status": "NOT_CO_SIGNED"
+  "checked_tv4_revision": "1e7b407d1314110ce2d8411211f55f49f7eb0ffd",
+  "tv4_pr": 69,
+  "status": "PUBLISHED_CONTRACT_INTAKE_PREPARED_QA_PENDING",
+  "supports_output_cli": true,
+  "grouping_test_available": true,
+  "experiment": {
+    "protocol": "grouping-ab-1.0",
+    "evaluator_version": "invoice-evaluation-2.2.0",
+    "configurations": {
+      "geometry_grouping_v2": {
+        "name": "invoice-baseline",
+        "version": "2.1.0"
+      },
+      "column_interval_grouping_v2_1": {
+        "name": "invoice-column-intervals",
+        "version": "2.2.0"
+      }
+    }
   },
-  "final_scope_proposal": "13 header fields + 5 cells per line; tax_breakdown excluded; UNKNOWN and failed-source denominators require TV1/TV4 confirmation",
-  "requirements_contracts_versions": {
-    "jsonschema": "4.26.0",
-    "openapi-spec-validator": "0.9.0",
-    "PyYAML": "6.0.2"
-  },
-  "shared_contract_tests": "PASS with python -X utf8"
+  "experiment_approval": "PENDING_TV1_TV4_SIGN_OFF",
+  "paired_replay": 80,
+  "qa_reviewed_records": 0,
+  "scored_train_exit": 2,
+  "scored_validation_exit": 2,
+  "gate_reason": "Missing typed dataset/verification provenance: verified_by intentionally blank pending actual review",
+  "tv2_tests_passed": 25,
+  "tv4_tests_passed": 49,
+  "source_runtime_note": "TV4 git archive snapshot: evaluator report git_commit/git_dirty may refer to enclosing TV2 checkout; pinned TV4 revision and implementation hashes identify runtime. Not a clean TV4 checkout claim.",
+  "runtime_changes": false,
+  "accuracy": null,
+  "delta": null
 }

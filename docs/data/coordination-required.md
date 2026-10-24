@@ -1,12 +1,14 @@
 # Việc cần phối hợp để nghiệm thu #47 và bàn giao TV4
 
+Cập nhật 24/10/2026: TV4 đã publish PR #69. Xem [yêu cầu mới, kết quả xử lý và hướng dẫn review](tv4-review-followup.md).
+
 Đây là danh sách phụ thuộc cụ thể, không dùng để trì hoãn phần TV2 tự làm.
 Các script, public audit và source/evidence package được chuẩn bị trên nhánh
 codex/47-tv2-dataset-completion. Không tự ghi VERIFIED hoặc ký thay người review.
 
 | Việc | Ai cần tham gia | TV2 đã chuẩn bị | Cần xác nhận/bàn giao cụ thể |
 | --- | --- | --- | --- |
-| Contract evaluator A/B mới | TV4 (#49) | Gói train/validation, source regions, actual evidence, candidate gold, failures và integrity checker | Push nhánh/PR chứa tests/test_kie_v2_grouping.py, evaluator nhận --output và schema experiment. Hiện remote đọc được chưa có các file/options này. |
+| Contract evaluator A/B mới | TV4 (#49) | Gói train/validation, source regions, actual evidence, candidate gold, failures và integrity checker | Đã publish tại PR #69 head 1e7b407; TV2 đã chuẩn bị manifest theo schema mới và replay 80/80 paired pass contract. Còn đồng ký experiment và QA thực tế trước scored A/B. |
 | Protocol/mẫu số/status/scope | TV1 + TV2 + TV4 + TV5 | Source inventory đầy đủ, UNKNOWN/PRESENT giữ nguyên, source-level row regions và báo lỗi từng record/cell | Co-sign protocol: UNKNOWN bị loại khỏi value metrics; NOT_PRESENT chỉ khi nguồn thực sự vắng; failure của eligible input vẫn nằm mẫu số; complete invoice gồm 13 headers + line items, tax_breakdown chưa gồm. |
 | QA liên kết source với OCR | TV2 + người review độc lập; TV4 kiểm tra cách dùng | index.html của toàn bộ 80 record, source PDF/PNG, source gold, vùng ô/dòng, observed OCR và ID block thật, review-template.json | Kiểm tra nguồn và từng ID; điền reviewed_by/reviewed_at/approved sau review thật. Không dùng prediction làm gold. Ô OCR mất block giữ nguyên source gold, không invent ID. |
 | Kiểm tra reader mới của TV3 | TV3 (#48, PR #65) | Output thật của reader main đang có, runtime/model/config/source hash, 3 route, log đầy đủ | TV3 xác nhận contract/geometry và có cần chạy lại bằng thay đổi reader chưa merge trong #65 hay không. Không chặn việc chuẩn bị data phía TV2. |

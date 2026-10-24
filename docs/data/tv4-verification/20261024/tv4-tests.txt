@@ -1,0 +1,54 @@
+test_ab_requires_explicit_exact_configs_and_blocks_final_test (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_ab_requires_explicit_exact_configs_and_blocks_final_test) ... ok
+test_ab_same_inputs_gold_matching_and_normalization (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_ab_same_inputs_gold_matching_and_normalization) ... ok
+test_ab_synthetic_column_failure_and_csv_exports (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_ab_synthetic_column_failure_and_csv_exports) ... ok
+test_absent_gold_fail_closed (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_absent_gold_fail_closed) ... ok
+test_all_bad_records_are_reported_no_partial_evaluation (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_all_bad_records_are_reported_no_partial_evaluation) ... ok
+test_bad_gold_evidence_or_missing_header (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_bad_gold_evidence_or_missing_header) ... ok
+test_bad_gold_schema (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_bad_gold_schema) ... ok
+test_bad_gold_type_and_nonfinite_values (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_bad_gold_type_and_nonfinite_values) ... ok
+test_currency_precision_matches_v2_money_contract (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_currency_precision_matches_v2_money_contract) ... ok
+test_duplicate_receipts (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_duplicate_receipts) ... ok
+test_empty_unverified_unfrozen_and_wrong_config (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_empty_unverified_unfrozen_and_wrong_config) ... ok
+test_failed_variant_withholds_all_scores (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_failed_variant_withholds_all_scores) ... ok
+test_gold_money_accepts_currency_precision (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_gold_money_accepts_currency_precision) ... ok
+test_gold_money_rejects_excess_currency_precision (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_gold_money_rejects_excess_currency_precision) ... ok
+test_gold_money_rejects_invalid_numeric_values (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_gold_money_rejects_invalid_numeric_values) ... ok
+test_hash_mismatch (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_hash_mismatch) ... ok
+test_malformed_freeze_provenance (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_malformed_freeze_provenance) ... ok
+test_matching_reordering_and_augmenting_path (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_matching_reordering_and_augmenting_path) ... ok
+test_metrics_wrong_values_miss_and_extra_rows (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_metrics_wrong_values_miss_and_extra_rows) ... ok
+test_missing_field_false_positive (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_missing_field_false_positive) ... ok
+test_missing_gold_evidence_is_not_absence (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_missing_gold_evidence_is_not_absence) ... ok
+test_normalization_ablation_requires_compatible_printed_gold (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_normalization_ablation_requires_compatible_printed_gold) ... ok
+test_one_to_one_matching_does_not_use_cell_values (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_one_to_one_matching_does_not_use_cell_values) ... ok
+test_oracle_confidence_cannot_change_as_text_ablation (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_oracle_confidence_cannot_change_as_text_ablation) ... ok
+test_oracle_requires_verified_geometry (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_oracle_requires_verified_geometry) ... ok
+test_split_merge_and_shared_evidence (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_split_merge_and_shared_evidence) ... ok
+test_statuses_are_distinct_and_tax_is_not_scored (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_statuses_are_distinct_and_tax_is_not_scored) ... ok
+test_synthetic_evaluation_labels_and_provenance (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_synthetic_evaluation_labels_and_provenance) ... ok
+test_usd_gold_evaluation_accepts_cents (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_usd_gold_evaluation_accepts_cents) ... ok
+test_verified_oracle_gap (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_verified_oracle_gap) ... ok
+test_zero_denominators_and_empty_table (tests.test_kie_v2_evaluation.EvaluationV2Tests.test_zero_denominators_and_empty_table) ... ok
+test_baseline_is_byte_equivalent_to_pre_change_commit (tests.test_kie_v2_grouping.GroupingTests.test_baseline_is_byte_equivalent_to_pre_change_commit) ... ok
+test_close_partial_item_remains_known_continuation_limit (tests.test_kie_v2_grouping.GroupingTests.test_close_partial_item_remains_known_continuation_limit) ... ok
+test_consistency_checks_do_not_change_values (tests.test_kie_v2_grouping.GroupingTests.test_consistency_checks_do_not_change_values) ... ok
+test_merged_block_is_not_split_into_invented_numbers (tests.test_kie_v2_grouping.GroupingTests.test_merged_block_is_not_split_into_invented_numbers) ... ok
+test_narrow_right_aligned_numbers (tests.test_kie_v2_grouping.GroupingTests.test_narrow_right_aligned_numbers) ... ok
+test_other_geometry_cases_retain_baseline_behavior (tests.test_kie_v2_grouping.GroupingTests.test_other_geometry_cases_retain_baseline_behavior) ... ok
+test_overlapping_header_intervals_fall_back (tests.test_kie_v2_grouping.GroupingTests.test_overlapping_header_intervals_fall_back) ... ok
+test_partial_rows_unit_absence_and_unsupported_layout (tests.test_kie_v2_grouping.GroupingTests.test_partial_rows_unit_absence_and_unsupported_layout) ... ok
+test_repeated_header_and_multiple_vat (tests.test_kie_v2_grouping.GroupingTests.test_repeated_header_and_multiple_vat) ... ok
+test_wrapped_and_split_description_preserve_evidence (tests.test_kie_v2_grouping.GroupingTests.test_wrapped_and_split_description_preserve_evidence) ... ok
+test_failed_empty_table_is_not_complete (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_failed_empty_table_is_not_complete) ... ok
+test_invalid_regions_and_leaked_gold_ids_rejected (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_invalid_regions_and_leaked_gold_ids_rejected) ... ok
+test_money_matches_upstream_precision_contract (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_money_matches_upstream_precision_contract) ... ok
+test_ocr_missing_row_stays_in_denominator (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_ocr_missing_row_stays_in_denominator) ... ok
+test_reader_failure_kept_with_known_gold (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_reader_failure_kept_with_known_gold) ... ok
+test_source_matching_needs_no_gold_ocr_ids (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_source_matching_needs_no_gold_ocr_ids) ... ok
+test_split_merge_and_values_cannot_increase_matches (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_split_merge_and_values_cannot_increase_matches) ... ok
+test_unknown_mask_and_strict_denominators (tests.test_kie_v2_source_evaluation.SourceEvaluationTests.test_unknown_mask_and_strict_denominators) ... ok
+
+----------------------------------------------------------------------
+Ran 49 tests in 24.097s
+
+OK

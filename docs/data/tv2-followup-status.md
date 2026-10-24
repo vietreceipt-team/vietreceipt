@@ -1,3 +1,5 @@
+> Cập nhật 24/10/2026: [TV4 đã publish contract; TV2 đã chuẩn bị manifest và phiếu review mới](tv4-review-followup.md). Các mô tả chưa publish bên dưới là lịch sử của lần bàn giao 23/10. QA vẫn PENDING_REVIEW.
+
 # TV2 follow-up: phần tự xử lý và phụ thuộc nghiệm thu
 
 Ngày: 23/10/2026. Tiếp tục #47 / PR #66 theo yêu cầu TV4.
