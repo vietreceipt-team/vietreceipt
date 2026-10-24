@@ -1,6 +1,6 @@
 # TV5: original-file capture → source-spatial evaluation
 
-Bàn giao nối TV4 PR #69 (`04e98c6`, evaluator `invoice-evaluation-2.2.0`) vào TV5. Kết quả QA/accuracy thật vẫn chờ người phụ trách. Tài liệu này cập nhật phần phụ thuộc TV4 trong [báo cáo PR #67](tv5-progress-20261023.md), không thay đổi các run lịch sử hoặc tự duyệt gold.
+Bàn giao nối TV4 PR #69 (đồng bộ đến `1e7b407`, evaluator `invoice-evaluation-2.2.0`) vào TV5. Kết quả QA/accuracy thật vẫn chờ người phụ trách. Tài liệu này cập nhật phần phụ thuộc TV4 trong [báo cáo PR #67](tv5-progress-20261023.md), không thay đổi các run lịch sử hoặc tự duyệt gold.
 
 ## Đã tích hợp
 
@@ -67,3 +67,6 @@ Software regression dùng PDF giả với expected text/rows định nghĩa đ�
 Gói TV2 thật 20 mẫu đã được chuẩn bị pending và thử gate: exit 2, metrics null, không upload/score khi chưa QA. Test/CI xanh không phải bằng chứng final accuracy. Các capture PR #67 vẫn có giá trị kiểm chứng workflow nhưng thiếu field worker input hash mới sẽ không được tự nâng cấp thành run đủ điều kiện source-scoring.
 
 Paddle Linux ARM64 vẫn có SIGSEGV đã ghi; lớp subprocess và recipe native/AMD64 giữ nguyên. Đợt này không sửa OCR hoặc hứa cải thiện chất lượng/latency. Source-region policy và sign-off, source QA độc lập, mock cuối và final freeze vẫn cần chủ sở hữu nghiệm thu.
+
+
+Bàn giao mới nhất và kiểm tra dependency/JSON/CSV: [validation 24/10/2026](tv5-source-validation-20261024.md).

@@ -1,0 +1,114 @@
+{
+  "scope": "synthetic_software_workflow_acceptance_only",
+  "accuracy": null,
+  "source_metric_dataset_status": "WAITING_FOR_VERIFIED_SOURCE_GOLD",
+  "runner_metadata": {
+    "schema_version": "backend-evaluation-1.0",
+    "started_at": "2026-10-23T16:32:31.743441+00:00",
+    "manifest_sha256": "e809da3ea7af986038dadd4d42df8b97c2a4fced3efca180f38785e5a2c33f50",
+    "runner_commit": "cdeb42124cce3b5f4b872f757ca4eba7b9764bcf",
+    "runner_dirty": false,
+    "runner_python": "3.12.14",
+    "mode": "real",
+    "timeout_seconds": 240.0,
+    "poll_interval_seconds": 1.0,
+    "synthetic_review": true,
+    "timing_policy": "Client upload and queue+processing wall time; actual worker stage durations/config/commit are in machine/attempts. Includes subprocess startup and model load; not a warm inference benchmark.",
+    "metric_policy": "Raw machine artifacts only; reviewed exports are workflow evidence, never AI accuracy. No accuracy score is claimed."
+  },
+  "runtime": [
+    {
+      "id": "text_pdf",
+      "condition": "text_pdf",
+      "status": "verified",
+      "input_sha256": "e8c76ff249cc35fb954e47031d2ea336960233841b634a122f096b65a7c57a2e",
+      "worker_source": {
+        "sha256": "e8c76ff249cc35fb954e47031d2ea336960233841b634a122f096b65a7c57a2e",
+        "content_type": "application/pdf",
+        "bytes": 1865
+      },
+      "worker_commit": "cdeb42124cce3b5f4b872f757ca4eba7b9764bcf",
+      "worker_source_sha256": "a354d98543dfb06bb73379c4572199da67b402d885a747dfdc2ce5dc126e0b4c",
+      "architecture": "arm64",
+      "configuration": {
+        "name": "invoice-baseline",
+        "version": "2.1.0"
+      },
+      "timing_ms": {
+        "document_reading": 576.003,
+        "kie": 35.733,
+        "total": 650.335
+      }
+    },
+    {
+      "id": "jpg",
+      "condition": "jpg",
+      "status": "verified",
+      "input_sha256": "e1f06fb824e473a51c5c8c2d8da7bad37679521c95b8d34c85a4b65ef0dc8a00",
+      "worker_source": {
+        "sha256": "e1f06fb824e473a51c5c8c2d8da7bad37679521c95b8d34c85a4b65ef0dc8a00",
+        "content_type": "image/jpeg",
+        "bytes": 116513
+      },
+      "worker_commit": "cdeb42124cce3b5f4b872f757ca4eba7b9764bcf",
+      "worker_source_sha256": "a354d98543dfb06bb73379c4572199da67b402d885a747dfdc2ce5dc126e0b4c",
+      "architecture": "arm64",
+      "configuration": {
+        "name": "invoice-baseline",
+        "version": "2.1.0"
+      },
+      "timing_ms": {
+        "document_reading": 7698.171,
+        "kie": 23.75,
+        "total": 7752.254
+      }
+    },
+    {
+      "id": "scan_pdf",
+      "condition": "scan_pdf",
+      "status": "verified",
+      "input_sha256": "565d0eceea68954eb914c4f7ba0f55375c9b158131db2391be70ca7b2b64bd8e",
+      "worker_source": {
+        "sha256": "565d0eceea68954eb914c4f7ba0f55375c9b158131db2391be70ca7b2b64bd8e",
+        "content_type": "application/pdf",
+        "bytes": 118799
+      },
+      "worker_commit": "cdeb42124cce3b5f4b872f757ca4eba7b9764bcf",
+      "worker_source_sha256": "a354d98543dfb06bb73379c4572199da67b402d885a747dfdc2ce5dc126e0b4c",
+      "architecture": "arm64",
+      "configuration": {
+        "name": "invoice-baseline",
+        "version": "2.1.0"
+      },
+      "timing_ms": {
+        "document_reading": 7311.206,
+        "kie": 23.38,
+        "total": 7370.399
+      }
+    }
+  ],
+  "regression": {
+    "pytest": 410,
+    "subtests": 217,
+    "unittest": 184,
+    "pip_check": "No broken requirements found",
+    "joint_requirements_resolution": "pass"
+  },
+  "tv4_dependency": "1e7b407d1314110ce2d8411211f55f49f7eb0ffd",
+  "tv2_intake_revision": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+  "canonical_jsonschema": "4.26.0",
+  "notes": [
+    "All three fictional documents VERIFIED; JSON/CSV/XLSX parsed and raw machine snapshot unchanged after synthetic correction.",
+    "No pending TV2 label was approved. Source metric masks/identity/frame/failure paths are regression tests, not a real benchmark.",
+    "Acceptance capture ran from cdeb421 with dirty=false. AI/backend/schema/scorer files are byte-identical at integration head a77e1cd; later commits align requirements/test dependencies only.",
+    "PR #69 original commits are integrated into #70 ancestry; production grouping remains baseline."
+  ],
+  "files_sha256": {
+    "failures.csv": "297202d29b40be0890df7d3d506775a9974905b61b072ed0e937a038bc03e4de",
+    "machine-source-evidence.zip": "79c94d26d36fb58a2cfc279043348c25e72548fdf160468fc40b905526c08ede",
+    "pending-gate.json": "2b59bd777b3744dc104fe979643e25f8e0ad673133a2d6940ab942c8dd54024a",
+    "run_metadata.json": "747cfaff2d2734906c042a968b1f0847a8d5249707ea0c2a3b6c174bb282a63d",
+    "samples.csv": "e492880ed1e29c915babaf8f7d6057f95d9400b169c37bca94a73851f0232ccd",
+    "tv2-overlay-intake.json": "d6272823dec6ea281f1f98a6c64c99f13259d8093807c90083f81510720a4936"
+  }
+}

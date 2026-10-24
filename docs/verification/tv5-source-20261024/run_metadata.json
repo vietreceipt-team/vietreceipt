@@ -1,0 +1,26 @@
+{
+  "schema_version": "backend-evaluation-1.0",
+  "started_at": "2026-10-23T16:32:31.743441+00:00",
+  "manifest_sha256": "e809da3ea7af986038dadd4d42df8b97c2a4fced3efca180f38785e5a2c33f50",
+  "runner_commit": "cdeb42124cce3b5f4b872f757ca4eba7b9764bcf",
+  "runner_dirty": false,
+  "runner_python": "3.12.14",
+  "mode": "real",
+  "timeout_seconds": 240.0,
+  "poll_interval_seconds": 1.0,
+  "synthetic_review": true,
+  "timing_policy": "Client upload and queue+processing wall time; actual worker stage durations/config/commit are in machine/attempts. Includes subprocess startup and model load; not a warm inference benchmark.",
+  "metric_policy": "Raw machine artifacts only; reviewed exports are workflow evidence, never AI accuracy. No accuracy score is claimed.",
+  "dataset": {
+    "dataset": "v2-synthetic-demo",
+    "version": "1.0",
+    "split": "demo",
+    "synthetic": true,
+    "qa_status": null,
+    "purpose": null,
+    "provenance": "Generated fictional invoice; three variants of ONE template. Workflow evidence only, not final evaluation."
+  },
+  "artifact_schema_version": "backend-capture-1.1",
+  "machine_predictions": "machine_predictions.jsonl",
+  "sample_count": 3
+}
