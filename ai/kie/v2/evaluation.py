@@ -19,8 +19,8 @@ from . import extract_invoice, extract_with_grouping
 from .config import (
     BASELINE_GROUPING,
     CONFIGURATION,
-    GROUPING_EXTRACTORS,
     GROUPING_CONFIGURATIONS,
+    GROUPING_EXTRACTORS,
     HEADER_FIELDS,
     INTERVAL_GROUPING,
     LINE_FIELDS,
@@ -41,6 +41,13 @@ TAXONOMY = (
     "OCR_PROPAGATION",
     "MULTIPLE_CANDIDATES",
     "CONSISTENCY_WARNING",
+)
+ANNOTATION_STATUSES = (
+    "PRESENT",
+    "NOT_PRESENT",
+    "UNKNOWN",
+    "UNREADABLE",
+    "AMBIGUOUS",
 )
 
 
@@ -127,6 +134,8 @@ def metrics(pairs, *, matches_by_document=None):
                     "predicted_present",
                     "gold_present",
                     "true_positive",
+                    "false_positive",
+                    "false_negative",
                     "review",
                     "miss",
                     "wrong",
@@ -135,12 +144,16 @@ def metrics(pairs, *, matches_by_document=None):
                 )
             }
         )
+        gold_statuses = Counter({status: 0 for status in ANNOTATION_STATUSES})
+        predicted_statuses = Counter({status: 0 for status in ANNOTATION_STATUSES})
         for result, gold in pairs:
             p, g = result["fields"][field], gold["fields"][field]
             count["total"] += 1
+            gold_statuses[g["annotation_status"]] += 1
             if not known(g):
                 count["unknown"] += 1
                 continue
+            predicted_statuses[p["value_status"]] += 1
             ok = correct(p, g)
             present, expected = (
                 p["value_status"] == "PRESENT",
@@ -152,6 +165,8 @@ def metrics(pairs, *, matches_by_document=None):
                 predicted_present=int(present),
                 gold_present=int(expected),
                 true_positive=int(ok and expected),
+                false_positive=int(present and not (ok and expected)),
+                false_negative=int(expected and not (ok and expected)),
                 review=int(p["machine_needs_review"]),
                 miss=int(expected and not present),
                 wrong=int(expected and present and not ok),
@@ -178,6 +193,9 @@ def metrics(pairs, *, matches_by_document=None):
         recall = ratio(count["true_positive"], count["gold_present"])
         fields[field] = {
             **count,
+            "metric_definition": "exact-value-extraction-1.0",
+            "gold_status_counts": dict(gold_statuses),
+            "predicted_status_counts_on_known_gold": dict(predicted_statuses),
             "exact_match": ratio(count["correct"], count["scored"]),
             "coverage": ratio(count["scored"], count["total"]),
             "precision": precision,
@@ -188,6 +206,12 @@ def metrics(pairs, *, matches_by_document=None):
             ),
             "review_rate": ratio(count["review"], count["scored"]),
         }
+    extraction = Counter(
+        {
+            key: sum(field[key] for field in fields.values())
+            for key in ("true_positive", "false_positive", "false_negative")
+        }
+    )
     totals = Counter(
         {
             key: 0
@@ -275,12 +299,49 @@ def metrics(pairs, *, matches_by_document=None):
             "scored": sum(c["scored"] for c in fields.values()),
             "unknown": sum(c["unknown"] for c in fields.values()),
         },
+        "header_status_counts": {
+            "gold": {
+                status: sum(
+                    field["gold_status_counts"][status] for field in fields.values()
+                )
+                for status in ANNOTATION_STATUSES
+            },
+            "predicted_on_known_gold": {
+                status: sum(
+                    field["predicted_status_counts_on_known_gold"][status]
+                    for field in fields.values()
+                )
+                for status in ANNOTATION_STATUSES
+            },
+        },
         "header_micro_accuracy": ratio(
             sum(c["correct"] for c in fields.values()),
             sum(c["scored"] for c in fields.values()),
         ),
+        "header_exact_value_extraction": {
+            "metric_definition": "exact-value-extraction-1.0",
+            **extraction,
+            "precision": ratio(
+                extraction["true_positive"],
+                extraction["true_positive"] + extraction["false_positive"],
+            ),
+            "recall": ratio(
+                extraction["true_positive"],
+                extraction["true_positive"] + extraction["false_negative"],
+            ),
+            "f1": ratio(
+                2 * extraction["true_positive"],
+                2 * extraction["true_positive"]
+                + extraction["false_positive"]
+                + extraction["false_negative"],
+            ),
+        },
         "lines": {
             **totals,
+            "detection_true_positive": totals["matched_rows"],
+            "detection_false_positive": totals["predicted_rows"]
+            - totals["matched_rows"],
+            "detection_false_negative": totals["gold_rows"] - totals["matched_rows"],
             "detection_precision": ratio(
                 totals["matched_rows"], totals["predicted_rows"]
             ),

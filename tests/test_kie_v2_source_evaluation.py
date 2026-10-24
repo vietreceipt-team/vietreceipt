@@ -2,6 +2,7 @@
 
 import copy
 import unittest
+
 from jsonschema import ValidationError
 
 from ai.kie.v2 import extract_invoice
@@ -12,7 +13,7 @@ from ai.kie.v2.source_evaluation import (
     spatial_matches,
     validate_regions,
 )
-from tests.kie_v2_fixtures import KIE_RUN, invoice
+from tests.kie_v2_fixtures import KIE_RUN, evidence, invoice
 from tests.test_kie_v2_evaluation import gold_fixture
 
 
@@ -31,6 +32,37 @@ class SourceEvaluationTests(unittest.TestCase):
 
     def case(self, result):
         return result, self.gold, self.evidence, self.regions
+
+    def match_boxes(self, predicted, gold, *, gold_pages=None):
+        source = evidence(
+            [
+                (f"row-{i}", box[0], box[1], box[2] - box[0])
+                for i, box in enumerate(predicted)
+            ]
+        )
+        for block, box in zip(source["blocks"], predicted):
+            block["polygon"] = [
+                {"x": box[0], "y": box[1]},
+                {"x": box[2], "y": box[1]},
+                {"x": box[2], "y": box[3]},
+                {"x": box[0], "y": box[3]},
+            ]
+        rows = [{"source_block_ids": [f"p0_b{i}"]} for i in range(len(predicted))]
+        target = copy.deepcopy(self.gold)
+        target["line_items"] = [copy.deepcopy(self.gold["line_items"][0]) for _ in gold]
+        for i, row in enumerate(target["line_items"]):
+            row["line_id"] = f"gold-{i}"
+        pages = gold_pages or [0] * len(gold)
+        regions = [
+            {"line_id": f"gold-{i}", "page_index": pages[i], "bounds": box}
+            for i, box in enumerate(gold)
+        ]
+        matches = spatial_matches(rows, source, target, regions)
+        return matches, (
+            len(matches),
+            len(predicted) - len(matches),
+            len(gold) - len(matches),
+        )
 
     def test_source_matching_needs_no_gold_ocr_ids(self):
         report = source_metrics([self.case(self.result)])
@@ -91,6 +123,49 @@ class SourceEvaluationTests(unittest.TestCase):
         self.regions[0]["page_index"] = 1
         self.assertEqual(
             spatial_matches(rows, self.evidence, self.gold, self.regions), []
+        )
+
+    def test_source_matcher_stress_matrix(self):
+        """TV1 R01-R05/R07: overlap boundary and cardinality evidence."""
+        left = [0.10, 0.20, 0.50, 0.30]
+        edge_touch = [0.50, 0.20, 0.90, 0.30]
+        tiny_overlap = [0.499999, 0.20, 0.90, 0.30]
+
+        self.assertEqual(self.match_boxes([left], [edge_touch]), ([], (0, 1, 1)))
+        self.assertEqual(
+            self.match_boxes([left], [tiny_overlap]), ([(0, 0)], (1, 0, 0))
+        )
+        self.assertEqual(
+            self.match_boxes(
+                [[0.10, 0.20, 0.90, 0.25], [0.10, 0.30, 0.90, 0.35]],
+                [[0.10, 0.20, 0.90, 0.25], [0.10, 0.30, 0.90, 0.35]],
+            )[1],
+            (2, 0, 0),
+        )
+        self.assertEqual(
+            self.match_boxes(
+                [[0.10, 0.20, 0.90, 0.40]],
+                [[0.10, 0.20, 0.90, 0.29], [0.10, 0.31, 0.90, 0.40]],
+            )[1],
+            (1, 0, 1),
+        )
+        self.assertEqual(
+            self.match_boxes(
+                [[0.10, 0.20, 0.90, 0.29], [0.10, 0.31, 0.90, 0.40]],
+                [[0.10, 0.20, 0.90, 0.40]],
+            )[1],
+            (1, 1, 0),
+        )
+        same = [[0.10, 0.20, 0.90, 0.30], [0.10, 0.20, 0.90, 0.30]]
+        first = self.match_boxes(same, same)[0]
+        self.assertEqual(first, self.match_boxes(same, same)[0])
+        self.assertEqual(first, [(0, 1), (1, 0)])
+        self.assertEqual(
+            self.match_boxes([left], [left], gold_pages=[1]), ([], (0, 1, 1))
+        )
+        self.assertEqual(
+            self.match_boxes([[0.60, 0.60, 0.90, 0.70]], [left]),
+            ([], (0, 1, 1)),
         )
 
     def test_invalid_regions_and_leaked_gold_ids_rejected(self):

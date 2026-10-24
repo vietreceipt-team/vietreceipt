@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-24",
+  "scope": "development-only protocol regression and unscored TV2 intake verification",
+  "base_commit": "07c7cd00b0a12a555ec98f1ba45c7d1f1584e5eb",
+  "tv1_pr": {
+    "number": 64,
+    "head": "1b63cb88528ad431c88436d3c500c913f7fd23e5",
+    "state": "OPEN_DRAFT_CONFLICTING"
+  },
+  "tv2_pr": {
+    "number": 66,
+    "head": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+    "state": "OPEN_CI_PASSING"
+  },
+  "metric_protocol": {
+    "evaluator_version": "invoice-evaluation-2.2.0",
+    "definition": "exact-value-extraction-1.0",
+    "five_state_cases": 9,
+    "result": "PASS"
+  },
+  "source_matcher": {
+    "version": "page-bbox-positive-iou-cardinality-1.0",
+    "status": "DEVELOPMENT_CANDIDATE",
+    "stress_result": "PASS",
+    "known_limitation": "any positive-area overlap, including 0.000001 normalized width, is match-eligible",
+    "final_freeze_authorized": false
+  },
+  "tv2_intake": {
+    "archive_sha256": "fca8aa088b54da280dbca776b7d654c339c0d3717fb368b4a96ace2140cce223",
+    "declared_files_verified": 84,
+    "review_receipts": 80,
+    "review_receipts_complete": 0,
+    "paired_replay_success": 80,
+    "eligible_for_accuracy": 0,
+    "qa_status": "PENDING_REVIEW",
+    "evaluator_exit_code": 2,
+    "metrics": null,
+    "delta": null
+  },
+  "verification": {
+    "kie_targeted_tests": {
+      "count": 140,
+      "result": "PASS"
+    },
+    "full_unittest_discovery": {
+      "count": 186,
+      "result": "PASS"
+    },
+    "source_runner_tests": {
+      "count": 24,
+      "result": "PASS"
+    },
+    "shared_contracts": "PASS",
+    "ruff_imports_and_python_format": "PASS"
+  },
+  "claims": {
+    "accuracy_reported": false,
+    "variant_superiority_reported": false,
+    "human_signoff_fabricated": false,
+    "final_test_opened": false
+  }
+}
