@@ -126,6 +126,15 @@ for (const sample of manifest.samples) test(`${sample.condition}: real upload �
     const after = await get("/machine-results"); dump(join(folder, "machine-after.json"), after); expect(after).toEqual(before);
     dump(join(folder, "detail-reviewed.json"), reviewed); dump(join(folder, "history.json"), await get("/history"));
     await page.screenshot({path: join(folder, "05-verified.png"), fullPage: true});
+    await page.getByRole("tab", {name: "Thông tin"}).click();
+    if (sample.id === "challenge") {
+      await page.locator('[data-cell="header||invoice_number"] [data-evidence]').click();
+      await page.locator('[data-cell="header||invoice_number"] [data-inspect]').click();
+      await expect(page.locator(".inspector")).toContainText("Người sửa");
+      await expect(page.locator('[data-cell="header||invoice_symbol"] .review-value-status')).toContainText("Không đọc được · Đã đối chiếu");
+      await expect(page.locator(".verified-label")).toBeVisible();
+    }
+    await page.screenshot({path: join(folder, "06-final-values.png"), fullPage: true});
     record.status = "PASSED"; record.machine_snapshot_unchanged = true; record.exports = ["json", "csv", "xlsx"];
   } catch (error) {
     record.status = "FAILED"; record.error = String(error.message).slice(0, 1500);

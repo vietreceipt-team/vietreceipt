@@ -58,7 +58,7 @@ Ba file đầu là ba biến thể của cùng một hóa đơn giả; challenge
 2. Click trường để highlight nguồn. Sửa số thành `00001234`, lưu; mở inspector để thấy **Máy đọc: 00001234 COPY / Người sửa: 00001234**. Giữ ảnh `03-corrected.png`.
 3. Chỉ vào ký hiệu `AA/??E` bị che. Giữ `UNREADABLE` và null, xác nhận đã đối chiếu trạng thái này; không điền ký tự suy đoán, số 0 hoặc đổi thành NOT_PRESENT. Buyer tax ID `N/A` là trường NOT_PRESENT riêng.
 4. Chọn dòng hàng để viewer chuyển sang trang 2. Cho thấy 12 dòng của challenge, chỉnh một ô cần kiểm tra và lưu; giữ `04-source-row.png`.
-5. Đối chiếu các mục còn lại với nguồn, chỉ xác nhận sau khi xem. Verify rồi tải JSON, CSV ZIP và XLSX. Giữ `05-verified.png`; mở export để thấy số hóa đơn đúng và ký hiệu vẫn trống với trạng thái UNREADABLE.
+5. Đối chiếu các mục còn lại với nguồn, chỉ xác nhận sau khi xem. Verify rồi tải JSON, CSV ZIP và XLSX. Giữ `05-verified.png` cho dòng hàng và `06-final-values.png` trên tab Thông tin: cùng khung hình có nhãn Đã xác nhận, số đã sửa, máy đọc ban đầu trong inspector và ký hiệu vẫn UNREADABLE/trống. Mở export để đối chiếu kết quả cuối.
 6. Nếu cần trình diễn 409: mở cùng receipt ở hai tab trước khi sửa; tab A lưu một trường, tab B lưu với version cũ → 409 → giữ draft → tải phiên bản mới → đối chiếu và lưu lại. Đây là ca cạnh tranh có chủ ý; không tự ghi đè hoặc tự replay. Bộ E2E đã có ảnh `02-conflict.png` và history của ca này.
 
 ## Evidence cần bàn giao
