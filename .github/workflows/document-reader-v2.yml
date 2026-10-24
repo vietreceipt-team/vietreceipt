@@ -1,10 +1,10 @@
 name: TV3 Document Reader V2
 on:
   pull_request:
-    paths: ['ai/document_reader/**', 'ai/ocr/**', 'schemas/**', 'scripts/*document*', 'scripts/compare_pdf_routes.py', 'scripts/prepare_tv2_reader_manifest.py', 'scripts/verify_reader_handoff.py', 'tests/test_document_reader.py', 'tests/test_compare_pdf_routes.py', 'tests/test_prepare_tv2_reader_manifest.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
+    paths: ['ai/document_reader/**', 'ai/ocr/**', 'schemas/**', 'scripts/*document*', 'scripts/compare_pdf_routes.py', 'scripts/prepare_tv2_reader_manifest.py', 'scripts/prepare_tv2_v2_reader_manifest.py', 'scripts/audit_reader_geometry.py', 'scripts/reader_reference_order_diagnostic.py', 'scripts/verify_reader_handoff.py', 'tests/test_document_reader.py', 'tests/test_compare_pdf_routes.py', 'tests/test_prepare_tv2_reader_manifest.py', 'tests/test_prepare_tv2_v2_reader_manifest.py', 'tests/test_audit_reader_geometry.py', 'tests/test_reader_reference_order_diagnostic.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
   push:
     branches: [main]
-    paths: ['ai/document_reader/**', 'ai/ocr/**', 'scripts/*document*', 'scripts/compare_pdf_routes.py', 'scripts/prepare_tv2_reader_manifest.py', 'scripts/verify_reader_handoff.py', 'tests/test_document_reader.py', 'tests/test_compare_pdf_routes.py', 'tests/test_prepare_tv2_reader_manifest.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
+    paths: ['ai/document_reader/**', 'ai/ocr/**', 'scripts/*document*', 'scripts/compare_pdf_routes.py', 'scripts/prepare_tv2_reader_manifest.py', 'scripts/prepare_tv2_v2_reader_manifest.py', 'scripts/audit_reader_geometry.py', 'scripts/reader_reference_order_diagnostic.py', 'scripts/verify_reader_handoff.py', 'tests/test_document_reader.py', 'tests/test_compare_pdf_routes.py', 'tests/test_prepare_tv2_reader_manifest.py', 'tests/test_prepare_tv2_v2_reader_manifest.py', 'tests/test_audit_reader_geometry.py', 'tests/test_reader_reference_order_diagnostic.py', 'requirements-document-reader*', 'requirements-ocr-runtime.txt', '.github/workflows/document-reader-v2.yml']
   workflow_dispatch:
 jobs:
   contract-and-pdf:
@@ -16,8 +16,8 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: pip install -r requirements-document-reader-test.txt ruff==0.15.6
-      - run: python -m ruff check ai/document_reader scripts/create_document_fixtures.py scripts/benchmark_document_reader.py scripts/demo_document_reader.py scripts/compare_pdf_routes.py scripts/prepare_tv2_reader_manifest.py scripts/verify_reader_handoff.py tests/test_document_reader.py tests/test_compare_pdf_routes.py tests/test_prepare_tv2_reader_manifest.py
-      - run: python -m unittest tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 tests.test_compare_pdf_routes tests.test_prepare_tv2_reader_manifest tests.test_kie_v2 -v
+      - run: python -m ruff check ai/document_reader scripts/create_document_fixtures.py scripts/benchmark_document_reader.py scripts/demo_document_reader.py scripts/compare_pdf_routes.py scripts/prepare_tv2_reader_manifest.py scripts/prepare_tv2_v2_reader_manifest.py scripts/audit_reader_geometry.py scripts/reader_reference_order_diagnostic.py scripts/verify_reader_handoff.py tests/test_document_reader.py tests/test_compare_pdf_routes.py tests/test_prepare_tv2_reader_manifest.py tests/test_prepare_tv2_v2_reader_manifest.py tests/test_audit_reader_geometry.py tests/test_reader_reference_order_diagnostic.py
+      - run: python -m unittest tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 tests.test_compare_pdf_routes tests.test_prepare_tv2_reader_manifest tests.test_prepare_tv2_v2_reader_manifest tests.test_audit_reader_geometry tests.test_reader_reference_order_diagnostic tests.test_kie_v2 -v
       - run: python -m scripts.create_document_fixtures --output results/tv3-fixtures --font /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
       - uses: actions/upload-artifact@v4
         with:

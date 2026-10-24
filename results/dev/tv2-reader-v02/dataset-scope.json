@@ -1,0 +1,30 @@
+{
+  "dataset_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+  "upstream_base_documents": 30,
+  "upstream_files": 510,
+  "upstream_validation_files": 85,
+  "published_dev_package_files": 80,
+  "selected_validation_files": 20,
+  "selected_independent_base_documents": 5,
+  "selected_layouts": [
+    "table_heavy"
+  ],
+  "selected_conditions": {
+    "clean_text_pdf": 5,
+    "clean_image": 5,
+    "clean_scanned_pdf": 5,
+    "blur_image": 5
+  },
+  "selection": "All validation files in the predeclared 4-route handoff cohort; not all 85 validation variants or all510files.",
+  "omitted_quality_slices": [
+    "noise",
+    "rotation",
+    "perspective",
+    "contrast",
+    "scan_like",
+    "photo_like"
+  ],
+  "final_or_mock_assets_read": false,
+  "reference_human_review": false,
+  "gold_qa": "PENDING_REVIEW"
+}

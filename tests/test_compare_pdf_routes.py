@@ -11,6 +11,7 @@ from ai.document_reader import DocumentReader, ReaderConfig
 from ai.ocr.pipeline import OCRPipeline
 from scripts.compare_pdf_routes import compare, error_examples, read_json
 from scripts.benchmark_document_reader import load_manifest
+from scripts.benchmark_document_reader import benchmark as real_benchmark
 from scripts.create_document_fixtures import make_text_pdf
 from tests.test_document_reader import Engine
 
@@ -57,6 +58,19 @@ class CompareTests(unittest.TestCase):
             self.assertTrue(all(v >= 0 for v in metadata["stage_latency_ms"].values()))
             report = read_json(output / "comparison.json")
             self.assertEqual(report["slices"]["route_aware"]["all"]["failures"], 1)
+            summary = report["paired_pdf_summary"]
+            self.assertEqual(summary["sample_count"], 2)
+            for mode in ("ocr_all", "route_aware"):
+                self.assertEqual(summary["modes"][mode]["attempted"], 2)
+                self.assertEqual(summary["modes"][mode]["failed"], 1)
+                self.assertEqual(summary["modes"][mode]["referenced"], 2)
+                self.assertGreater(summary["modes"][mode]["wer"], 0)
+                self.assertGreater(summary["modes"][mode]["wall_ms_total"], 0)
+            self.assertEqual(summary["modes"]["route_aware"]["pdf_text_pages"], 1)
+            self.assertEqual(summary["modes"]["ocr_all"]["pdf_text_pages"], 0)
+            self.assertEqual(handoff[0]["metadata_sha256"], hashlib.sha256(
+                (output / handoff[0]["metadata_path"]).read_bytes()).hexdigest())
+            self.assertEqual(envelope["manifest_sha256"], hashlib.sha256(manifest.read_bytes()).hexdigest())
             with self.assertRaises(FileExistsError):
                 compare(manifest, output, ReaderConfig(orientation="none"))
 
@@ -115,6 +129,70 @@ class CompareTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "checksum mismatch"):
                 compare(path, root / "run", ReaderConfig())
             self.assertFalse((root / "run").exists())
+
+    def test_reference_mutation_between_modes_cannot_publish_a_pair(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            manifest = self.manifest(root)
+
+            def changed_reference(*args, **kwargs):
+                result = real_benchmark(*args, **kwargs)
+                data = read_json(manifest)
+                data["samples"][0]["reference"] = "different reference without changing input bytes"
+                manifest.write_text(json.dumps(data), encoding="utf-8")
+                return result
+
+            with patch("scripts.compare_pdf_routes.benchmark", side_effect=changed_reference):
+                with self.assertRaisesRegex(ValueError, "Manifest/reference changed"):
+                    compare(manifest, root / "run", ReaderConfig(orientation="none"),
+                            reader_factory=lambda config: DocumentReader(config=config, ocr=OCRPipeline(Engine())))
+            self.assertFalse((root / "run/comparison.json").exists())
+            self.assertFalse((root / "run/route_aware").exists())
+
+    def test_pdf_with_null_reference_retains_unscored_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            manifest = self.manifest(root)
+            data = read_json(manifest)
+            for sample in data["samples"]:
+                sample["reference"] = None
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            rows = compare(manifest, root / "run", ReaderConfig(orientation="none"),
+                           reader_factory=lambda config: DocumentReader(config=config, ocr=OCRPipeline(Engine())))
+            self.assertEqual(rows[1]["route_aware_status"], "failed")
+            for mode in ("ocr_all", "route_aware"):
+                summary = read_json(root / "run/comparison.json")["paired_pdf_summary"]["modes"][mode]
+                self.assertEqual(summary["referenced"], 0)
+                self.assertIsNone(summary["cer"])
+                self.assertIsNone(summary["wer"])
+                self.assertEqual(summary["attempted"], 2)
+                self.assertEqual(summary["failed"], 1)
+
+    def test_declared_transcript_must_match_inline_reference_before_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            manifest = self.manifest(root)
+            data = read_json(manifest)
+            transcript = root / "transcript.txt"
+            transcript.write_bytes(data["samples"][0]["reference"].encode("utf-8"))
+            data["samples"][0].update(transcript_path="transcript.txt", transcript_sha256=hashlib.sha256(transcript.read_bytes()).hexdigest())
+            for change in ("inline", "file", "escape"):
+                altered = json.loads(json.dumps(data))
+                if change == "inline":
+                    altered["samples"][0]["reference"] = "edited inline only"
+                elif change == "file":
+                    transcript.write_bytes(b"edited file only")
+                else:
+                    altered["samples"][0]["transcript_path"] = "../outside.txt"
+                manifest.write_text(json.dumps(altered), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    compare(manifest, root / "run", ReaderConfig())
+                self.assertFalse((root / "run").exists())
+            transcript.write_bytes(data["samples"][0]["reference"].encode("utf-8"))
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            rows = compare(manifest, root / "valid", ReaderConfig(orientation="none"),
+                           reader_factory=lambda config: DocumentReader(config=config, ocr=OCRPipeline(Engine())))
+            self.assertEqual(rows[0]["route_aware_cer"], 0)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,20 @@
+{
+  "selected_samples": 20,
+  "selected_base_documents": 5,
+  "layout_counts": {
+    "table_heavy": 20
+  },
+  "archive_and_artifact_checksums": "pass",
+  "qa_status": "PENDING_REVIEW",
+  "reference_human_verified": false,
+  "kie_gold_alignment": "pending_TV2_TV4_QA",
+  "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+  "archive_sha256": "6661c858c0564820a035ae0f62951647d19c74dd0c789aa4e56a072dfb4d9790",
+  "package_sha256": "6cf482ca58f134f82f6132e924001fbf7f591fb3f23c3ace0e5a7e1cbc104195",
+  "base_registry_sha256": "9efd058f3ed31bf59adf01a927b69583b836124f900132d7222633fea3cc2c7d",
+  "validation_manifest_sha256": "44cf5f89c5d7f4a8213b096fd39409277afa293aa9625f4e466bd64241c76711",
+  "selection_sha256": "d9f09fed1396f647295a320cfc19aa3d0183d794a65cb4e9b57267e7a9a8f6f5",
+  "reference_policy": "Generated source text diagnostics only; no independent transcript/gold/alignment QA",
+  "selection_policy": "Entire predefined validation cohort; no filtering by OCR/evidence success",
+  "test_policy": "Only validation assets opened; train/test registry metadata only; final remains locked"
+}
