@@ -8,18 +8,18 @@ The project should not be presented as “we connected OCR, KIE and a web UI.”
 
 ## Research questions
 
-### RQ1 — Multi-format extraction
-How accurately can VietReceipt extract and normalize invoice information across born-digital PDF, scanned PDF and image inputs?
+### RQ1 — Multi-format route-aware extraction
+On the same eligible born-digital PDFs, does route-aware reading preserve end-to-end invoice correctness while reducing processing time compared with rasterizing every page and applying OCR? Report JPG/PNG and scanned-PDF outcomes as separate route strata; do not call them a paired method comparison unless the same file bytes were processed by both declared methods.
 
-### RQ2 — Generalization and robustness
-How well does the system handle:
-- invoice templates that were not seen during development;
-- common input degradations such as blur, noise, rotation, perspective and scan-like artifacts?
+### RQ2 — Structured extraction under layout and quality shift
+How accurately does the integrated pipeline recover canonical headers and structured line items across seen, unseen and independently authored templates and controlled image-quality conditions? Which route, OCR, normalization, row-detection and alignment failures account for the observed outcomes?
 
-### RQ3 — Human-in-the-loop verification
-When a small pilot is feasible, how does assisted review compare with a comparable manual workflow in completion time, final correctness and number of corrections?
+### RQ3 — Human-in-the-loop verification (optional)
+In a small, approved pilot with fictional invoices, how does assisted review compare with manual processing in task time, final correctness and correction effort?
 
-RQ3 is optional for the core technical thesis. It becomes a formal result only if the pilot is actually run.
+RQ3 is optional for the core technical thesis. It becomes a formal result only if an approved pilot is actually run. The protocol is specified in [user-study-protocol.md](user-study-protocol.md).
+
+The exact experiment-to-metric definitions, denominator, freeze gates and report table plan are in [evaluation-matrix.md](evaluation-matrix.md). Co-owner approval is required before the final test is opened.
 
 ## Hypotheses
 
@@ -29,7 +29,7 @@ The project may test the following hypotheses. They must be reported as hypothes
 For born-digital PDFs, direct text/position extraction will preserve or improve extraction accuracy while reducing latency compared with rasterizing the PDF and applying OCR to every page.
 
 ### H2 — Structured line-item grouping
-A row-aware line-item extraction stage will improve complete-line and complete-table correctness compared with a flat, ungrouped value representation.
+A proposed row-producing grouping method will improve complete-line or complete-table correctness over the current geometry-based row-grouping baseline on the same frozen OCR evidence. A flat value list may be shown qualitatively, but it cannot receive a row/complete-line score because it has no row assignments.
 
 ### H3 — Template shift
 End-to-end accuracy will decrease on unseen templates relative to seen templates; the size and error profile of this drop quantify layout generalization.
@@ -62,14 +62,14 @@ Only claim these after experiments:
 
 ## Primary endpoint
 
-The thesis headline metric is **end-to-end invoice correctness on frozen held-out data**.
+The thesis headline metric is **end-to-end invoice correctness on frozen held-out data**, with source-file failures included in the eligible-document denominator.
 
 Module scores such as OCR CER/WER or field-level F1 support diagnosis, but they must not replace the primary endpoint.
 
 Recommended primary outputs:
 - complete-header accuracy;
 - complete-line accuracy;
-- complete-invoice accuracy;
+- complete-invoice accuracy explicitly scoped to **13 supported headers + line items** until tax-group gold is added and validated;
 - pipeline failure rate.
 
 ## Experimental units
@@ -85,7 +85,7 @@ For synthetic generalization experiments, template identity must be split before
 | Experiment | Baseline/control | Proposed/final | Main outcomes |
 | --- | --- | --- | --- |
 | E1 source routing | OCR-all | route-aware PDF/OCR | end-to-end accuracy, latency, failures |
-| E2 line items | flat/ungrouped extraction | row-grouped records | row recall, cell accuracy, complete-line accuracy |
+| E2 line items | current row-producing geometry baseline | one proposed row-producing grouping method, same OCR evidence | row precision/recall/F1, cell exactness, complete-line/table accuracy |
 | E3 normalization | raw extracted values | normalized + consistency checks | normalized exact match, false normalization count |
 | E4 generalization | seen-template validation | unseen-template test | complete-header/invoice accuracy, error gap |
 | E5 robustness | clean inputs | controlled degradation slices | accuracy delta by degradation |
@@ -101,6 +101,9 @@ Before opening final test results:
 - line grouping logic frozen;
 - normalization/check rules frozen;
 - evaluation code/metric definitions frozen.
+- source-gold labels/file hashes frozen independently of OCR;
+- OCR-aligned gold records reader run/block mapping without changing source labels;
+- TV2/TV4/TV5 sign-off on eligibility, UNKNOWN, failure and tax-scope rules in [evaluation-matrix.md](evaluation-matrix.md).
 
 If final-test results lead to algorithm changes, the changed system requires a new untouched confirmation set before a “final” claim.
 
@@ -114,6 +117,7 @@ Every thesis result should answer:
 5. What is the sample count?
 6. What is the uncertainty/limitation?
 7. What common failures remain?
+8. How many eligible inputs failed or lacked scoreable gold, and were any human corrections included? Machine predictions and reviewed outputs must remain separate.
 
 ## User-requirement traceability
 
