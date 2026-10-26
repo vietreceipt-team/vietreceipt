@@ -1,8 +1,37 @@
 from sqlalchemy import select, update
 
-from .contracts import HEADER_FIELDS, validate_value
+from .contracts import HEADER_FIELDS, validate_currency_amounts, validate_value
 from .errors import V2Error, conflict
 from .models import Audit, Cell, Invoice, timestamp
+
+
+def validate_projection_currency(rows):
+    effective = [
+        (
+            cell,
+            cell.correction
+            or {
+                "value": cell.machine["normalized_value"],
+                "status": cell.machine["value_status"],
+            },
+        )
+        for cell in rows
+    ]
+    currency = next(
+        (
+            value["value"]
+            for cell, value in effective
+            if cell.section == "header" and cell.field == "currency"
+        ),
+        None,
+    )
+    validate_currency_amounts(
+        (
+            (cell.section, cell.field, value["value"], value["status"])
+            for cell, value in effective
+        ),
+        currency,
+    )
 
 
 def acquire(s, rid, version):
@@ -43,6 +72,10 @@ def correct(service, rid, section, row_id, field, value, status, version):
         }
         cell.correction = {"value": value, "status": status}
         cell.reviewed = True
+        if section == "header" and field == "currency":
+            validate_projection_currency(
+                s.scalars(select(Cell).where(Cell.receipt_id == rid)).all()
+            )
         s.add(
             Audit(
                 receipt_id=rid,
@@ -62,6 +95,7 @@ def verify(service, rid, version):
         inv = service.get(s, rid)
         acquire(s, rid, version)
         rows = s.scalars(select(Cell).where(Cell.receipt_id == rid)).all()
+        validate_projection_currency(rows)
         if not inv.latest_kie_run_id or {
             c.field for c in rows if c.section == "header"
         } != set(HEADER_FIELDS):

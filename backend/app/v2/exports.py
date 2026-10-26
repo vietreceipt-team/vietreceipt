@@ -5,7 +5,7 @@ import zipfile
 
 from openpyxl import Workbook
 
-from .contracts import HEADER_FIELDS, LINE_FIELDS, TAX_FIELDS
+from .contracts import HEADER_FIELDS, LINE_FIELDS, TAX_FIELDS, validate_currency_amounts
 from .errors import V2Error
 
 
@@ -20,6 +20,20 @@ def safe_csv(value):
 def export(detail, format):
     if detail["status"] != "VERIFIED":
         raise V2Error("NOT_VERIFIED", "Only verified invoices can be exported.", 409)
+    validate_currency_amounts(
+        (
+            (section, field, cell["effective_value"], cell["effective_status"])
+            for section, rows, fields in (
+                ("header", [detail["fields"]], HEADER_FIELDS),
+                ("line", detail["line_items"], LINE_FIELDS),
+                ("tax", detail["tax_breakdown"], TAX_FIELDS),
+            )
+            for row in rows
+            for field in fields
+            for cell in (row[field],)
+        ),
+        detail["fields"]["currency"]["effective_value"],
+    )
     rid = detail["receipt_id"]
     header = {k: detail["fields"][k]["effective_value"] for k in HEADER_FIELDS}
     items = [
@@ -49,19 +63,21 @@ def export(detail, format):
         )
         for row in detail["tax_breakdown"]
     ]
-    payload = dict(
-        receipt_id=rid,
-        review_status="VERIFIED",
-        verified_at=detail["verified_at"],
-        kie_run_id=detail["latest_kie_run_id"],
-        ocr_run_id=detail["latest_ocr_run_id"],
-        header=header,
-        line_items=items,
-        tax_breakdown=taxes,
-        value_statuses=dict(
-            header=header_statuses, line_items=item_statuses, tax_breakdown=tax_statuses
-        ),
-    )
+    payload = {
+        "receipt_id": rid,
+        "review_status": "VERIFIED",
+        "verified_at": detail["verified_at"],
+        "kie_run_id": detail["latest_kie_run_id"],
+        "ocr_run_id": detail["latest_ocr_run_id"],
+        "header": header,
+        "line_items": items,
+        "tax_breakdown": taxes,
+        "value_statuses": {
+            "header": header_statuses,
+            "line_items": item_statuses,
+            "tax_breakdown": tax_statuses,
+        },
+    }
     if format == "json":
         return (
             json.dumps(payload, ensure_ascii=False, allow_nan=False, indent=2).encode(),
