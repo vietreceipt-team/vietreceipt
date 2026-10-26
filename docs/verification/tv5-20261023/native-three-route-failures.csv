@@ -1,0 +1,1 @@
+sample_id,condition,receipt_id,input_sha256,processing_success,workflow_status,stage,code,upload_ms,processing_wall_ms,total_ms,document_reading_ms,kie_ms

@@ -91,3 +91,70 @@ git diff --check
 ```
 
 TV5 CI now runs the manifest runner on JPG/text PDF/scan PDF using explicitly labelled test providers and uploads its artifacts. This checks workflow/reproducibility, not OCR quality. Native crash/timeout containment, retry history, machine immutability across correction, real-provider identity enforcement, additive migration, checksum failures, missing inputs/timeouts and export parsing have regression coverage. The existing PostgreSQL race, stale-version, verification gate, export-safety and real text-PDF/KIE tests remain active.
+
+
+## TV2 development handoff and report tables (23 October)
+
+The new TV2 candidate package in PR #66 contains original development inputs.
+It has **PENDING_REVIEW** gold: integrity/hash freeze does not authorize accuracy
+scoring or final-test access. To capture backend machine results, extract the
+checksummed `data/handoffs/tv4-dev-v1.zip` from the pinned TV2 source revision
+outside Git, then run:
+
+```sh
+python -m scripts.prepare_tv2_backend_manifest \
+  --root results/tv2-handoff \
+  --output results/tv2-validation-inputs \
+  --source-revision 8a603300071d6dbfebd23e8f22a8c9cbac90ff48
+python -m scripts.evaluate_backend_v2 \
+  --manifest results/tv2-validation-inputs/manifest.json \
+  --output results/tv2-backend-run-001 --url http://127.0.0.1:18026
+```
+
+The importer validates both train and validation membership/counts, source hashes,
+source paths and cross-split parent/template/content identity before creating output.
+It copies **every validation source**, even if TV2's prior reader failed. It does
+not copy prior OCR/KIE, align IDs, read final mock/test manifests, run training
+inputs, grant QA, or attach automatic corrections. It preserves pending QA,
+source revision declaration and both manifest hashes. Rerun on original bytes
+creates new server receipt/run IDs; old block alignment is not valid for the new
+run without renewed alignment/QA. Changing the protocol/source matcher requires
+separate owner review, not renaming the pending labels to VERIFIED.
+
+Every HTTP run now emits these alongside the per-sample directories:
+
+| Artifact | Use |
+|---|---|
+| `machine_predictions.jsonl` | One row per attempted source, including errors; original OCR/KIE runs and attempt provenance only |
+| `run_metadata.json` | Runner identity/config plus dataset/version/split/QA/provenance; links to machine results |
+| `samples.csv` | One row per attempt with source hash, receipt, processing success, workflow state and client/worker stage times |
+| `failures.csv` | All failed samples, typed code, stage and elapsed times; empty failures still emit a header |
+| `metrics.json`, `metrics.csv` | System processing/workflow counts; `accuracy: null`, `NOT_SCORED` |
+
+All intended sources remain in the denominator, with not-attempted count visible
+for an interrupted run. `processing_success_rate` uses the intended cohort;
+check `complete` and attempted/not-attempted before interpreting it. Processing
+success requires reviewable structured output and valid selected-run provenance;
+a later review/export failure remains a workflow failure without rewriting the
+machine-processing result. Client total includes review/export when enabled;
+`processing_wall_ms` ends at the processing terminal state. Queue/poll overhead
+is included; model/subprocess startup is included in worker document-reading time.
+Partial runs are not final benchmark results.
+
+Console output uses sample ordinal/status rather than source names. Failure summaries
+omit raw exception messages, URLs, credentials, invoice text and local file paths.
+Raw machine artifacts intentionally contain document text and must be handled with
+the dataset's access permissions. No user documents are committed. Existing run
+folders are still refused rather than overwritten; a detected changed snapshot is
+not overwritten by the post-review response.
+
+TV1 PR #64 is a proposed protocol, not final approval. TV4's USD validation fix
+PR #63 is merged, but required UNKNOWN/strict-completion policy, row precision/F1
+and a source-region matcher remain separate gates. This capture runner neither
+reruns KIE on prepared OCR and calls it end-to-end nor substitutes corrected
+values for machine predictions. See [TV5 incremental status](tv5-progress-20261023.md).
+
+
+## TV4 source metric integration
+
+[Source-evaluation runner](tv5-source-evaluation.md) documents the new one-command gate/capture/scoring path, separate pending QA plan and per-worker input hash. It supersedes the earlier statement that UNKNOWN/row P/R/F1/source matcher code is unavailable. Source gold QA and protocol approval remain pending; historical capture evidence is not relabeled.

@@ -36,6 +36,7 @@ Do not hide weak fields behind one aggregate.
 
 Report at least:
 
+- line detection precision and F1, alongside counts of matched/predicted/gold rows;
 - line detection recall;
 - extra-row rate;
 - matched-line cell correctness;
@@ -107,15 +108,13 @@ Compare on the same born-digital PDF subset:
 
 ### E2 — Structured line-item grouping
 
-Compare:
-- flat extraction / no row grouping;
-- final row-grouped line-item extraction.
-
-The purpose is not to claim the flat output is useful; it is to quantify the contribution of row reconstruction.
+Compare the current row-producing geometry baseline with one declared row-producing variant on identical frozen Reader evidence and a shared gold/matching policy. A flat value list is a qualitative illustration only; it cannot supply a row/complete-line baseline. Confirm any module gain separately on original-file end-to-end outcomes.
 
 ### E3 — Normalization and consistency checks
 
-Compare final field correctness before and after deterministic normalization/checks where both outputs are meaningful.
+Compare a frozen minimal canonical parser with the proposed normalizer on the same selected candidate strings and the same canonical gold. Hold candidate detection, ranking and evidence fixed; report paired correct-to-wrong, wrong-to-correct and wrong-to-wrong transitions, including introduced false values. Literal raw-string exactness against a canonical target changes the task and cannot establish a normalization gain. If raw transcription exactness is useful, score it against independently annotated raw text as a separate diagnostic.
+
+Consistency checks produce warnings rather than rewrite totals. Evaluate warning usefulness against independently labeled inconsistencies; warning count alone is not accuracy.
 
 Do not count user corrections as machine accuracy.
 
@@ -208,9 +207,10 @@ and manifest format are documented in [the V2 guide](kie-v2.md#evaluation-protoc
 This is a module evaluator; full source-routing failures, latency, unseen-template
 experiments and actual upload-to-export acceptance remain part of the wider plan.
 
-### Current implementation gaps — do not report as final metrics
+### Implementation and remaining acceptance — checked 26 October 2026
 
-- `scripts/evaluate_invoice_kie.py` evaluates KIE against OCR evidence, not original uploaded bytes. `scripts/evaluate_backend_v2.py` runs the source-file HTTP workflow and records machine snapshots/timing/failures, but does not score source-gold accuracy.
-- Annotation-v2 has no independent source-region gold or tax-group gold. OCR-aligned gold must not be presented as an end-to-end source benchmark.
-- The current evaluator accepts `UNKNOWN` labels but its metric aggregation treats every non-PRESENT gold status as a negative for presence and includes them in exact-match denominators. This differs from the protocol in [evaluation-matrix.md](evaluation-matrix.md). Until evaluator code and regression tests are updated, do not score manifests containing UNKNOWN labels or call their metrics final.
-- `complete_invoice_accuracy` currently covers all 13 header cells and row/table output only. It does not include tax groups. Keep that scope in every report.
+Main `07c7cd0` includes PR #69's evaluator 2.2.0: UNKNOWN masks/coverage, known-gold strict denominators, row precision M/P, recall M/G and F1 2M/(P+G), paired development A/B and failure records. The earlier 2.0.1 UNKNOWN bug is historical; do not describe it as the current implementation. PR #71 proposes additional exact-value TP/FP/FN, five-state and source-matcher regression evidence; it is a separate review dependency.
+
+`scripts/evaluate_invoice_kie.py` scores KIE on fixed OCR evidence. Its module gate withholds cohort metrics after an extraction failure; this is not a source-file success-only benchmark. `scripts/evaluate_source_backend_v2.py`, merged in PR #70, validates original-byte identity, coordinate frame, runtime and reviewed source plan, and uses the source-spatial kernel with failed eligible inputs retained. The unreviewed TV2 plan still fails closed, with null accuracy and no scored run. See [TV5 source guide](tv5-source-evaluation.md) and [TV4 intake](kie49-tv2-intake.md).
+
+Remaining acceptance requires independent source-gold/complete row-inventory QA, reviewed source regions/alignment, matcher stress-case decisions and actual co-signs. Empty gold rows need explicit reviewed no-items evidence; an empty array alone is insufficient. Annotation-v2 still excludes tax groups, so complete-invoice scope remains **13 headers + line items; tax groups excluded**. Neither an implemented kernel, replay, passing software tests nor a merge grants gold QA or final-run authorization.

@@ -1,0 +1,14 @@
+metric,value
+scope,system_workflow_only
+expected_samples,20
+attempted_samples,20
+complete,True
+processing_succeeded,20
+processing_failed,0
+not_attempted,0
+processing_success_rate,1.0
+workflow_failed,0
+workflow_verified,0
+accuracy,
+accuracy_status,NOT_SCORED
+accuracy_reason,No approved source-gold scoring protocol is executed by this capture runner; pending QA and reviewed values cannot establish AI accuracy.

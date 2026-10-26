@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-23",
+  "scope": "Local software verification and unscored handoff replay; not benchmark QA",
+  "git_commit": "39e14c5d1667927cf9ff156c444411da970a8d14",
+  "git_dirty": true,
+  "implementation_sha256": "24dea3570c833dee634cb1ead798499d395d3439e53b01ba47923b0d34d376fc",
+  "python": "3.12.15",
+  "evaluator_version": "invoice-evaluation-2.2.0",
+  "tests": {
+    "unittest_count": 139,
+    "result": "PASS",
+    "log": null,
+    "command": "PYTHONPATH= /tmp/vietreceipt-kie49-venv/bin/python -m unittest tests.test_kie_baseline tests.test_kie_evaluation tests.test_kie_artifacts tests.test_kie_v2 tests.test_kie_v2_evaluation tests.test_kie_v2_grouping tests.test_kie_v2_reader tests.test_kie_v2_source_evaluation tests.test_kie_v2_handoff -q"
+  },
+  "shared_contracts": {
+    "result": "PASS",
+    "positive": 9,
+    "negative": 23,
+    "invoice_v2_positive": 2,
+    "invoice_v2_negative": 25,
+    "command": "PYTHONPATH= /tmp/vietreceipt-kie49-venv/bin/python tests/contracts/run_contract_tests.py"
+  },
+  "checks": {
+    "ruff": "PASS",
+    "format": "PASS",
+    "git_diff_check": "PASS",
+    "dependency_consistency": "PASS"
+  },
+  "baseline_preservation": {
+    "pre_change_synthetic_fingerprints": 12,
+    "tv2_before_after_identical_outputs": 80
+  },
+  "replays": {
+    "TV2": {
+      "required": 80,
+      "paired_success": 80,
+      "accuracy_eligible": 0
+    },
+    "TV3": {
+      "required": 54,
+      "paired_success": 54,
+      "scope": "separate v0.1 corpus; no combined accuracy"
+    }
+  },
+  "benchmark": {
+    "status": "WAITING_FOR_VERIFIED_V2_GOLD",
+    "metrics": null,
+    "oracle": null,
+    "qa_approval_granted": false,
+    "final_test_opened": false
+  },
+  "publication": {
+    "pushed": false,
+    "pull_request_created": false,
+    "remote_merged": false,
+    "issues_closed": false
+  },
+  "artifact_sha256": {
+    "results/kie49/tv2-inspection-post-rebase/report.json": "c3211807e175214bc10747cfed8f24c9e6d011f7a73da0a916c0d1e0d881e930",
+    "results/kie49/tv3-replay-post-rebase/report.json": "e6b96ecdbd376320a36f161f0e256cae7c0b45ecf27c23b8c81f6f934bc9c93a",
+    "results/kie49/final-availability/report.json": "00475ba5cab6c1fd099f69a36af24155ca3c8d08677a6acc52cf6e576d574158",
+    "docs/experiments/kie49/replay-tv3.py": "46e1e1841046eba40256f71b71c03495390a549fb09738c424b1850e077bea59",
+    "tests/fixtures/kie49/baseline-sha256.json": "b925bdb9df6e31549e763124525de185aa1b7f1ff60869d31aaa89f8fadc48d3",
+    "schemas/invoice-kie-experiment.v1.schema.json": "ccb507bebb4648f5dd78122f902d4dc3a2c543a18fe909f48afbb40ac190e2bc"
+  }
+}

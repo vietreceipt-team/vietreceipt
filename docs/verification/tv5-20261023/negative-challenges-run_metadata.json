@@ -1,0 +1,26 @@
+{
+  "schema_version": "backend-evaluation-1.0",
+  "started_at": "2026-10-23T13:17:35.097427+00:00",
+  "manifest_sha256": "8122a29c86c309aaa777b6353874e6bd2a97f0328868d72506a678f226490a2d",
+  "runner_commit": "f17581f24ff181429545d685f0f5fb6508bff560",
+  "runner_dirty": false,
+  "runner_python": "3.12.14",
+  "mode": "real",
+  "timeout_seconds": 10.0,
+  "poll_interval_seconds": 1.0,
+  "synthetic_review": false,
+  "timing_policy": "Client upload and queue+processing wall time; actual worker stage durations/config/commit are in machine/attempts. Includes subprocess startup and model load; not a warm inference benchmark.",
+  "metric_policy": "Raw machine artifacts only; reviewed exports are workflow evidence, never AI accuracy. No accuracy score is claimed.",
+  "dataset": {
+    "dataset": "tv5-synthetic-negative-tests",
+    "version": "1",
+    "split": "development",
+    "synthetic": true,
+    "qa_status": null,
+    "purpose": "failure_handling_challenge_not_accuracy",
+    "provenance": null
+  },
+  "artifact_schema_version": "backend-capture-1.1",
+  "machine_predictions": "machine_predictions.jsonl",
+  "sample_count": 3
+}

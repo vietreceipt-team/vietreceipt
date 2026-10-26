@@ -1,0 +1,43 @@
+{
+  "status": "WAITING_FOR_VERIFIED_V2_GOLD",
+  "metrics": null,
+  "modes": null,
+  "propagation_gap": null,
+  "variants": null,
+  "delta": null,
+  "evaluated": 0,
+  "reasons": [
+    "FileNotFoundError: [Errno 2] No such file or directory: 'data/invoice_v2/manifest.json'"
+  ],
+  "failures": [],
+  "samples": [],
+  "coverage": {
+    "required": null,
+    "manifest_records": 0,
+    "eligible": 0,
+    "processed": 0,
+    "evaluated": 0,
+    "fraction": null
+  },
+  "evaluator_version": "invoice-evaluation-2.1.0",
+  "matching_version": "source-overlap-cardinality-1.0",
+  "protocol_status": "PROPOSED_PENDING_TV1_TV2_CONFIRMATION",
+  "extractor": {
+    "name": "deterministic-invoice-kie",
+    "version": "2.0.4"
+  },
+  "configuration": {
+    "name": "invoice-baseline",
+    "version": "2.1.0"
+  },
+  "comparison": true,
+  "grouping": "geometry_grouping_v2",
+  "manifest": "data/invoice_v2/manifest.json",
+  "git_commit": "07b2945ab191eb2db7658082f06e8550ac0f11b4",
+  "git_dirty": true,
+  "implementation_sha256": "78f2604a2c549ca93405d34fadef4533b95ad55c0393950e7934163ea919fd12",
+  "environment": {
+    "python": "3.12.15",
+    "jsonschema": "4.26.0"
+  }
+}

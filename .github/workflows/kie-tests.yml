@@ -7,8 +7,12 @@ on:
       - "data/kie_evaluation/**"
       - "scripts/evaluate_kie.py"
       - "scripts/evaluate_invoice_kie.py"
+      - "scripts/inspect_invoice_handoff.py"
       - "examples/invoice-v2-*.json"
       - "tests/kie_v2_fixtures.py"
+      - "tests/kie_v2_grouping_fixtures.py"
+      - "tests/fixtures/kie49/**"
+      - "ai/document_reader/**"
       - "tests/contracts/**"
       - "tests/test_kie_*.py"
       - "schemas/**"
@@ -22,8 +26,12 @@ on:
       - "data/kie_evaluation/**"
       - "scripts/evaluate_kie.py"
       - "scripts/evaluate_invoice_kie.py"
+      - "scripts/inspect_invoice_handoff.py"
       - "examples/invoice-v2-*.json"
       - "tests/kie_v2_fixtures.py"
+      - "tests/kie_v2_grouping_fixtures.py"
+      - "tests/fixtures/kie49/**"
+      - "ai/document_reader/**"
       - "tests/contracts/**"
       - "tests/test_kie_*.py"
       - "schemas/**"
@@ -63,7 +71,15 @@ jobs:
             tests.test_kie_artifacts \
             tests.test_kie_v2 \
             tests.test_kie_v2_evaluation \
+            tests.test_kie_v2_grouping \
+            tests.test_kie_v2_source_evaluation \
+            tests.test_kie_v2_handoff \
             -v
+
+      - name: Check real text PDF Reader to KIE alignment (synthetic source)
+        run: |
+          python -m pip install Pillow==10.4.0 numpy==1.26.4 pypdfium2==5.12.1 reportlab==4.4.10
+          python -m unittest tests.test_kie_v2_reader -v
 
       - name: Verify V2 waits for verified frozen gold
         shell: bash
