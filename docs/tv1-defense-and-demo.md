@@ -67,29 +67,29 @@ Do not mark any row PASS based on tests from an earlier commit. CI with fake pro
 
 ## Frequently asked defense questions
 
-**Q: What is novel if the project does not train a new OCR model?**  
+**Q: What is novel if the project does not train a new OCR model?**\
 A: The work studies document-route choice, semantically structured line-item recovery and evidence-linked human verification as one measurable workflow. Novelty must be defended by controlled evaluations, not by claiming an unimplemented neural architecture.
 
-**Q: Why not just use OCR accuracy?**  
+**Q: Why not just use OCR accuracy?**\
 A: Correct tokens can still be assigned to the wrong seller/total/product row. End-to-end canonical headers and complete-line/table/invoice outcomes test semantic correctness beyond CER/WER.
 
-**Q: Why exclude tax breakdown from complete invoice?**  
+**Q: Why exclude tax breakdown from complete invoice?**\
 A: The versioned gold used for those strict metrics only supports 13 canonical headers and line-item cells. Tax groups can exist in product output but cannot ethically be treated as evaluated without matching independently reviewed labels.
 
-**Q: Why synthetic and public data?**  
+**Q: Why synthetic and public data?**\
 A: They permit controlled input diversity, reproducibility and privacy-safe demos. The weakness is limited external validity; independent mock templates and, later, authorized real invoices are needed for stronger claims.
 
-**Q: Why compare route-aware with OCR-all only on text PDFs?**  
+**Q: Why compare route-aware with OCR-all only on text PDFs?**\
 A: Both methods are valid on the identical original born-digital PDF. Image/scan inputs cannot demonstrate the gain from direct reading a native text layer. We report those routes separately.
 
-**Q: What are the remaining constraints?**  
+**Q: What are the remaining constraints?**\
 A: Independent source gold and final split readiness, limited annotated layout diversity, source geometry and grouping edge cases, runtime/platform variability, and no completed study to infer human time savings.
 
-**Q: Why is UNKNOWN excluded?**  
+**Q: Why is UNKNOWN excluded?**\
 A: It indicates annotation unavailable, not source absence. Treating it as “correctly unknown” would reward missing gold and inflate accuracy. The number of excluded fields/documents is always reported.
 
-**Q: How do you prevent a misleading accuracy result?**  
+**Q: How do you prevent a misleading accuracy result?**\
 A: Original-file source-gold scoring; immutable predictions; independent QA; explicit eligibility/failed cases; fixed version/config; template/parent-disjoint splits; no post-test tuning and linked artifacts.
 
-**Q: Can we claim a specific grade?**  
+**Q: Can we claim a specific grade?**\
 A: No. Presentation quality and engineering/testing readiness can be improved, but no score can be guaranteed.

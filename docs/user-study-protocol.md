@@ -15,7 +15,7 @@ Use a counterbalanced, within-participant comparison with two conditions:
 
 Each participant completes both conditions. Do not show the same invoice in both conditions; use different but matched invoices to limit memory and copying. Randomize/order-counterbalance A→B and B→A before the session; record assignment and task order. If recruitment does not allow balance, report the actual order and treat learning/order effects as a limitation.
 
-Use only fictional documents created for this study. Include at least one deliberate extraction error and one unreadable/ambiguous cell in the assisted set so that source review is tested. Keep invoice difficulty, number of header fields, line count and quality reasonably matched across conditions. Freeze task packets before recruitment; do not tune the model using pilot outcomes.
+Use only fictional documents created for this study. Select at least one preregistered source challenge that produces an observed extraction error and one unreadable/ambiguous source cell, so source review is tested. Preserve the actual machine output. If predictions are deliberately seeded with errors for a separate controlled UI task, label that condition and every seeded change; exclude it from natural machine-accuracy claims. Keep invoice difficulty, required header fields, line count, export requirements and quality matched across conditions. Freeze task packets before recruitment; do not tune the model using pilot outcomes.
 
 ## Pre-registration fields to complete before approval
 
@@ -28,6 +28,8 @@ Use only fictional documents created for this study. Include at least one delibe
 | Required fields/rows and source-gold version | Pending |
 | Manual form and VietReceipt build/commit | Pending |
 | Time limit and timeout behavior | Pending; choose before sessions |
+| Wall-clock observer/timer and identical manual/assisted endpoints | Pending; task handoff to required output/export |
+| Successful edit-event, acknowledgement and final-difference definitions | Pending; count separately |
 | Order assignment method and random seed | Pending |
 | Primary descriptive outcomes and analysis | Paired task time, final exactness, corrections; no population-effect claim |
 | Consent and data-retention plan | Pending supervisor/institution review |
@@ -46,10 +48,10 @@ Do not collect actual customer invoices, names, contact information, account cre
 
 ## Measures and definitions
 
-- **Task time:** elapsed time from task handoff to completed required output/export. If the task reaches the preregistered time limit or participant stops, record the limit/elapsed time and incomplete=true; never treat it as a successful fast task.
+- **Task time (primary):** external elapsed wall time from task handoff to completed required output/export, with the same observer/timer and endpoints in both conditions. Include system waits; record interruptions separately. TV6 `active_review_ms` starts after consent and excludes hidden-tab/wait time, so it is a secondary effort measure and cannot replace this endpoint. If the task reaches the preregistered time limit or participant stops, record the limit/elapsed time and incomplete=true; never treat it as a successful fast task.
 - **Final exactness:** fraction of known source-gold cells whose final status and canonical value are exact. UNKNOWN source labels are excluded and counted. Report header and line cells separately.
-- **Correction count:** number of value edits plus line-row additions/deletions. Count status acknowledgements separately from value corrections. Preserve the original machine snapshot and count machine-to-human changes separately.
-- **Unresolved count:** required known cells still missing, unreadable or ambiguous in the final result. Do not convert an unresolved value to zero or NOT_PRESENT.
+- **Correction count:** successful persisted value/status changes, plus row additions/deletions if supported. Repeated changes to one cell are separate edit events; unchanged saves are confirmations. Count source-status acknowledgements separately. Also report distinct cells differing between immutable machine and final outputs; that count is not the number of edit events. Manual entry count is a separate measure and must not be called machine correction count.
+- **Unresolved count:** required cells left with a status/value that fails the known source target. A correctly acknowledged gold UNREADABLE/AMBIGUOUS state is a resolved status task, not recovered text or automatically an error. Report source unreadability/ambiguity and unresolved participant errors separately; do not convert unresolved values to zero or NOT_PRESENT.
 - **Completion:** whether all required, scoreable fields/rows are present in the final structured output and an export was created.
 - **Machine accuracy:** scored only from the immutable pre-edit machine snapshot against source gold. Reported separately from final correctness.
 
@@ -63,6 +65,7 @@ Run the pilot only when:
 - TV1/TV2 have frozen source gold and task packet hashes;
 - TV5/TV6 can preserve the machine snapshot separately from reviewed corrections;
 - verification and export are repeatable on the designated demo build;
+- the task packet matches actual product capability: existing-cell correction is available, but an omitted-row task is incomplete unless row recovery is implemented and verified; do not silently omit such failures;
 - the preregistration fields above are complete.
 
 If any condition fails, postpone the study and report “not conducted.” Never substitute synthetic dry-run logs, unit tests, a demonstration, or post-review exports for participant outcomes.

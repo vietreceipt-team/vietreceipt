@@ -9,7 +9,7 @@ The project should not be presented as “we connected OCR, KIE and a web UI.”
 ## Research questions
 
 ### RQ1 — Multi-format route-aware extraction
-On the same eligible born-digital PDFs, does route-aware reading preserve end-to-end invoice correctness while reducing processing time compared with rasterizing every page and applying OCR? Report JPG/PNG and scanned-PDF outcomes as separate route strata; do not call them a paired method comparison unless the same file bytes were processed by both declared methods.
+On the same eligible born-digital PDFs, what are the paired changes in end-to-end invoice correctness, processing time and failure rate with route-aware reading compared with rasterizing every page and applying OCR? Report JPG/PNG and scanned-PDF outcomes as separate route strata; do not call them a paired method comparison unless the same file bytes were processed by both declared methods.
 
 ### RQ2 — Structured extraction under layout and quality shift
 How accurately does the integrated pipeline recover canonical headers and structured line items across seen, unseen and independently authored templates and controlled image-quality conditions? Which route, OCR, normalization, row-detection and alignment failures account for the observed outcomes?
@@ -26,7 +26,7 @@ The exact experiment-to-metric definitions, denominator, freeze gates and report
 The project may test the following hypotheses. They must be reported as hypotheses, not assumed conclusions.
 
 ### H1 — Route-aware reading
-For born-digital PDFs, direct text/position extraction will preserve or improve extraction accuracy while reducing latency compared with rasterizing the PDF and applying OCR to every page.
+For born-digital PDFs, direct text/position extraction may reduce latency; its correctness and failure trade-offs must be measured on the same inputs. Following D3 in [TV1 decisions](tv1-evaluation-decisions.md), this study makes no non-inferiority or accuracy-preservation claim without a separately justified, preregistered design.
 
 ### H2 — Structured line-item grouping
 A proposed row-producing grouping method will improve complete-line or complete-table correctness over the current geometry-based row-grouping baseline on the same frozen OCR evidence. A flat value list may be shown qualitatively, but it cannot receive a row/complete-line score because it has no row assignments.
@@ -86,7 +86,7 @@ For synthetic generalization experiments, template identity must be split before
 | --- | --- | --- | --- |
 | E1 source routing | OCR-all | route-aware PDF/OCR | end-to-end accuracy, latency, failures |
 | E2 line items | current row-producing geometry baseline | one proposed row-producing grouping method, same OCR evidence | row precision/recall/F1, cell exactness, complete-line/table accuracy |
-| E3 normalization | raw extracted values | normalized + consistency checks | normalized exact match, false normalization count |
+| E3 normalization | frozen minimal canonical parser | proposed normalizer on identical candidate text and canonical targets | paired gain/harm transitions; false-value introductions; warning quality separately |
 | E4 generalization | seen-template validation | unseen-template test | complete-header/invoice accuracy, error gap |
 | E5 robustness | clean inputs | controlled degradation slices | accuracy delta by degradation |
 | E6 independent challenge | generator-derived test | independent mock test | generalization outside generator assumptions |

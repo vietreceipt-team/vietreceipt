@@ -1,6 +1,6 @@
 # TV1 acceptance tracker and handoff checklist
 
-**Snapshot checked via GitHub API:** 2026-10-24 (Asia/Bangkok). **Maintainer:** TV1. This is an evidence register, **not approval** for any other member, a live CI monitor or a final benchmark.
+**Snapshot checked via GitHub API and local code:** 2026-10-26 (Asia/Ho_Chi_Minh), main `07c7cd0`. **Maintainer:** TV1. This is an evidence register, **not approval** for any other member, a live CI monitor or a final benchmark.
 
 This file operationalizes the [Evaluation matrix](evaluation-matrix.md) and the [TV1 decisions](tv1-evaluation-decisions.md). Replace a PENDING state with PASS **only** after an actual linked artifact and the relevant human review are recorded.
 
@@ -10,9 +10,11 @@ This file operationalizes the [Evaluation matrix](evaluation-matrix.md) and the 
 |---|---|---|
 | [PR #64](https://github.com/vietreceipt-team/vietreceipt/pull/64) — TV1 | RQ1–RQ3 matrix, user pilot protocol, research design; TV1 decision record and this tracker | Reviewers' explicit co-sign, executable final evidence; PR remains draft |
 | [PR #66](https://github.com/vietreceipt-team/vietreceipt/pull/66) — TV2 | Generator and dataset tooling for canonical 13 headers, line items, supported inputs, manifest/QA checks; 30 base synthetic, 510 variants claimed in PR | Verified, independently adjudicated final source gold; generator-derived `test` is NOT final |
-| [PR #65](https://github.com/vietreceipt-team/vietreceipt/pull/65) — TV3 | Reader/PDF development handoff, reported 54/54 read tests | Generalization or independently verified accuracy |
-| [PR #69](https://github.com/vietreceipt-team/vietreceipt/pull/69) — TV4 | Proposed value-aware metrics, UNKNOWN mask, row P/R/F1, source-spatial kernel; paired development A/B | QA-approved matcher policy, reviewed gold, scored improvement |
-| [PR #70](https://github.com/vietreceipt-team/vietreceipt/pull/70) — TV5 | Proposed original-file source runner, immutable machine provenance, fail-closed plan gate; reported candidate plan `PENDING_REVIEW` | Approval of gold/plan, scored run or final accuracy |
+| [PR #65](https://github.com/vietreceipt-team/vietreceipt/pull/65) — TV3, head `3ea5c99` | Updated v0.2 handoff: reported 40 real reads from 20 inputs/five parents/one family; reference-order control is separate | Independently reviewed transcripts, spatial/source QA or full-invoice accuracy |
+| [PR #69](https://github.com/vietreceipt-team/vietreceipt/pull/69) — TV4, merged | Evaluator 2.2.0 with UNKNOWN masks/strict denominators, row P/R/F1, source-spatial kernel; grouping variant stays opt-in | QA-approved matcher policy, reviewed gold, scored improvement |
+| [PR #70](https://github.com/vietreceipt-team/vietreceipt/pull/70) — TV5, merged | Original-file runner with identity/frame/runtime checks and fail-closed plan gate; pending cohort gives null metrics; synthetic three-route acceptance | Approval of gold/plan, scored run or final accuracy |
+| [PR #71](https://github.com/vietreceipt-team/vietreceipt/pull/71) — TV4, open | Adds exact-value field/micro TP/FP/FN, five-state/row totals and matching edge-case regressions | Merge, co-sign, global IoU optimality or acceptance of the positive-overlap policy |
+| [PR #68](https://github.com/vietreceipt-team/vietreceipt/pull/68) — TV6, head `e59f87d` | Reported four real-provider browser workflows repeated on main `07c7cd0`, immutable snapshots, three export formats; synthetic inputs only | Omitted-row recovery, participants/user time-saving result or independent benchmark |
 | [PR #67](https://github.com/vietreceipt-team/vietreceipt/pull/67) — TV5 | Previously merged capture/evaluation handoff | Source-gold benchmark or human study |
 | Issues [#47](https://github.com/vietreceipt-team/vietreceipt/issues/47)–[#52](https://github.com/vietreceipt-team/vietreceipt/issues/52), [#59](https://github.com/vietreceipt-team/vietreceipt/issues/59) | Task ownership and dependencies | Completion from a PR description alone |
 
@@ -20,9 +22,9 @@ The PR test totals and sample counts above are **author-reported evidence**, not
 
 ## 2. Gate decisions (TV1 cannot award an unsigned PASS)
 
-| Gate | Status 24 Oct | Owner / reviewer | Required pass evidence |
+| Gate | Status 26 Oct | Owner / reviewer | Required pass evidence |
 |---|---|---|---|
-| G1 — Protocol co-sign | **PENDING** | TV1 with TV2, TV4, TV5 | Signed review/comments identifying version and agreement on D1–D4; conflicts resolved in versioned text |
+| G1 — Protocol co-sign | **PENDING** | TV1 with TV2, TV4, TV5 | Signed review/comments identifying version and agreement on D1–D6; conflicts resolved in versioned text |
 | G2 — Dataset integrity | **PENDING** | TV2 + independent reviewer, TV1 checks | Original supported files, known gold 13+rows/regions, gold/source SHA, independent QA/adjudication, parent+template disjoint split, QA report; no unreviewed final |
 | G3 — Reader/evidence handoff | **DEV EVIDENCE ONLY** | TV3 + TV2, TV4 checks | At least image, born-digital PDF and scan-PDF original files; real reader metadata, page geometry, route/reason, source hash, alignments/unmatched cases, failed read examples |
 | G4 — E2E metrics and regression | **PENDING** | TV4 + TV5, TV1 reviews | Five-state regression, source-region one-to-one matching stress cases, source identity/coordinate QA, original-file *dev* batch with null/coverage/failure counts and stable artifact hashes |
@@ -58,6 +60,12 @@ All scenarios must run against **the implementation version being accepted**, no
 | F02 | Mixed approved and unapproved source samples | refuse full scored cohort; do not select only easy approved samples |
 | F03 | Reviewer-modified final values equal gold, uncorrected machine output wrong | machine accuracy stays wrong; reviewed accuracy reported separately |
 | F04 | Five degradations of one original | same split/parent; not five independent originals for uncertainty analysis |
+| R09 | Two equal-cardinality assignments with unequal total overlap | Verify D2's exact traversal/objective; local edge preference must not be described as global maximum IoU |
+| R10 | Empty gold row array without reviewed inventory/no-items attestation | Source QA blocked or strict table/invoice unscoreable; keep processing counts |
+| N01 | Minimal parser and proposed normalizer on the same candidate string | Same canonical target; gains and harms counted, no raw-string/canonical task switch |
+| H01 | Assisted active timer excludes waits but manual wall clock includes them | Do not compare as task time; collect the same external wall-clock endpoint for both |
+| P01 | USD-cent effective header/line/tax amount followed by VND correction | Reject incompatible edit atomically, or prevent verify/export until corrected; preserve version/history/machine output on rejection |
+| P02 | Known source has two rows, machine predicts zero/one | Mark omission and recovery scope; VERIFIED alone must not establish complete source coverage |
 
 **Do not claim all tests pass from this table.** TV4/TV5 must attach commands/logs, versions and failures.
 
@@ -79,7 +87,7 @@ All scenarios must run against **the implementation version being accepted**, no
 
 | Field | Verified value |
 |---|---|
-| Protocol document commit and D1–D4 approval links | PENDING |
+| Protocol document commit and D1–D6 approval links | PENDING |
 | Original source manifest SHA256 / sample IDs / dataset version | PENDING |
 | Independent reviewer, QA/adjudication artifact URL | PENDING |
 | Family/parent leakage audit URL | PENDING |
@@ -89,4 +97,4 @@ All scenarios must run against **the implementation version being accepted**, no
 | Date/time of seal, owner authorization | PENDING |
 | Primary final run ID, raw machine result and failure manifest | NOT RUN |
 
-**Decision on 24 Oct 2026:** *Protocol artifacts advanced; G1–G4 NOT certified; G5 remains LOCKED.* Proceed with development-only review, QA and experiments, not final claims.
+**Decision on 26 Oct 2026:** *Metric/kernel/runner implementation has advanced and is merged; G1–G4 are NOT certified; G5 remains LOCKED.* Proceed with development-only source QA, matcher adoption and reviewed experiments. The old dependency pin conflict is fixed in main and must not be carried forward as an open blocker.

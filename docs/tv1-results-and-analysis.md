@@ -1,6 +1,6 @@
 # TV1 — Results, ablation and error-analysis workbook (fillable template)
 
-**Status (24 October 2026):** No independent final source-gold metrics have been verified. Empty table cells below are deliberate. The development statistics from PR descriptions are separated from scored accuracy. Read with [evaluation matrix](evaluation-matrix.md), [TV1 decisions](tv1-evaluation-decisions.md), and [thesis draft](tv1-thesis-manuscript.md).
+**Status (26 October 2026):** No independent final source-gold metrics have been verified. Empty table cells below are deliberate. The development statistics from PR descriptions are separated from scored accuracy. Read with [evaluation matrix](evaluation-matrix.md), [TV1 decisions](tv1-evaluation-decisions.md), and [thesis draft](tv1-thesis-manuscript.md).
 
 ## 1. Required evidence header for every table
 
@@ -68,7 +68,7 @@ Aggregate paired outcomes: both correct / only OCR-all correct / only route-awar
 
 ## 6. Normalization E3 and quality E5
 
-Keep source values, raw candidates, normalized candidates and warnings as separate columns. Count normalization improvements **and regressions**; missing source transcripts produce unavailable CER/WER, not zero error.
+Keep source values, raw candidates, minimal-parser canonical outputs, proposed normalized outputs and warnings separately. Both parsers use identical selected strings and canonical gold; report correct→wrong, wrong→correct and wrong→wrong transitions, missing/rejected outputs and introduced false values. Raw transcription exactness is a separate target/task. Warning counts require independent error labels to establish usefulness. Missing source transcripts produce unavailable CER/WER, not zero error.
 
 | Parent / condition | Baseline field exact | Variant field exact | Rows complete | Source route | OCR CER/WER if available | Failure code | Artifact |
 |---|---|---|---|---|---|---|---|
@@ -86,10 +86,10 @@ Assign a **primary root-cause stage** per failed original, and optional secondar
 
 ## 8. Development engineering evidence (NOT accuracy)
 
-- TV3 [PR #65](https://github.com/vietreceipt-team/vietreceipt/pull/65) reports 54/54 synthetic development Reader runs. It reports native-PDF OCR-all CER 0.97% vs route-aware 0.00% on **three** PDF vector documents; the combined 27-document conditions report 10.67% vs 10.56%. These are **branch-reported diagnostic values** under limited source layouts/transcription and not representative E1 full-invoice correctness or independently replicated results.
+- Updated TV3 [PR #65](https://github.com/vietreceipt-team/vietreceipt/pull/65), head `3ea5c99`, reports 40 real Reader runs on 20 v0.2 validation inputs (five parents, one family). The earlier 54-run v0 result is historical and must not be pooled with this cohort. Raw-reference CER/WER are affected by reference reading order; any post-hoc source-order control stays separately labeled. Neither establishes complete-invoice accuracy or stable latency improvement.
 - TV2 [PR #66](https://github.com/vietreceipt-team/vietreceipt/pull/66) reports 30 base synthetic invoices, 510 generated files/variants and automated schema/integrity QA; not independent accuracy.
-- TV4 [PR #69](https://github.com/vietreceipt-team/vietreceipt/pull/69) reports 58/80 variant inputs with line rows versus 0 baseline in its development replay, **output counts only**; 0/80 independently reviewed, accuracy and effect size not measured.
-- TV5 [PR #70](https://github.com/vietreceipt-team/vietreceipt/pull/70) reports a 20-record `PENDING_REVIEW` source plan: guard returns exit 2, evaluated 0 and metrics null; correct safety behavior, **not** benchmark success.
+- Merged TV4 [PR #69](https://github.com/vietreceipt-team/vietreceipt/pull/69) reports 58/80 variant inputs with line rows versus 0 baseline in its development replay, **output counts only**; 0/80 independently reviewed, accuracy and effect size not measured. Open #71 extends counters/edge tests; it does not approve gold.
+- Merged TV5 [PR #70](https://github.com/vietreceipt-team/vietreceipt/pull/70) reports a 20-record `PENDING_REVIEW` source plan: guard returns exit 2, evaluated 0 and metrics null; correct safety behavior, **not** benchmark success. Its three-route acceptance and TV6 [PR #68](https://github.com/vietreceipt-team/vietreceipt/pull/68)'s four real browser workflows on main `07c7cd0` establish synthetic workflow evidence only; row omissions and user effort require separate acceptance.
 
 **Decision-to-claim trace:** no quantitative claim about Vietnamese invoices, independent mocks, complete invoice accuracy or time savings may be based on the development bullets.
 
