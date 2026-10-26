@@ -107,7 +107,7 @@ The **13 headers** are:
 
 Each structured line item has `description`, `unit`, `quantity`, `unit_price`, `amount`. Complete-invoice research scoring covers these headers plus all row cells/associations. The product may represent **tax breakdown groups**, but these are **not included in strict accuracy** until an independently reviewed tax-group source-gold contract exists.
 
-Field states are `PRESENT`, `NOT_PRESENT`, `UNREADABLE`, `AMBIGUOUS`, `UNKNOWN`. `UNKNOWN` means unavailable annotation; it cannot be treated as a correctly absent source field. Currency/date/numeric normalization is deterministic where justified and must preserve source/raw evidence.
+Field states are `PRESENT`, `NOT_PRESENT`, `UNREADABLE`, `AMBIGUOUS`, `UNKNOWN`. In gold, `UNKNOWN` means unavailable/unadjudicated annotation and is excluded from its scoring denominator. In machine output, `UNKNOWN` can mean no supported candidate or an unresolved value; it is an actual prediction, not a reason to discard a known gold target. Neither meaning establishes source absence. Currency/date/numeric normalization is deterministic where justified and must preserve source/raw evidence.
 
 ### 3.4 Human-in-the-loop verification
 
@@ -137,7 +137,7 @@ An original that is eligible but crashes or yields no valid prediction remains a
 |---|---|---|---|
 | E1 | OCR-all on each born-digital PDF | Route-aware on **identical bytes** | Complete accuracy trade-off, paired latency, failure and route counts |
 | E2 | Current geometry row-producing baseline | Proposed row-producing variant, fixed OCR evidence | Row P/R/F1, complete-line/table, wrong-cell cases |
-| E3 | Raw extraction | Deterministic normalized output | Correctness delta and false normalizations |
+| E3 | Frozen minimal canonical parser | Proposed normalizer on identical selected strings and canonical gold | Paired gain/harm transitions and introduced false values; warnings separately |
 | E4 | Seen layout families | Unseen families, after freeze | Generalization gap and error modes |
 | E5 | Clean source | Frozen blur/noise/rotation/scan variants | Accuracy falloff and failure severity |
 | E6 | Generator-derived development set | Independently authored mock set | Transfer gap under identical frozen algorithm |
@@ -157,11 +157,12 @@ Each experiment should produce the source manifest and file hashes, dataset vers
 
 ## 5. Current Evidence (not final results)
 
-As of the repository snapshot on 24 October 2026:
-- [TV3 PR #65](https://github.com/vietreceipt-team/vietreceipt/pull/65) reports a development test of 27 variants × 2 reading modes (54 successful Reader runs), including limited PDF CER diagnostics. The transcript and layout diversity are insufficient for formal held-out generalization or 13+row accuracy. Values here are **author-reported**, not rerun in this TV1 document.
+As of the repository snapshot checked on 26 October 2026, main `07c7cd0`:
+- Updated [TV3 PR #65](https://github.com/vietreceipt-team/vietreceipt/pull/65), head `3ea5c99`, reports 20 v0.2 validation inputs × two reading modes (40 real Reader runs), five parent invoices and one layout family. The earlier 54-run v0 capture is historical and is not pooled with this cohort. Transcript reading-order effects and limited layout diversity preclude formal held-out generalization or 13+row accuracy. Values here are **author-reported**, not rerun in this TV1 document.
 - [TV2 PR #66](https://github.com/vietreceipt-team/vietreceipt/pull/66) contains a generator/registry and automated dataset artifacts; its dev data are not independently certified as final test.
-- [TV4 PR #69](https://github.com/vietreceipt-team/vietreceipt/pull/69) contains a candidate grouping/evaluation implementation and reports **0/80 reviewed candidates**, so scored improvements and accuracy remain unavailable.
-- [TV5 PR #70](https://github.com/vietreceipt-team/vietreceipt/pull/70) provides an original-file source scorer design, but its candidate plan remains `PENDING_REVIEW` and gate-blocked, with `metrics=null`.
+- Merged [TV4 PR #69](https://github.com/vietreceipt-team/vietreceipt/pull/69) implements a candidate grouping/evaluator and reports **0/80 reviewed candidates**, so scored improvements and accuracy remain unavailable. Open [PR #71](https://github.com/vietreceipt-team/vietreceipt/pull/71) adds counters and regression evidence without approving gold.
+- Merged [TV5 PR #70](https://github.com/vietreceipt-team/vietreceipt/pull/70) implements original-file source scoring, but its candidate plan remains `PENDING_REVIEW` and gate-blocked, with `metrics=null`.
+- [TV6 PR #68](https://github.com/vietreceipt-team/vietreceipt/pull/68), head `e59f87d`, reports four real-browser synthetic workflows on the updated backend with immutable snapshots and parsed exports. It does not establish omitted-row recovery, independent invoice accuracy or participant time savings.
 
 These are engineering-progress observations, **not thesis accuracy measurements**. A full results table is staged in [the results and analysis workbook](tv1-results-and-analysis.md).
 
