@@ -25,6 +25,14 @@ HEADER_FIELDS = (
 )
 LINE_FIELDS = ("description", "unit", "quantity", "unit_price", "amount")
 TAX_FIELDS = ("rate", "taxable_amount", "tax_amount")
+MONEY_FIELDS = (
+    "subtotal",
+    "tax_amount",
+    "total_amount",
+    "unit_price",
+    "amount",
+    "taxable_amount",
+)
 STATUSES = ("PRESENT", "NOT_PRESENT", "UNREADABLE", "AMBIGUOUS", "UNKNOWN")
 
 
@@ -187,14 +195,7 @@ def validate_value(section, field, value, status, *, currency=None):
         if value is not None:
             raise V2Error("INVALID_VALUE", "Non-present values must be null.")
         return
-    money = field in (
-        "subtotal",
-        "tax_amount",
-        "total_amount",
-        "unit_price",
-        "amount",
-        "taxable_amount",
-    )
+    money = field in MONEY_FIELDS
     if money:
         valid = type(value) is int and value >= 0
         if currency == "USD":
@@ -223,3 +224,18 @@ def validate_value(section, field, value, status, *, currency=None):
                 valid = False
     if not valid:
         raise V2Error("INVALID_VALUE", "Value does not match the field type.")
+
+
+def validate_currency_amounts(entries, currency):
+    """Recheck effective money after a currency edit and before verify/export."""
+    for section, field, value, status in entries:
+        if field not in MONEY_FIELDS:
+            continue
+        try:
+            validate_value(section, field, value, status, currency=currency)
+        except V2Error as exc:
+            raise V2Error(
+                "INVALID_VALUE",
+                f"Review {section}.{field} before using currency {currency or 'UNKNOWN'}: "
+                "the amount or status is incompatible. Correct the amount or keep its original currency.",
+            ) from exc
