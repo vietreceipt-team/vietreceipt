@@ -1,0 +1,440 @@
+{
+  "dataset": "tv3-synthetic-diagnostics",
+  "version": "1.1",
+  "split": "development",
+  "examples": [
+    {
+      "id": "E01",
+      "sample": "clean-png",
+      "mode": "route_aware",
+      "category": "diacritics",
+      "expected": "CÔNG TY MẪU VIETRECEIPT",
+      "actual": "CONG TY MAU VIETRECEIPT",
+      "receipt_id": "8888b2eb-bba7-5950-8163-bc685969f8db",
+      "ocr_run_id": "dfaa302d-7a09-4b8b-94df-c264634cf62a",
+      "page_index": 0,
+      "blocks": [
+        {
+          "block_id": "p0_b000001",
+          "text": "CONG TY MAU VIETRECEIPT",
+          "confidence": 0.99475,
+          "polygon": [
+            {
+              "x": 0.05625,
+              "y": 0.096951
+            },
+            {
+              "x": 0.357812,
+              "y": 0.097561
+            },
+            {
+              "x": 0.357812,
+              "y": 0.114634
+            },
+            {
+              "x": 0.05625,
+              "y": 0.114024
+            }
+          ],
+          "reading_order": 1
+        }
+      ],
+      "evidence_path": "local-paired-native-20261023/route_aware/predictions/clean-png.json",
+      "implication_for_TV4": "Seller accents are lost; numeric fields being intact does not establish text accuracy.",
+      "review": "source transcription checked; tilt source image visually inspected"
+    },
+    {
+      "id": "E02",
+      "sample": "photo-jpg",
+      "mode": "route_aware",
+      "category": "segmentation_and_diacritics",
+      "expected": "Thuế GTGT: 13.000",
+      "actual": "ThuéGTGT13.000",
+      "receipt_id": "5712b955-d199-525c-abbd-6b59dad834f6",
+      "ocr_run_id": "3554159b-a266-4e7b-95cd-bb207c8674ff",
+      "page_index": 0,
+      "blocks": [
+        {
+          "block_id": "p0_b000022",
+          "text": "ThuéGTGT13.000",
+          "confidence": 0.95558,
+          "polygon": [
+            {
+              "x": 0.05625,
+              "y": 0.62622
+            },
+            {
+              "x": 0.249219,
+              "y": 0.62622
+            },
+            {
+              "x": 0.249219,
+              "y": 0.640854
+            },
+            {
+              "x": 0.05625,
+              "y": 0.640854
+            }
+          ],
+          "reading_order": 22
+        }
+      ],
+      "evidence_path": "local-paired-native-20261023/route_aware/predictions/photo-jpg.json",
+      "implication_for_TV4": "Tax label, separators and amount are joined. KIE label matching must review the raw evidence.",
+      "review": "source transcription checked; tilt source image visually inspected"
+    },
+    {
+      "id": "E03",
+      "sample": "blur-png",
+      "mode": "route_aware",
+      "category": "substitution_and_diacritics",
+      "expected": "Ngày lập: 24/09/2026",
+      "actual": "Ngay l@p:24/09/2026",
+      "receipt_id": "0dc2baf3-fb98-509b-868f-da3837fd3402",
+      "ocr_run_id": "ad7c24b3-5ab0-4808-acd5-89e9b2a92615",
+      "page_index": 0,
+      "blocks": [
+        {
+          "block_id": "p0_b000004",
+          "text": "Ngay l@p:24/09/2026",
+          "confidence": 0.916813,
+          "polygon": [
+            {
+              "x": 0.054688,
+              "y": 0.275
+            },
+            {
+              "x": 0.2625,
+              "y": 0.275
+            },
+            {
+              "x": 0.2625,
+              "y": 0.293293
+            },
+            {
+              "x": 0.054688,
+              "y": 0.293293
+            }
+          ],
+          "reading_order": 4
+        }
+      ],
+      "evidence_path": "local-paired-native-20261023/route_aware/predictions/blur-png.json",
+      "implication_for_TV4": "The label contains a spurious @ while the date digits survive.",
+      "review": "source transcription checked; tilt source image visually inspected"
+    },
+    {
+      "id": "E04",
+      "sample": "tilt-png",
+      "mode": "route_aware",
+      "category": "reading_order",
+      "expected": "Tên hàng | Đơn vị | Số lượng | Đơn giá | Thành tiền",
+      "actual": "Thanh tien | só luong | Don gia | Ten hang | Do'n vi",
+      "receipt_id": "5f0ea25f-468d-52c8-9a3b-9d11b3e76836",
+      "ocr_run_id": "99db56d9-2314-4a53-8005-d76dfc036513",
+      "page_index": 0,
+      "blocks": [
+        {
+          "block_id": "p0_b000006",
+          "text": "Thanh tien",
+          "confidence": 0.937518,
+          "polygon": [
+            {
+              "x": 0.546875,
+              "y": 0.394619
+            },
+            {
+              "x": 0.636549,
+              "y": 0.384529
+            },
+            {
+              "x": 0.639266,
+              "y": 0.400224
+            },
+            {
+              "x": 0.549592,
+              "y": 0.410314
+            }
+          ],
+          "reading_order": 6
+        },
+        {
+          "block_id": "p0_b000007",
+          "text": "só luong",
+          "confidence": 0.840002,
+          "polygon": [
+            {
+              "x": 0.317935,
+              "y": 0.415359
+            },
+            {
+              "x": 0.398777,
+              "y": 0.410314
+            },
+            {
+              "x": 0.400815,
+              "y": 0.428251
+            },
+            {
+              "x": 0.319973,
+              "y": 0.433296
+            }
+          ],
+          "reading_order": 7
+        },
+        {
+          "block_id": "p0_b000008",
+          "text": "Don gia",
+          "confidence": 0.913546,
+          "polygon": [
+            {
+              "x": 0.438179,
+              "y": 0.40639
+            },
+            {
+              "x": 0.507473,
+              "y": 0.399664
+            },
+            {
+              "x": 0.509511,
+              "y": 0.415919
+            },
+            {
+              "x": 0.440217,
+              "y": 0.422646
+            }
+          ],
+          "reading_order": 8
+        },
+        {
+          "block_id": "p0_b000009",
+          "text": "Ten hang",
+          "confidence": 0.96381,
+          "polygon": [
+            {
+              "x": 0.099864,
+              "y": 0.438341
+            },
+            {
+              "x": 0.181386,
+              "y": 0.433296
+            },
+            {
+              "x": 0.183424,
+              "y": 0.449552
+            },
+            {
+              "x": 0.101902,
+              "y": 0.454596
+            }
+          ],
+          "reading_order": 9
+        },
+        {
+          "block_id": "p0_b000010",
+          "text": "Do'n vi",
+          "confidence": 0.984382,
+          "polygon": [
+            {
+              "x": 0.220109,
+              "y": 0.42713
+            },
+            {
+              "x": 0.280571,
+              "y": 0.422085
+            },
+            {
+              "x": 0.282609,
+              "y": 0.438341
+            },
+            {
+              "x": 0.222147,
+              "y": 0.443386
+            }
+          ],
+          "reading_order": 10
+        }
+      ],
+      "evidence_path": "local-paired-native-20261023/route_aware/predictions/tilt-png.json",
+      "implication_for_TV4": "Visual source review confirms left-to-right headers. Baseline clustering emits the rightmost header first.",
+      "review": "source transcription checked; tilt source image visually inspected"
+    },
+    {
+      "id": "E05",
+      "sample": "tilt-png",
+      "mode": "route_aware",
+      "category": "reading_order",
+      "expected": "Giấy in A4 | Ram | 2 | 50.000 | 100.000",
+      "actual": "50.000 | 100.000 | Ram | 2 | Gi&y in A4",
+      "receipt_id": "5f0ea25f-468d-52c8-9a3b-9d11b3e76836",
+      "ocr_run_id": "99db56d9-2314-4a53-8005-d76dfc036513",
+      "page_index": 0,
+      "blocks": [
+        {
+          "block_id": "p0_b000011",
+          "text": "50.000",
+          "confidence": 0.99998,
+          "polygon": [
+            {
+              "x": 0.369565,
+              "y": 0.466928
+            },
+            {
+              "x": 0.430027,
+              "y": 0.460202
+            },
+            {
+              "x": 0.432745,
+              "y": 0.475897
+            },
+            {
+              "x": 0.372283,
+              "y": 0.482623
+            }
+          ],
+          "reading_order": 11
+        },
+        {
+          "block_id": "p0_b000012",
+          "text": "100.000",
+          "confidence": 0.943098,
+          "polygon": [
+            {
+              "x": 0.470788,
+              "y": 0.456278
+            },
+            {
+              "x": 0.540082,
+              "y": 0.449552
+            },
+            {
+              "x": 0.54212,
+              "y": 0.465247
+            },
+            {
+              "x": 0.472826,
+              "y": 0.471973
+            }
+          ],
+          "reading_order": 12
+        },
+        {
+          "block_id": "p0_b000013",
+          "text": "Ram",
+          "confidence": 0.99808,
+          "polygon": [
+            {
+              "x": 0.235054,
+              "y": 0.479821
+            },
+            {
+              "x": 0.279891,
+              "y": 0.477018
+            },
+            {
+              "x": 0.281929,
+              "y": 0.492713
+            },
+            {
+              "x": 0.237092,
+              "y": 0.496076
+            }
+          ],
+          "reading_order": 13
+        },
+        {
+          "block_id": "p0_b000014",
+          "text": "2",
+          "confidence": 0.999901,
+          "polygon": [
+            {
+              "x": 0.317935,
+              "y": 0.470852
+            },
+            {
+              "x": 0.334239,
+              "y": 0.470852
+            },
+            {
+              "x": 0.334239,
+              "y": 0.488229
+            },
+            {
+              "x": 0.317935,
+              "y": 0.488229
+            }
+          ],
+          "reading_order": 14
+        },
+        {
+          "block_id": "p0_b000015",
+          "text": "Gi&y in A4",
+          "confidence": 0.947453,
+          "polygon": [
+            {
+              "x": 0.108696,
+              "y": 0.491592
+            },
+            {
+              "x": 0.196332,
+              "y": 0.484305
+            },
+            {
+              "x": 0.19837,
+              "y": 0.502242
+            },
+            {
+              "x": 0.110734,
+              "y": 0.509529
+            }
+          ],
+          "reading_order": 15
+        }
+      ],
+      "evidence_path": "local-paired-native-20261023/route_aware/predictions/tilt-png.json",
+      "implication_for_TV4": "Visual source review confirms row order. Prices precede description in emitted reading order; row grouping can be affected.",
+      "review": "source transcription checked; tilt source image visually inspected"
+    },
+    {
+      "id": "E06",
+      "sample": "scan-pdf",
+      "mode": "route_aware",
+      "category": "diacritics",
+      "expected": "Số hoá đơn: 00001234",
+      "actual": "Só hoä do'n: 00001234",
+      "receipt_id": "2fc21d28-e8cf-5ba3-9d77-0e5b58fe68eb",
+      "ocr_run_id": "4a85e4dc-1ce3-476b-81bf-9ceed5421c91",
+      "page_index": 0,
+      "blocks": [
+        {
+          "block_id": "p0_b000003",
+          "text": "Só hoä do'n: 00001234",
+          "confidence": 0.956215,
+          "polygon": [
+            {
+              "x": 0.055681,
+              "y": 0.215979
+            },
+            {
+              "x": 0.277278,
+              "y": 0.217735
+            },
+            {
+              "x": 0.277278,
+              "y": 0.233099
+            },
+            {
+              "x": 0.055681,
+              "y": 0.230904
+            }
+          ],
+          "reading_order": 3
+        }
+      ],
+      "evidence_path": "local-paired-native-20261023/route_aware/predictions/scan-pdf.json",
+      "implication_for_TV4": "Invoice number digits survive but its Vietnamese label is corrupted after render/OCR.",
+      "review": "source transcription checked; tilt source image visually inspected"
+    }
+  ],
+  "geometry_error": "not established; do not infer from CER"
+}

@@ -1,0 +1,2247 @@
+{
+  "dataset": "vietreceipt_synthetic",
+  "version": "0.2.0-tv2-published-development",
+  "split": "validation",
+  "synthetic": true,
+  "qa_status": "PENDING_REVIEW",
+  "source_provenance": {
+    "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+    "archive_sha256": "6661c858c0564820a035ae0f62951647d19c74dd0c789aa4e56a072dfb4d9790",
+    "package_sha256": "6cf482ca58f134f82f6132e924001fbf7f591fb3f23c3ace0e5a7e1cbc104195",
+    "base_registry_sha256": "9efd058f3ed31bf59adf01a927b69583b836124f900132d7222633fea3cc2c7d",
+    "validation_manifest_sha256": "44cf5f89c5d7f4a8213b096fd39409277afa293aa9625f4e466bd64241c76711",
+    "selection_sha256": "d9f09fed1396f647295a320cfc19aa3d0183d794a65cb4e9b57267e7a9a8f6f5",
+    "reference_policy": "Generated source text diagnostics only; no independent transcript/gold/alignment QA",
+    "selection_policy": "Entire predefined validation cohort; no filtering by OCR/evidence success",
+    "test_policy": "Only validation assets opened; train/test registry metadata only; final remains locked"
+  },
+  "provenance": {
+    "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+    "archive_sha256": "6661c858c0564820a035ae0f62951647d19c74dd0c789aa4e56a072dfb4d9790",
+    "package_sha256": "6cf482ca58f134f82f6132e924001fbf7f591fb3f23c3ace0e5a7e1cbc104195",
+    "base_registry_sha256": "9efd058f3ed31bf59adf01a927b69583b836124f900132d7222633fea3cc2c7d",
+    "validation_manifest_sha256": "44cf5f89c5d7f4a8213b096fd39409277afa293aa9625f4e466bd64241c76711",
+    "selection_sha256": "d9f09fed1396f647295a320cfc19aa3d0183d794a65cb4e9b57267e7a9a8f6f5",
+    "reference_policy": "Generated source text diagnostics only; no independent transcript/gold/alignment QA",
+    "selection_policy": "Entire predefined validation cohort; no filtering by OCR/evidence success",
+    "test_policy": "Only validation assets opened; train/test registry metadata only; final remains locked"
+  },
+  "reference_policy": "Generated source text diagnostics only; no independent transcript/gold/alignment QA",
+  "samples": [
+    {
+      "id": "VRSYN2-00004__text_pdf",
+      "path": "inputs/VRSYN2-00004__text_pdf.pdf",
+      "condition": "clean_text_pdf",
+      "input_sha256": "8657b62ace38ffde0557aa2996d5f240c4908d20a318a136eaf159a77dce152a",
+      "receipt_id": "144951c0-13e9-5b39-a602-3b54047f25b4",
+      "sample_id": "VRSYN2-00004",
+      "parent_sample_id": "VRSYN2-00004",
+      "variant_id": "VRSYN2-00004__text_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+      "ground_truth_path": "sources/VRSYN2-00004__text_pdf/source-gold.json",
+      "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+      "source_regions_path": "sources/VRSYN2-00004__text_pdf/source-regions.json",
+      "source_regions_sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386",
+      "source_row_regions_path": "sources/VRSYN2-00004__text_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca",
+      "transcript_path": "transcripts/VRSYN2-00004.txt",
+      "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T4A\nSố hóa đơn: 00000004\nNgày lập: 2026-04-04\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000004\nĐịa chỉ người bán: 4 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003004\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBút bi xanh\nCây\n4\n5.000\n20.000\nBút bi xanh\nCây\n4\n5.000\n20.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 40.000\nTiền thuế GTGT: 4.000\nTổng thanh toán: 44.000\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00004.txt",
+        "source_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00004__text_pdf",
+        "base_document_id": "VRSYN2-00004",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00004",
+        "source_type": "text_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00004",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "documents/VRSYN2-00004.pdf",
+        "ground_truth_path": "labels/VRSYN2-00004.json",
+        "transcript_path": "transcripts/VRSYN2-00004.txt",
+        "render_spec_path": "render_specs/VRSYN2-00004.json",
+        "document_sha256": "8657b62ace38ffde0557aa2996d5f240c4908d20a318a136eaf159a77dce152a",
+        "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+        "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00004__text_pdf",
+        "record_id": "VRSYN2-00004__text_pdf",
+        "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+        "receipt_id": "144951c0-13e9-5b39-a602-3b54047f25b4",
+        "reader_run_id": "4b56c0c6-3f33-436c-94d6-1a55cb181e73",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 23
+        },
+        "route": [
+          "PDF_TEXT"
+        ],
+        "evidence_sha256": "dd5411d01dbb12bee866a789fa053e35ed3ed067929b03f0a5174424fd220bf7",
+        "aligned_gold_sha256": "5d1d95bcc558b6c626b418fc7f616b65b91b123c43192c49fd781066ca2c5c2e",
+        "source": {
+          "path": "records/VRSYN2-00004__text_pdf/source.pdf",
+          "sha256": "8657b62ace38ffde0557aa2996d5f240c4908d20a318a136eaf159a77dce152a"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00004__text_pdf/source-gold.json",
+          "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00004__text_pdf/source-regions.json",
+          "sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00004__text_pdf/evidence.json",
+          "sha256": "dd5411d01dbb12bee866a789fa053e35ed3ed067929b03f0a5174424fd220bf7"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00004__text_pdf/aligned-gold-candidate.json",
+          "sha256": "5d1d95bcc558b6c626b418fc7f616b65b91b123c43192c49fd781066ca2c5c2e"
+        },
+        "source_sample_id": "VRSYN2-00004",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00004__text_pdf/source-row-regions.json",
+          "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00004__text_pdf/reader.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00004__text_pdf/reader-metadata.json",
+          "sha256": "ecf27e730023c666a9fe8efd0d47112d58e0987ca150d1f3f05bf6c22ce9b376"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00004__clean_png",
+      "path": "inputs/VRSYN2-00004__clean_png.png",
+      "condition": "clean_image",
+      "input_sha256": "7a27a38d87e1f0211f08b38c4300ffd67c4930c9d6f302d56a924d859e747904",
+      "receipt_id": "e4ca7399-11eb-57db-bcbb-cefa89c75560",
+      "sample_id": "VRSYN2-00004",
+      "parent_sample_id": "VRSYN2-00004",
+      "variant_id": "VRSYN2-00004__clean_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+      "ground_truth_path": "sources/VRSYN2-00004__clean_png/source-gold.json",
+      "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+      "source_regions_path": "sources/VRSYN2-00004__clean_png/source-regions.json",
+      "source_regions_sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386",
+      "source_row_regions_path": "sources/VRSYN2-00004__clean_png/source-row-regions.json",
+      "source_row_regions_sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca",
+      "transcript_path": "transcripts/VRSYN2-00004.txt",
+      "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T4A\nSố hóa đơn: 00000004\nNgày lập: 2026-04-04\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000004\nĐịa chỉ người bán: 4 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003004\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBút bi xanh\nCây\n4\n5.000\n20.000\nBút bi xanh\nCây\n4\n5.000\n20.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 40.000\nTiền thuế GTGT: 4.000\nTổng thanh toán: 44.000\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00004.txt",
+        "source_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00004__clean_png",
+        "base_document_id": "VRSYN2-00004",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00004",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00004",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00004__clean.png",
+        "ground_truth_path": "labels/VRSYN2-00004.json",
+        "transcript_path": "transcripts/VRSYN2-00004.txt",
+        "render_spec_path": "render_specs/VRSYN2-00004.json",
+        "document_sha256": "7a27a38d87e1f0211f08b38c4300ffd67c4930c9d6f302d56a924d859e747904",
+        "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+        "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00004__clean_png",
+        "record_id": "VRSYN2-00004__clean_png",
+        "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+        "receipt_id": "e4ca7399-11eb-57db-bcbb-cefa89c75560",
+        "reader_run_id": "5d3508dc-f5b5-45aa-82a4-9e3fbaa0203b",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 16,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 7
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "9c907af3f1ade41c2892ef5235a9d74fe89a4799dae0229994e37081494e8418",
+        "aligned_gold_sha256": "83d155df4bfa7e4b64cee1705676ea81968bce3fee80aa18d7be5b56d250c902",
+        "source": {
+          "path": "records/VRSYN2-00004__clean_png/source.png",
+          "sha256": "7a27a38d87e1f0211f08b38c4300ffd67c4930c9d6f302d56a924d859e747904"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00004__clean_png/source-gold.json",
+          "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00004__clean_png/source-regions.json",
+          "sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00004__clean_png/evidence.json",
+          "sha256": "9c907af3f1ade41c2892ef5235a9d74fe89a4799dae0229994e37081494e8418"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00004__clean_png/aligned-gold-candidate.json",
+          "sha256": "83d155df4bfa7e4b64cee1705676ea81968bce3fee80aa18d7be5b56d250c902"
+        },
+        "source_sample_id": "VRSYN2-00004",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00004__clean_png/source-row-regions.json",
+          "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00004__clean_png/reader.log",
+          "sha256": "be2bdf056391760ecd5bad80ebbe5b9f027f86ed11f3af6de256993c27a55db0"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00004__clean_png/reader-metadata.json",
+          "sha256": "31e9bad9bf98a86b91c89f1a7086e26cd71ceef56a89acf2e12c01c5a7fbbe61"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00004__clean_pdf",
+      "path": "inputs/VRSYN2-00004__clean_pdf.pdf",
+      "condition": "clean_scanned_pdf",
+      "input_sha256": "42c6be74ddcdeef060dd56bfe37a915754e646ad96aacd8132deaf7253bc1c2a",
+      "receipt_id": "f062aa37-26ae-5daa-b9ed-4849c5094611",
+      "sample_id": "VRSYN2-00004",
+      "parent_sample_id": "VRSYN2-00004",
+      "variant_id": "VRSYN2-00004__clean_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+      "ground_truth_path": "sources/VRSYN2-00004__clean_pdf/source-gold.json",
+      "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+      "source_regions_path": "sources/VRSYN2-00004__clean_pdf/source-regions.json",
+      "source_regions_sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386",
+      "source_row_regions_path": "sources/VRSYN2-00004__clean_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca",
+      "transcript_path": "transcripts/VRSYN2-00004.txt",
+      "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T4A\nSố hóa đơn: 00000004\nNgày lập: 2026-04-04\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000004\nĐịa chỉ người bán: 4 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003004\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBút bi xanh\nCây\n4\n5.000\n20.000\nBút bi xanh\nCây\n4\n5.000\n20.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 40.000\nTiền thuế GTGT: 4.000\nTổng thanh toán: 44.000\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00004.txt",
+        "source_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00004__clean_pdf",
+        "base_document_id": "VRSYN2-00004",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00004",
+        "source_type": "scanned_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00004",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00004__clean.pdf",
+        "ground_truth_path": "labels/VRSYN2-00004.json",
+        "transcript_path": "transcripts/VRSYN2-00004.txt",
+        "render_spec_path": "render_specs/VRSYN2-00004.json",
+        "document_sha256": "42c6be74ddcdeef060dd56bfe37a915754e646ad96aacd8132deaf7253bc1c2a",
+        "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+        "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00004__clean_pdf",
+        "record_id": "VRSYN2-00004__clean_pdf",
+        "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+        "receipt_id": "f062aa37-26ae-5daa-b9ed-4849c5094611",
+        "reader_run_id": "67ac9683-5ac4-42bf-874f-6f25d1a8aba2",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 15,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 8
+        },
+        "route": [
+          "PDF_OCR"
+        ],
+        "evidence_sha256": "bf151dd304a8af26c7c67b03432d53f1a6bc5fc1badccabca49265b70e3192cd",
+        "aligned_gold_sha256": "383f2ab6a26a7f3b792fe4225f77360f64aab1e94f7389f9f208415bcbb7993d",
+        "source": {
+          "path": "records/VRSYN2-00004__clean_pdf/source.pdf",
+          "sha256": "42c6be74ddcdeef060dd56bfe37a915754e646ad96aacd8132deaf7253bc1c2a"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00004__clean_pdf/source-gold.json",
+          "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00004__clean_pdf/source-regions.json",
+          "sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00004__clean_pdf/evidence.json",
+          "sha256": "bf151dd304a8af26c7c67b03432d53f1a6bc5fc1badccabca49265b70e3192cd"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00004__clean_pdf/aligned-gold-candidate.json",
+          "sha256": "383f2ab6a26a7f3b792fe4225f77360f64aab1e94f7389f9f208415bcbb7993d"
+        },
+        "source_sample_id": "VRSYN2-00004",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00004__clean_pdf/source-row-regions.json",
+          "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00004__clean_pdf/reader.log",
+          "sha256": "05e61b9eb331ea8bd143dd0793e5834bce5624b4adf4d70da62d10c1c79a192b"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00004__clean_pdf/reader-metadata.json",
+          "sha256": "0d765345e2700204323e7c995fac80c8d48a592481f06aebce12b4048ee7e102"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00004__blur_png",
+      "path": "inputs/VRSYN2-00004__blur_png.png",
+      "condition": "blur_image",
+      "input_sha256": "9436c376ab83d827b5076f8d6dc6d9b94becb082838ba4141ca78a2ec9d4b3e1",
+      "receipt_id": "bc0d34d0-1c34-5b72-9304-468072fcb05e",
+      "sample_id": "VRSYN2-00004",
+      "parent_sample_id": "VRSYN2-00004",
+      "variant_id": "VRSYN2-00004__blur_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+      "ground_truth_path": "sources/VRSYN2-00004__blur_png/source-gold.json",
+      "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+      "source_regions_path": "sources/VRSYN2-00004__blur_png/source-regions.json",
+      "source_regions_sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386",
+      "source_row_regions_path": "sources/VRSYN2-00004__blur_png/source-row-regions.json",
+      "source_row_regions_sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca",
+      "transcript_path": "transcripts/VRSYN2-00004.txt",
+      "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T4A\nSố hóa đơn: 00000004\nNgày lập: 2026-04-04\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000004\nĐịa chỉ người bán: 4 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003004\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBút bi xanh\nCây\n4\n5.000\n20.000\nBút bi xanh\nCây\n4\n5.000\n20.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 40.000\nTiền thuế GTGT: 4.000\nTổng thanh toán: 44.000\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00004.txt",
+        "source_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00004__blur_png",
+        "base_document_id": "VRSYN2-00004",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00004",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00004",
+        "augmentation_type": "blur",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00004__blur.png",
+        "ground_truth_path": "labels/VRSYN2-00004.json",
+        "transcript_path": "transcripts/VRSYN2-00004.txt",
+        "render_spec_path": "render_specs/VRSYN2-00004.json",
+        "document_sha256": "9436c376ab83d827b5076f8d6dc6d9b94becb082838ba4141ca78a2ec9d4b3e1",
+        "ground_truth_sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8",
+        "transcript_sha256": "9802a71772a1594a2689f470f1340ff74550f0ed3695a1dbe32178d2979dbe0a",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00004__blur_png",
+        "record_id": "VRSYN2-00004__blur_png",
+        "source_receipt_id": "94d93929-50fa-5956-8d93-ff63d2553aac",
+        "receipt_id": "bc0d34d0-1c34-5b72-9304-468072fcb05e",
+        "reader_run_id": "55fb7d99-07ff-4c4b-ba0c-faada17dd480",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 15,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 8
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "b967d763fd657f76a2277754f902b05d394a2debcdf3c2cd9196fb9146c713a3",
+        "aligned_gold_sha256": "610e23769d890d8ed1f87121fe146bd422313a721d92d90090d5d397b6e68285",
+        "source": {
+          "path": "records/VRSYN2-00004__blur_png/source.png",
+          "sha256": "9436c376ab83d827b5076f8d6dc6d9b94becb082838ba4141ca78a2ec9d4b3e1"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00004__blur_png/source-gold.json",
+          "sha256": "e123cfd1e0e4b582bd9429e67e9e720b37caae4ea1c0b0ec20b6fe4c160e5bd8"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00004__blur_png/source-regions.json",
+          "sha256": "23b7a15554eb873cf02d1b21aeb146579a4a9adbdb3981209f225ba5981fd386"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00004__blur_png/evidence.json",
+          "sha256": "b967d763fd657f76a2277754f902b05d394a2debcdf3c2cd9196fb9146c713a3"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00004__blur_png/aligned-gold-candidate.json",
+          "sha256": "610e23769d890d8ed1f87121fe146bd422313a721d92d90090d5d397b6e68285"
+        },
+        "source_sample_id": "VRSYN2-00004",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00004__blur_png/source-row-regions.json",
+          "sha256": "457c439a078445d71ba4743c60bdcbe0746f1ae58a8bd9bf60331b2e2ce2b0ca"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00004__blur_png/reader.log",
+          "sha256": "d75cf4822268b35bc1fb20c730d982594fa32e70e3c159eec130e2cbc11d94e8"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00004__blur_png/reader-metadata.json",
+          "sha256": "6e24115c28b886c7583c4e34e61af6a6200a55e20a3c4e1beb41ad4b18d48faa"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00010__text_pdf",
+      "path": "inputs/VRSYN2-00010__text_pdf.pdf",
+      "condition": "clean_text_pdf",
+      "input_sha256": "543c91170d7eba608e2aec4a6cef58c3b56b7a1bb9cb70294b32e13249a389f0",
+      "receipt_id": "42318890-42e5-56f2-ad41-f95f218d2fad",
+      "sample_id": "VRSYN2-00010",
+      "parent_sample_id": "VRSYN2-00010",
+      "variant_id": "VRSYN2-00010__text_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+      "ground_truth_path": "sources/VRSYN2-00010__text_pdf/source-gold.json",
+      "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+      "source_regions_path": "sources/VRSYN2-00010__text_pdf/source-regions.json",
+      "source_regions_sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937",
+      "source_row_regions_path": "sources/VRSYN2-00010__text_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d",
+      "transcript_path": "transcripts/VRSYN2-00010.txt",
+      "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T0A\nSố hóa đơn: 00000010\nNgày lập: 2026-10-10\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000010\nĐịa chỉ người bán: 10 Đường Mẫu, Thành phố Hà Nội\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n1\n12.000\n12.000\nSổ tay văn phòng\nQuyển\n5\n18.000\n90.000\nDịch vụ in tài liệu\nLần\n6\n12.000\n72.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 174.000\nTiền thuế GTGT: 8.700\nTổng thanh toán: 182.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00010.txt",
+        "source_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00010__text_pdf",
+        "base_document_id": "VRSYN2-00010",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00010",
+        "source_type": "text_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00010",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "documents/VRSYN2-00010.pdf",
+        "ground_truth_path": "labels/VRSYN2-00010.json",
+        "transcript_path": "transcripts/VRSYN2-00010.txt",
+        "render_spec_path": "render_specs/VRSYN2-00010.json",
+        "document_sha256": "543c91170d7eba608e2aec4a6cef58c3b56b7a1bb9cb70294b32e13249a389f0",
+        "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+        "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00010__text_pdf",
+        "record_id": "VRSYN2-00010__text_pdf",
+        "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+        "receipt_id": "42318890-42e5-56f2-ad41-f95f218d2fad",
+        "reader_run_id": "bfc095f8-fbed-47e3-8d19-039826039232",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 26
+        },
+        "route": [
+          "PDF_TEXT"
+        ],
+        "evidence_sha256": "3a223c0ff5243657d4645dec70944bb36001b786ce7b3e94f456e7e3e58a7208",
+        "aligned_gold_sha256": "7aad38ba7b6c567c3f7cf100f0611d055c690bf927ff00b5ba445eda63221678",
+        "source": {
+          "path": "records/VRSYN2-00010__text_pdf/source.pdf",
+          "sha256": "543c91170d7eba608e2aec4a6cef58c3b56b7a1bb9cb70294b32e13249a389f0"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00010__text_pdf/source-gold.json",
+          "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00010__text_pdf/source-regions.json",
+          "sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00010__text_pdf/evidence.json",
+          "sha256": "3a223c0ff5243657d4645dec70944bb36001b786ce7b3e94f456e7e3e58a7208"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00010__text_pdf/aligned-gold-candidate.json",
+          "sha256": "7aad38ba7b6c567c3f7cf100f0611d055c690bf927ff00b5ba445eda63221678"
+        },
+        "source_sample_id": "VRSYN2-00010",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00010__text_pdf/source-row-regions.json",
+          "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00010__text_pdf/reader.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00010__text_pdf/reader-metadata.json",
+          "sha256": "28549ab379fe58dfc6453bc7726cede822c49aa2691c8e720a4c897a1af7c933"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00010__clean_png",
+      "path": "inputs/VRSYN2-00010__clean_png.png",
+      "condition": "clean_image",
+      "input_sha256": "8b57f48413b6ee1405a5632193af814b2f015651ebecc388e11006e7a4e33a6a",
+      "receipt_id": "ccffc5b8-22b5-5200-8084-29b1d421b1ed",
+      "sample_id": "VRSYN2-00010",
+      "parent_sample_id": "VRSYN2-00010",
+      "variant_id": "VRSYN2-00010__clean_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+      "ground_truth_path": "sources/VRSYN2-00010__clean_png/source-gold.json",
+      "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+      "source_regions_path": "sources/VRSYN2-00010__clean_png/source-regions.json",
+      "source_regions_sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937",
+      "source_row_regions_path": "sources/VRSYN2-00010__clean_png/source-row-regions.json",
+      "source_row_regions_sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d",
+      "transcript_path": "transcripts/VRSYN2-00010.txt",
+      "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T0A\nSố hóa đơn: 00000010\nNgày lập: 2026-10-10\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000010\nĐịa chỉ người bán: 10 Đường Mẫu, Thành phố Hà Nội\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n1\n12.000\n12.000\nSổ tay văn phòng\nQuyển\n5\n18.000\n90.000\nDịch vụ in tài liệu\nLần\n6\n12.000\n72.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 174.000\nTiền thuế GTGT: 8.700\nTổng thanh toán: 182.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00010.txt",
+        "source_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00010__clean_png",
+        "base_document_id": "VRSYN2-00010",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00010",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00010",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00010__clean.png",
+        "ground_truth_path": "labels/VRSYN2-00010.json",
+        "transcript_path": "transcripts/VRSYN2-00010.txt",
+        "render_spec_path": "render_specs/VRSYN2-00010.json",
+        "document_sha256": "8b57f48413b6ee1405a5632193af814b2f015651ebecc388e11006e7a4e33a6a",
+        "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+        "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00010__clean_png",
+        "record_id": "VRSYN2-00010__clean_png",
+        "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+        "receipt_id": "ccffc5b8-22b5-5200-8084-29b1d421b1ed",
+        "reader_run_id": "4152eb5c-d76d-4f66-b444-cee8c3035e23",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 18,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 8
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "b4fbdd4af3ddeac8555dcae8e440e47ecbfab82e78264186bcd5f0e96e746a41",
+        "aligned_gold_sha256": "64283a0be256a443d82c0aa627d0fdf807f02870b80cfc376f9b734dea5485b0",
+        "source": {
+          "path": "records/VRSYN2-00010__clean_png/source.png",
+          "sha256": "8b57f48413b6ee1405a5632193af814b2f015651ebecc388e11006e7a4e33a6a"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00010__clean_png/source-gold.json",
+          "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00010__clean_png/source-regions.json",
+          "sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00010__clean_png/evidence.json",
+          "sha256": "b4fbdd4af3ddeac8555dcae8e440e47ecbfab82e78264186bcd5f0e96e746a41"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00010__clean_png/aligned-gold-candidate.json",
+          "sha256": "64283a0be256a443d82c0aa627d0fdf807f02870b80cfc376f9b734dea5485b0"
+        },
+        "source_sample_id": "VRSYN2-00010",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00010__clean_png/source-row-regions.json",
+          "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00010__clean_png/reader.log",
+          "sha256": "49eeba21a60f125f2eac644ce3230cecc103e4a627da1ca59047d15be4c7482b"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00010__clean_png/reader-metadata.json",
+          "sha256": "251c525840dbc0ba78a9802a98ab399344f84790b7db318a7881aa54ed2f4164"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00010__clean_pdf",
+      "path": "inputs/VRSYN2-00010__clean_pdf.pdf",
+      "condition": "clean_scanned_pdf",
+      "input_sha256": "f7977ccb4682c9ce11e416b82294989aebf6f92d19e5dfbe314521913872fae4",
+      "receipt_id": "de5d02de-3c31-544c-a96f-210a7e019b3c",
+      "sample_id": "VRSYN2-00010",
+      "parent_sample_id": "VRSYN2-00010",
+      "variant_id": "VRSYN2-00010__clean_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+      "ground_truth_path": "sources/VRSYN2-00010__clean_pdf/source-gold.json",
+      "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+      "source_regions_path": "sources/VRSYN2-00010__clean_pdf/source-regions.json",
+      "source_regions_sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937",
+      "source_row_regions_path": "sources/VRSYN2-00010__clean_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d",
+      "transcript_path": "transcripts/VRSYN2-00010.txt",
+      "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T0A\nSố hóa đơn: 00000010\nNgày lập: 2026-10-10\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000010\nĐịa chỉ người bán: 10 Đường Mẫu, Thành phố Hà Nội\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n1\n12.000\n12.000\nSổ tay văn phòng\nQuyển\n5\n18.000\n90.000\nDịch vụ in tài liệu\nLần\n6\n12.000\n72.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 174.000\nTiền thuế GTGT: 8.700\nTổng thanh toán: 182.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00010.txt",
+        "source_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00010__clean_pdf",
+        "base_document_id": "VRSYN2-00010",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00010",
+        "source_type": "scanned_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00010",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00010__clean.pdf",
+        "ground_truth_path": "labels/VRSYN2-00010.json",
+        "transcript_path": "transcripts/VRSYN2-00010.txt",
+        "render_spec_path": "render_specs/VRSYN2-00010.json",
+        "document_sha256": "f7977ccb4682c9ce11e416b82294989aebf6f92d19e5dfbe314521913872fae4",
+        "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+        "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00010__clean_pdf",
+        "record_id": "VRSYN2-00010__clean_pdf",
+        "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+        "receipt_id": "de5d02de-3c31-544c-a96f-210a7e019b3c",
+        "reader_run_id": "35d11c20-786a-4545-9f85-fca85c381448",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 18,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 8
+        },
+        "route": [
+          "PDF_OCR"
+        ],
+        "evidence_sha256": "ea5c5012a007a392e637e0a9bfdd40f167cc9a8d4abba7a5960d232dc24a2d89",
+        "aligned_gold_sha256": "f11e3c6c9939110f240a6f9a23bc2d6e24de5ce84ebcc6d3ff25b0234c737178",
+        "source": {
+          "path": "records/VRSYN2-00010__clean_pdf/source.pdf",
+          "sha256": "f7977ccb4682c9ce11e416b82294989aebf6f92d19e5dfbe314521913872fae4"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00010__clean_pdf/source-gold.json",
+          "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00010__clean_pdf/source-regions.json",
+          "sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00010__clean_pdf/evidence.json",
+          "sha256": "ea5c5012a007a392e637e0a9bfdd40f167cc9a8d4abba7a5960d232dc24a2d89"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00010__clean_pdf/aligned-gold-candidate.json",
+          "sha256": "f11e3c6c9939110f240a6f9a23bc2d6e24de5ce84ebcc6d3ff25b0234c737178"
+        },
+        "source_sample_id": "VRSYN2-00010",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00010__clean_pdf/source-row-regions.json",
+          "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00010__clean_pdf/reader.log",
+          "sha256": "5cc044ea674cf2f178db40a594dad12986dc85f40423f1e3365fcfc2d78c4e58"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00010__clean_pdf/reader-metadata.json",
+          "sha256": "3bc87c337ff9f1b978464af93523b9c126d3f0b8ad727f411f82a746c08fa15d"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00010__blur_png",
+      "path": "inputs/VRSYN2-00010__blur_png.png",
+      "condition": "blur_image",
+      "input_sha256": "2d5f70740947bab638943adb311db0ab810286ffb7331deebcb1812d404d29cf",
+      "receipt_id": "adb85fbf-bacb-551d-884a-feccb0e5bf91",
+      "sample_id": "VRSYN2-00010",
+      "parent_sample_id": "VRSYN2-00010",
+      "variant_id": "VRSYN2-00010__blur_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+      "ground_truth_path": "sources/VRSYN2-00010__blur_png/source-gold.json",
+      "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+      "source_regions_path": "sources/VRSYN2-00010__blur_png/source-regions.json",
+      "source_regions_sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937",
+      "source_row_regions_path": "sources/VRSYN2-00010__blur_png/source-row-regions.json",
+      "source_row_regions_sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d",
+      "transcript_path": "transcripts/VRSYN2-00010.txt",
+      "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T0A\nSố hóa đơn: 00000010\nNgày lập: 2026-10-10\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000010\nĐịa chỉ người bán: 10 Đường Mẫu, Thành phố Hà Nội\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n1\n12.000\n12.000\nSổ tay văn phòng\nQuyển\n5\n18.000\n90.000\nDịch vụ in tài liệu\nLần\n6\n12.000\n72.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 174.000\nTiền thuế GTGT: 8.700\nTổng thanh toán: 182.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00010.txt",
+        "source_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00010__blur_png",
+        "base_document_id": "VRSYN2-00010",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00010",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00010",
+        "augmentation_type": "blur",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00010__blur.png",
+        "ground_truth_path": "labels/VRSYN2-00010.json",
+        "transcript_path": "transcripts/VRSYN2-00010.txt",
+        "render_spec_path": "render_specs/VRSYN2-00010.json",
+        "document_sha256": "2d5f70740947bab638943adb311db0ab810286ffb7331deebcb1812d404d29cf",
+        "ground_truth_sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0",
+        "transcript_sha256": "4d497f37572ee0789ea67cf35a3a115538db42d2a0709b3652935a4bbfd549de",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00010__blur_png",
+        "record_id": "VRSYN2-00010__blur_png",
+        "source_receipt_id": "691f0260-5ba0-5076-9b8b-fd91d9adc1a8",
+        "receipt_id": "adb85fbf-bacb-551d-884a-feccb0e5bf91",
+        "reader_run_id": "db4bfb09-78a9-4a6b-a928-eec2de75e7e2",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 18,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 8
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "20802d2bb10d1909d729c345f108dbfbba1601e5d706d839cf6c9ea3e64afc0d",
+        "aligned_gold_sha256": "e3ef8a641b04864ad5030d01da366fdfcbb9ceb2cb33e0ec38eaaca2661ae596",
+        "source": {
+          "path": "records/VRSYN2-00010__blur_png/source.png",
+          "sha256": "2d5f70740947bab638943adb311db0ab810286ffb7331deebcb1812d404d29cf"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00010__blur_png/source-gold.json",
+          "sha256": "56922969a8d0f930434fc74150ed943d7ee32ab54c27f1dd8711b0940f8884d0"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00010__blur_png/source-regions.json",
+          "sha256": "7c5a3694b18e697c76bdf62eb7efcc775fafcd3b44c32879c4d8ee6d6e80f937"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00010__blur_png/evidence.json",
+          "sha256": "20802d2bb10d1909d729c345f108dbfbba1601e5d706d839cf6c9ea3e64afc0d"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00010__blur_png/aligned-gold-candidate.json",
+          "sha256": "e3ef8a641b04864ad5030d01da366fdfcbb9ceb2cb33e0ec38eaaca2661ae596"
+        },
+        "source_sample_id": "VRSYN2-00010",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00010__blur_png/source-row-regions.json",
+          "sha256": "92956ab7e4e756e627ecb1b5d054dbfcca141cf07f5938b47edb5641d6d87e2d"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00010__blur_png/reader.log",
+          "sha256": "999ada16d703908f1fef71a052370377878a0ae303ae1d3d90293e3011121cc3"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00010__blur_png/reader-metadata.json",
+          "sha256": "e9330ae3e22448193e34236727d70a884cb51a347c48cad5a01f62b15a8d3067"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00016__text_pdf",
+      "path": "inputs/VRSYN2-00016__text_pdf.pdf",
+      "condition": "clean_text_pdf",
+      "input_sha256": "41c100df07a708da31d23ee3149cd5cd79241b269f53a80c332a92f122e9ffa4",
+      "receipt_id": "fad8e577-c0f6-5845-8ea9-c118c8273c46",
+      "sample_id": "VRSYN2-00016",
+      "parent_sample_id": "VRSYN2-00016",
+      "variant_id": "VRSYN2-00016__text_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+      "ground_truth_path": "sources/VRSYN2-00016__text_pdf/source-gold.json",
+      "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+      "source_regions_path": "sources/VRSYN2-00016__text_pdf/source-regions.json",
+      "source_regions_sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db",
+      "source_row_regions_path": "sources/VRSYN2-00016__text_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953",
+      "transcript_path": "transcripts/VRSYN2-00016.txt",
+      "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T6A\nSố hóa đơn: 00000016\nNgày lập: 2026-04-16\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000016\nĐịa chỉ người bán: 16 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003016\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nSổ tay văn phòng\nQuyển\n2\n18.000\n36.000\nSổ tay văn phòng\nQuyển\n3\n18.000\n54.000\nSổ tay văn phòng\nQuyển\n4\n18.000\n72.000\nMực máy in\nHộp\n2\n145.000\n290.000\nGiấy in A4\nRam\n6\n65.000\n390.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 842.000\nTiền thuế GTGT: 84.200\nTổng thanh toán: 926.200\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00016.txt",
+        "source_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00016__text_pdf",
+        "base_document_id": "VRSYN2-00016",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00016",
+        "source_type": "text_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00016",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "documents/VRSYN2-00016.pdf",
+        "ground_truth_path": "labels/VRSYN2-00016.json",
+        "transcript_path": "transcripts/VRSYN2-00016.txt",
+        "render_spec_path": "render_specs/VRSYN2-00016.json",
+        "document_sha256": "41c100df07a708da31d23ee3149cd5cd79241b269f53a80c332a92f122e9ffa4",
+        "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+        "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00016__text_pdf",
+        "record_id": "VRSYN2-00016__text_pdf",
+        "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+        "receipt_id": "fad8e577-c0f6-5845-8ea9-c118c8273c46",
+        "reader_run_id": "c87416f0-5077-4eba-9e90-552a3b414d78",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 38
+        },
+        "route": [
+          "PDF_TEXT"
+        ],
+        "evidence_sha256": "70c4b5296070308791cea09ac52efd15ce83e55f0280dc06ec841bf7231e075c",
+        "aligned_gold_sha256": "b20f490d48f9d35376064c187990dd6958364b10625700560e362cc8bf14a3c5",
+        "source": {
+          "path": "records/VRSYN2-00016__text_pdf/source.pdf",
+          "sha256": "41c100df07a708da31d23ee3149cd5cd79241b269f53a80c332a92f122e9ffa4"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00016__text_pdf/source-gold.json",
+          "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00016__text_pdf/source-regions.json",
+          "sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00016__text_pdf/evidence.json",
+          "sha256": "70c4b5296070308791cea09ac52efd15ce83e55f0280dc06ec841bf7231e075c"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00016__text_pdf/aligned-gold-candidate.json",
+          "sha256": "b20f490d48f9d35376064c187990dd6958364b10625700560e362cc8bf14a3c5"
+        },
+        "source_sample_id": "VRSYN2-00016",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00016__text_pdf/source-row-regions.json",
+          "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00016__text_pdf/reader.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00016__text_pdf/reader-metadata.json",
+          "sha256": "f04278e5964c7f0b2e6b6f00b582ece914549a9e99f9987a08eb4729d3324bef"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00016__clean_png",
+      "path": "inputs/VRSYN2-00016__clean_png.png",
+      "condition": "clean_image",
+      "input_sha256": "9607252e873dbcd288cc448e85ad0ccb11a622d2e80f58c048ef87a15f9b3fc8",
+      "receipt_id": "355f6dcf-d7f9-5738-b39f-02499d7829ae",
+      "sample_id": "VRSYN2-00016",
+      "parent_sample_id": "VRSYN2-00016",
+      "variant_id": "VRSYN2-00016__clean_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+      "ground_truth_path": "sources/VRSYN2-00016__clean_png/source-gold.json",
+      "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+      "source_regions_path": "sources/VRSYN2-00016__clean_png/source-regions.json",
+      "source_regions_sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db",
+      "source_row_regions_path": "sources/VRSYN2-00016__clean_png/source-row-regions.json",
+      "source_row_regions_sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953",
+      "transcript_path": "transcripts/VRSYN2-00016.txt",
+      "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T6A\nSố hóa đơn: 00000016\nNgày lập: 2026-04-16\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000016\nĐịa chỉ người bán: 16 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003016\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nSổ tay văn phòng\nQuyển\n2\n18.000\n36.000\nSổ tay văn phòng\nQuyển\n3\n18.000\n54.000\nSổ tay văn phòng\nQuyển\n4\n18.000\n72.000\nMực máy in\nHộp\n2\n145.000\n290.000\nGiấy in A4\nRam\n6\n65.000\n390.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 842.000\nTiền thuế GTGT: 84.200\nTổng thanh toán: 926.200\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00016.txt",
+        "source_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00016__clean_png",
+        "base_document_id": "VRSYN2-00016",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00016",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00016",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00016__clean.png",
+        "ground_truth_path": "labels/VRSYN2-00016.json",
+        "transcript_path": "transcripts/VRSYN2-00016.txt",
+        "render_spec_path": "render_specs/VRSYN2-00016.json",
+        "document_sha256": "9607252e873dbcd288cc448e85ad0ccb11a622d2e80f58c048ef87a15f9b3fc8",
+        "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+        "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00016__clean_png",
+        "record_id": "VRSYN2-00016__clean_png",
+        "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+        "receipt_id": "355f6dcf-d7f9-5738-b39f-02499d7829ae",
+        "reader_run_id": "289d9599-d8c0-4853-8ed2-c95412693b30",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 26,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 12
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "cceccd0adcd582a95dbe9816fa413e0fa6140b2213e6ce8aff49052ca76885a6",
+        "aligned_gold_sha256": "c5d87acdc689647ea6218014214a1a12f1b2ae38c28f6c0a009db25058a477f6",
+        "source": {
+          "path": "records/VRSYN2-00016__clean_png/source.png",
+          "sha256": "9607252e873dbcd288cc448e85ad0ccb11a622d2e80f58c048ef87a15f9b3fc8"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00016__clean_png/source-gold.json",
+          "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00016__clean_png/source-regions.json",
+          "sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00016__clean_png/evidence.json",
+          "sha256": "cceccd0adcd582a95dbe9816fa413e0fa6140b2213e6ce8aff49052ca76885a6"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00016__clean_png/aligned-gold-candidate.json",
+          "sha256": "c5d87acdc689647ea6218014214a1a12f1b2ae38c28f6c0a009db25058a477f6"
+        },
+        "source_sample_id": "VRSYN2-00016",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00016__clean_png/source-row-regions.json",
+          "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00016__clean_png/reader.log",
+          "sha256": "df6123ff851a463694a961e9f0964f5f902def498e6b7654bb99a07d4c01f9f5"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00016__clean_png/reader-metadata.json",
+          "sha256": "6299f42818d6e7e58a99e4ed8aa35d1204827484761c7ecf8074d7845775dc3b"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00016__clean_pdf",
+      "path": "inputs/VRSYN2-00016__clean_pdf.pdf",
+      "condition": "clean_scanned_pdf",
+      "input_sha256": "c5d297e1625e78e9be84947daa285f17a7a0f329273ea1cc1a6a98549fcb8e70",
+      "receipt_id": "400d5a4f-0f89-5fec-83c9-86dd7a3f1959",
+      "sample_id": "VRSYN2-00016",
+      "parent_sample_id": "VRSYN2-00016",
+      "variant_id": "VRSYN2-00016__clean_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+      "ground_truth_path": "sources/VRSYN2-00016__clean_pdf/source-gold.json",
+      "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+      "source_regions_path": "sources/VRSYN2-00016__clean_pdf/source-regions.json",
+      "source_regions_sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db",
+      "source_row_regions_path": "sources/VRSYN2-00016__clean_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953",
+      "transcript_path": "transcripts/VRSYN2-00016.txt",
+      "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T6A\nSố hóa đơn: 00000016\nNgày lập: 2026-04-16\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000016\nĐịa chỉ người bán: 16 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003016\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nSổ tay văn phòng\nQuyển\n2\n18.000\n36.000\nSổ tay văn phòng\nQuyển\n3\n18.000\n54.000\nSổ tay văn phòng\nQuyển\n4\n18.000\n72.000\nMực máy in\nHộp\n2\n145.000\n290.000\nGiấy in A4\nRam\n6\n65.000\n390.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 842.000\nTiền thuế GTGT: 84.200\nTổng thanh toán: 926.200\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00016.txt",
+        "source_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00016__clean_pdf",
+        "base_document_id": "VRSYN2-00016",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00016",
+        "source_type": "scanned_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00016",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00016__clean.pdf",
+        "ground_truth_path": "labels/VRSYN2-00016.json",
+        "transcript_path": "transcripts/VRSYN2-00016.txt",
+        "render_spec_path": "render_specs/VRSYN2-00016.json",
+        "document_sha256": "c5d297e1625e78e9be84947daa285f17a7a0f329273ea1cc1a6a98549fcb8e70",
+        "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+        "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00016__clean_pdf",
+        "record_id": "VRSYN2-00016__clean_pdf",
+        "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+        "receipt_id": "400d5a4f-0f89-5fec-83c9-86dd7a3f1959",
+        "reader_run_id": "2586cd0f-ca61-4f5d-8cdd-3f2f21dad516",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 26,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 12
+        },
+        "route": [
+          "PDF_OCR"
+        ],
+        "evidence_sha256": "d407f66b58ef35e6504bf6a8744ee901271af664005ecc66904660d3adb944d7",
+        "aligned_gold_sha256": "d6f0510c5b3d14b6e10e58fc4d1ed52a3401c2640dbda1b0c6bd02185e457c14",
+        "source": {
+          "path": "records/VRSYN2-00016__clean_pdf/source.pdf",
+          "sha256": "c5d297e1625e78e9be84947daa285f17a7a0f329273ea1cc1a6a98549fcb8e70"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00016__clean_pdf/source-gold.json",
+          "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00016__clean_pdf/source-regions.json",
+          "sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00016__clean_pdf/evidence.json",
+          "sha256": "d407f66b58ef35e6504bf6a8744ee901271af664005ecc66904660d3adb944d7"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00016__clean_pdf/aligned-gold-candidate.json",
+          "sha256": "d6f0510c5b3d14b6e10e58fc4d1ed52a3401c2640dbda1b0c6bd02185e457c14"
+        },
+        "source_sample_id": "VRSYN2-00016",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00016__clean_pdf/source-row-regions.json",
+          "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00016__clean_pdf/reader.log",
+          "sha256": "c55474df6fdb677955a3c9ab1f634bf9a646d099dbd85439db608adf7256b528"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00016__clean_pdf/reader-metadata.json",
+          "sha256": "77ea171f6caf44107d0eeae83a4606f593d9c0fa102003848290d40d7995087e"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00016__blur_png",
+      "path": "inputs/VRSYN2-00016__blur_png.png",
+      "condition": "blur_image",
+      "input_sha256": "2eaebf3fa02c8932e2efb1bb40c6a27acc6823f5d5533fbfda5a80b108356c11",
+      "receipt_id": "f19572be-5fa0-52cd-b9fe-33f63466a980",
+      "sample_id": "VRSYN2-00016",
+      "parent_sample_id": "VRSYN2-00016",
+      "variant_id": "VRSYN2-00016__blur_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+      "ground_truth_path": "sources/VRSYN2-00016__blur_png/source-gold.json",
+      "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+      "source_regions_path": "sources/VRSYN2-00016__blur_png/source-regions.json",
+      "source_regions_sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db",
+      "source_row_regions_path": "sources/VRSYN2-00016__blur_png/source-row-regions.json",
+      "source_row_regions_sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953",
+      "transcript_path": "transcripts/VRSYN2-00016.txt",
+      "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T6A\nSố hóa đơn: 00000016\nNgày lập: 2026-04-16\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000016\nĐịa chỉ người bán: 16 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003016\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nSổ tay văn phòng\nQuyển\n2\n18.000\n36.000\nSổ tay văn phòng\nQuyển\n3\n18.000\n54.000\nSổ tay văn phòng\nQuyển\n4\n18.000\n72.000\nMực máy in\nHộp\n2\n145.000\n290.000\nGiấy in A4\nRam\n6\n65.000\n390.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 842.000\nTiền thuế GTGT: 84.200\nTổng thanh toán: 926.200\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00016.txt",
+        "source_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00016__blur_png",
+        "base_document_id": "VRSYN2-00016",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00016",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00016",
+        "augmentation_type": "blur",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00016__blur.png",
+        "ground_truth_path": "labels/VRSYN2-00016.json",
+        "transcript_path": "transcripts/VRSYN2-00016.txt",
+        "render_spec_path": "render_specs/VRSYN2-00016.json",
+        "document_sha256": "2eaebf3fa02c8932e2efb1bb40c6a27acc6823f5d5533fbfda5a80b108356c11",
+        "ground_truth_sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069",
+        "transcript_sha256": "cb840fe07dc3e2e9226b36eb9e44d08cc96122dc172180405ec7cc0d1de1ff5c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00016__blur_png",
+        "record_id": "VRSYN2-00016__blur_png",
+        "source_receipt_id": "5d174476-72be-54db-bbd1-55362ddc2317",
+        "receipt_id": "f19572be-5fa0-52cd-b9fe-33f63466a980",
+        "reader_run_id": "c8c494a3-eec0-4cbf-b7cf-bb195b0c134b",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 25,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 13
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "3e7093e2919e250d740478d1974b81ac96168aa45b887503f3cd88338a1533f2",
+        "aligned_gold_sha256": "81bc512cce8b1ca3935a06e7735551307db15d228e69f641dfead3c70a31eb50",
+        "source": {
+          "path": "records/VRSYN2-00016__blur_png/source.png",
+          "sha256": "2eaebf3fa02c8932e2efb1bb40c6a27acc6823f5d5533fbfda5a80b108356c11"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00016__blur_png/source-gold.json",
+          "sha256": "0aa77ae4eeed4a1297f0bdd5dab647f4ccde4e947b44e3cd07d5035402777069"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00016__blur_png/source-regions.json",
+          "sha256": "24c19622c464a7cb7f376bc6d27f5e6cddf88f596aa3927c09a4c61147d151db"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00016__blur_png/evidence.json",
+          "sha256": "3e7093e2919e250d740478d1974b81ac96168aa45b887503f3cd88338a1533f2"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00016__blur_png/aligned-gold-candidate.json",
+          "sha256": "81bc512cce8b1ca3935a06e7735551307db15d228e69f641dfead3c70a31eb50"
+        },
+        "source_sample_id": "VRSYN2-00016",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00016__blur_png/source-row-regions.json",
+          "sha256": "15454bed6c63d9d85f69961ffd41d8cc42c9661bf9da0bc06e232c4888605953"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00016__blur_png/reader.log",
+          "sha256": "09beb4b0fc99ea3039805fda6d02914ad973a0c54c5577c0d26ac3907a9c2bf6"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00016__blur_png/reader-metadata.json",
+          "sha256": "40c8e4a0df3a8ff27730fa81471e5bfcfeee1157643d097b3e0af1660a753402"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00022__text_pdf",
+      "path": "inputs/VRSYN2-00022__text_pdf.pdf",
+      "condition": "clean_text_pdf",
+      "input_sha256": "c21443bfc0deda22f26074867775c956b926ed216c99e29c8b2f29b28b78ed28",
+      "receipt_id": "7fc962bc-7191-5574-924c-eb771647a776",
+      "sample_id": "VRSYN2-00022",
+      "parent_sample_id": "VRSYN2-00022",
+      "variant_id": "VRSYN2-00022__text_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+      "ground_truth_path": "sources/VRSYN2-00022__text_pdf/source-gold.json",
+      "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+      "source_regions_path": "sources/VRSYN2-00022__text_pdf/source-regions.json",
+      "source_regions_sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016",
+      "source_row_regions_path": "sources/VRSYN2-00022__text_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79",
+      "transcript_path": "transcripts/VRSYN2-00022.txt",
+      "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T2A\nSố hóa đơn: 00000022\nNgày lập: 2026-10-22\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000022\nĐịa chỉ người bán: 22 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003022\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n2\n12.000\n24.000\nBìa hồ sơ\nCái\n4\n7.000\n28.000\nBìa hồ sơ\nCái\n2\n7.000\n14.000\nGiấy in A4\nRam\n5\n65.000\n325.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 391.000\nTiền thuế GTGT: 19.550\nTổng thanh toán: 410.550\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00022.txt",
+        "source_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00022__text_pdf",
+        "base_document_id": "VRSYN2-00022",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00022",
+        "source_type": "text_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00022",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "documents/VRSYN2-00022.pdf",
+        "ground_truth_path": "labels/VRSYN2-00022.json",
+        "transcript_path": "transcripts/VRSYN2-00022.txt",
+        "render_spec_path": "render_specs/VRSYN2-00022.json",
+        "document_sha256": "c21443bfc0deda22f26074867775c956b926ed216c99e29c8b2f29b28b78ed28",
+        "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+        "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00022__text_pdf",
+        "record_id": "VRSYN2-00022__text_pdf",
+        "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+        "receipt_id": "7fc962bc-7191-5574-924c-eb771647a776",
+        "reader_run_id": "476cc543-8f03-4cc0-a54a-fd03c1b9b07a",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 33
+        },
+        "route": [
+          "PDF_TEXT"
+        ],
+        "evidence_sha256": "af6f683c1e78ffd2fe401e6807bb41ecb2e35e5ff2a08a0ffa80803a5e8424ea",
+        "aligned_gold_sha256": "11f2d6488416563b257e3bb8bf8c247457901bc2b7b31f4c7dff5bbc9e5f230f",
+        "source": {
+          "path": "records/VRSYN2-00022__text_pdf/source.pdf",
+          "sha256": "c21443bfc0deda22f26074867775c956b926ed216c99e29c8b2f29b28b78ed28"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00022__text_pdf/source-gold.json",
+          "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00022__text_pdf/source-regions.json",
+          "sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00022__text_pdf/evidence.json",
+          "sha256": "af6f683c1e78ffd2fe401e6807bb41ecb2e35e5ff2a08a0ffa80803a5e8424ea"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00022__text_pdf/aligned-gold-candidate.json",
+          "sha256": "11f2d6488416563b257e3bb8bf8c247457901bc2b7b31f4c7dff5bbc9e5f230f"
+        },
+        "source_sample_id": "VRSYN2-00022",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00022__text_pdf/source-row-regions.json",
+          "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00022__text_pdf/reader.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00022__text_pdf/reader-metadata.json",
+          "sha256": "ca6ac7884efd3b20fa04c76784216bc87dadf0032b3234b9c5fa79fd06d6f281"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00022__clean_png",
+      "path": "inputs/VRSYN2-00022__clean_png.png",
+      "condition": "clean_image",
+      "input_sha256": "c9b863971e232293b72ef45be0a4c423547d8e8cc87a9a0421abe970fe7608e9",
+      "receipt_id": "3f11e9d9-dd52-5d33-8fc3-b775d36b543d",
+      "sample_id": "VRSYN2-00022",
+      "parent_sample_id": "VRSYN2-00022",
+      "variant_id": "VRSYN2-00022__clean_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+      "ground_truth_path": "sources/VRSYN2-00022__clean_png/source-gold.json",
+      "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+      "source_regions_path": "sources/VRSYN2-00022__clean_png/source-regions.json",
+      "source_regions_sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016",
+      "source_row_regions_path": "sources/VRSYN2-00022__clean_png/source-row-regions.json",
+      "source_row_regions_sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79",
+      "transcript_path": "transcripts/VRSYN2-00022.txt",
+      "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T2A\nSố hóa đơn: 00000022\nNgày lập: 2026-10-22\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000022\nĐịa chỉ người bán: 22 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003022\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n2\n12.000\n24.000\nBìa hồ sơ\nCái\n4\n7.000\n28.000\nBìa hồ sơ\nCái\n2\n7.000\n14.000\nGiấy in A4\nRam\n5\n65.000\n325.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 391.000\nTiền thuế GTGT: 19.550\nTổng thanh toán: 410.550\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00022.txt",
+        "source_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00022__clean_png",
+        "base_document_id": "VRSYN2-00022",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00022",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00022",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00022__clean.png",
+        "ground_truth_path": "labels/VRSYN2-00022.json",
+        "transcript_path": "transcripts/VRSYN2-00022.txt",
+        "render_spec_path": "render_specs/VRSYN2-00022.json",
+        "document_sha256": "c9b863971e232293b72ef45be0a4c423547d8e8cc87a9a0421abe970fe7608e9",
+        "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+        "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00022__clean_png",
+        "record_id": "VRSYN2-00022__clean_png",
+        "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+        "receipt_id": "3f11e9d9-dd52-5d33-8fc3-b775d36b543d",
+        "reader_run_id": "e58bd219-2061-4667-9ea5-20db8ebbac19",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 22,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 11
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "93821044b2c7afa2534f132f937b14bfc390ceef0c84e6bbc48822b857d74767",
+        "aligned_gold_sha256": "6928acb137899ce0ad3431705972d365117dd26f6529e892c8af710e37c45cd7",
+        "source": {
+          "path": "records/VRSYN2-00022__clean_png/source.png",
+          "sha256": "c9b863971e232293b72ef45be0a4c423547d8e8cc87a9a0421abe970fe7608e9"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00022__clean_png/source-gold.json",
+          "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00022__clean_png/source-regions.json",
+          "sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00022__clean_png/evidence.json",
+          "sha256": "93821044b2c7afa2534f132f937b14bfc390ceef0c84e6bbc48822b857d74767"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00022__clean_png/aligned-gold-candidate.json",
+          "sha256": "6928acb137899ce0ad3431705972d365117dd26f6529e892c8af710e37c45cd7"
+        },
+        "source_sample_id": "VRSYN2-00022",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00022__clean_png/source-row-regions.json",
+          "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00022__clean_png/reader.log",
+          "sha256": "c66a4bddb5ff68720ea530ed90bd72ca176a9aa171a767e3a991d54d3d500971"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00022__clean_png/reader-metadata.json",
+          "sha256": "a81105c0fa7100b7890f7b4ebf9306ba84a1f28dd6f2c80696a5343a6253f271"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00022__clean_pdf",
+      "path": "inputs/VRSYN2-00022__clean_pdf.pdf",
+      "condition": "clean_scanned_pdf",
+      "input_sha256": "31622a1a237a410817a8e39849dc1621957828af669d54bd3913f50b46ba54d0",
+      "receipt_id": "83145be3-0dd1-5374-baeb-3108f3f34e1e",
+      "sample_id": "VRSYN2-00022",
+      "parent_sample_id": "VRSYN2-00022",
+      "variant_id": "VRSYN2-00022__clean_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+      "ground_truth_path": "sources/VRSYN2-00022__clean_pdf/source-gold.json",
+      "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+      "source_regions_path": "sources/VRSYN2-00022__clean_pdf/source-regions.json",
+      "source_regions_sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016",
+      "source_row_regions_path": "sources/VRSYN2-00022__clean_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79",
+      "transcript_path": "transcripts/VRSYN2-00022.txt",
+      "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T2A\nSố hóa đơn: 00000022\nNgày lập: 2026-10-22\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000022\nĐịa chỉ người bán: 22 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003022\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n2\n12.000\n24.000\nBìa hồ sơ\nCái\n4\n7.000\n28.000\nBìa hồ sơ\nCái\n2\n7.000\n14.000\nGiấy in A4\nRam\n5\n65.000\n325.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 391.000\nTiền thuế GTGT: 19.550\nTổng thanh toán: 410.550\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00022.txt",
+        "source_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00022__clean_pdf",
+        "base_document_id": "VRSYN2-00022",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00022",
+        "source_type": "scanned_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00022",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00022__clean.pdf",
+        "ground_truth_path": "labels/VRSYN2-00022.json",
+        "transcript_path": "transcripts/VRSYN2-00022.txt",
+        "render_spec_path": "render_specs/VRSYN2-00022.json",
+        "document_sha256": "31622a1a237a410817a8e39849dc1621957828af669d54bd3913f50b46ba54d0",
+        "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+        "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00022__clean_pdf",
+        "record_id": "VRSYN2-00022__clean_pdf",
+        "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+        "receipt_id": "83145be3-0dd1-5374-baeb-3108f3f34e1e",
+        "reader_run_id": "0ffa9e92-ff97-49f1-9590-476f22f943fb",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 22,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 11
+        },
+        "route": [
+          "PDF_OCR"
+        ],
+        "evidence_sha256": "4a67af5e0c144537b51af829c4be3ae9ce24070e7068f564145d5b622f8778d5",
+        "aligned_gold_sha256": "18b168599a3decbdde0408ed9858059f70cd2631c158a6489a69046fd2c8457f",
+        "source": {
+          "path": "records/VRSYN2-00022__clean_pdf/source.pdf",
+          "sha256": "31622a1a237a410817a8e39849dc1621957828af669d54bd3913f50b46ba54d0"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00022__clean_pdf/source-gold.json",
+          "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00022__clean_pdf/source-regions.json",
+          "sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00022__clean_pdf/evidence.json",
+          "sha256": "4a67af5e0c144537b51af829c4be3ae9ce24070e7068f564145d5b622f8778d5"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00022__clean_pdf/aligned-gold-candidate.json",
+          "sha256": "18b168599a3decbdde0408ed9858059f70cd2631c158a6489a69046fd2c8457f"
+        },
+        "source_sample_id": "VRSYN2-00022",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00022__clean_pdf/source-row-regions.json",
+          "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00022__clean_pdf/reader.log",
+          "sha256": "6bd2a9bed0542426dafbe827929d5d2f5140f4c8635d8d16112ee4a926221c48"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00022__clean_pdf/reader-metadata.json",
+          "sha256": "793c054778a3d3f424f916c630ed689e89551453e556782da793852a7d715aba"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00022__blur_png",
+      "path": "inputs/VRSYN2-00022__blur_png.png",
+      "condition": "blur_image",
+      "input_sha256": "ee7b2afc20c8e0747f0163190b3852acef0a365eddef5454f8cb3912e060ccd7",
+      "receipt_id": "851f9de5-904a-5f86-933d-e6c80aaefceb",
+      "sample_id": "VRSYN2-00022",
+      "parent_sample_id": "VRSYN2-00022",
+      "variant_id": "VRSYN2-00022__blur_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+      "ground_truth_path": "sources/VRSYN2-00022__blur_png/source-gold.json",
+      "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+      "source_regions_path": "sources/VRSYN2-00022__blur_png/source-regions.json",
+      "source_regions_sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016",
+      "source_row_regions_path": "sources/VRSYN2-00022__blur_png/source-row-regions.json",
+      "source_row_regions_sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79",
+      "transcript_path": "transcripts/VRSYN2-00022.txt",
+      "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T2A\nSố hóa đơn: 00000022\nNgày lập: 2026-10-22\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000022\nĐịa chỉ người bán: 22 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003022\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nDịch vụ in tài liệu\nLần\n2\n12.000\n24.000\nBìa hồ sơ\nCái\n4\n7.000\n28.000\nBìa hồ sơ\nCái\n2\n7.000\n14.000\nGiấy in A4\nRam\n5\n65.000\n325.000\nThuế suất GTGT: 5%\nCộng tiền hàng: 391.000\nTiền thuế GTGT: 19.550\nTổng thanh toán: 410.550\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00022.txt",
+        "source_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00022__blur_png",
+        "base_document_id": "VRSYN2-00022",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00022",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00022",
+        "augmentation_type": "blur",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00022__blur.png",
+        "ground_truth_path": "labels/VRSYN2-00022.json",
+        "transcript_path": "transcripts/VRSYN2-00022.txt",
+        "render_spec_path": "render_specs/VRSYN2-00022.json",
+        "document_sha256": "ee7b2afc20c8e0747f0163190b3852acef0a365eddef5454f8cb3912e060ccd7",
+        "ground_truth_sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2",
+        "transcript_sha256": "4eb7b073ca1e88f647c999c4f0727a9ddfe07ea37b5eb223727315776ab27b0c",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00022__blur_png",
+        "record_id": "VRSYN2-00022__blur_png",
+        "source_receipt_id": "24d0accb-5cf2-5383-865a-c72048a6eafd",
+        "receipt_id": "851f9de5-904a-5f86-933d-e6c80aaefceb",
+        "reader_run_id": "bd3b9676-42b8-4b61-b5f1-6e907f6429fd",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 23,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 10
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "0500398f64077fe67c5386b74e58dc63c4e6082a69ab8414805899d0fb1d0cb3",
+        "aligned_gold_sha256": "25c7b952bf8b0429f0b9f5819125860477727b1db5c7a52655ef9385c1528a57",
+        "source": {
+          "path": "records/VRSYN2-00022__blur_png/source.png",
+          "sha256": "ee7b2afc20c8e0747f0163190b3852acef0a365eddef5454f8cb3912e060ccd7"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00022__blur_png/source-gold.json",
+          "sha256": "5221f51a10c9ad92186d8ec6bb973c32b08de92e1ccc05d899a66ea900fffbc2"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00022__blur_png/source-regions.json",
+          "sha256": "31e3eab20ff58c0dfff6025c0dcde1913f538da484c8b045a34107a6b5c8b016"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00022__blur_png/evidence.json",
+          "sha256": "0500398f64077fe67c5386b74e58dc63c4e6082a69ab8414805899d0fb1d0cb3"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00022__blur_png/aligned-gold-candidate.json",
+          "sha256": "25c7b952bf8b0429f0b9f5819125860477727b1db5c7a52655ef9385c1528a57"
+        },
+        "source_sample_id": "VRSYN2-00022",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00022__blur_png/source-row-regions.json",
+          "sha256": "8df7ec32c6338cf40e734d77cc582fe75c2aa534dc2b81a797a970876fa18a79"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00022__blur_png/reader.log",
+          "sha256": "de175b8525a36a3ca59a4f00f62f37fb5e8a7623047df8fce2844c05f0712e07"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00022__blur_png/reader-metadata.json",
+          "sha256": "3183522e1d1f17e284a4a2b68f1d677a46718b9b6284537ee3ffa26e733c0652"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00028__text_pdf",
+      "path": "inputs/VRSYN2-00028__text_pdf.pdf",
+      "condition": "clean_text_pdf",
+      "input_sha256": "8d6972838afbfa183dbea1dd9e56ae33ef98d6df599e5c239f9f7a8499b3313b",
+      "receipt_id": "0b207647-3bb3-5c05-929e-dc2a428394b9",
+      "sample_id": "VRSYN2-00028",
+      "parent_sample_id": "VRSYN2-00028",
+      "variant_id": "VRSYN2-00028__text_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+      "ground_truth_path": "sources/VRSYN2-00028__text_pdf/source-gold.json",
+      "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+      "source_regions_path": "sources/VRSYN2-00028__text_pdf/source-regions.json",
+      "source_regions_sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4",
+      "source_row_regions_path": "sources/VRSYN2-00028__text_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59",
+      "transcript_path": "transcripts/VRSYN2-00028.txt",
+      "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T8A\nSố hóa đơn: 00000028\nNgày lập: 2026-04-01\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000028\nĐịa chỉ người bán: 28 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003028\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nBút bi xanh\nCây\n5\n5.000\n25.000\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 67.000\nTiền thuế GTGT: 6.700\nTổng thanh toán: 73.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00028.txt",
+        "source_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00028__text_pdf",
+        "base_document_id": "VRSYN2-00028",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00028",
+        "source_type": "text_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00028",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "documents/VRSYN2-00028.pdf",
+        "ground_truth_path": "labels/VRSYN2-00028.json",
+        "transcript_path": "transcripts/VRSYN2-00028.txt",
+        "render_spec_path": "render_specs/VRSYN2-00028.json",
+        "document_sha256": "8d6972838afbfa183dbea1dd9e56ae33ef98d6df599e5c239f9f7a8499b3313b",
+        "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+        "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00028__text_pdf",
+        "record_id": "VRSYN2-00028__text_pdf",
+        "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+        "receipt_id": "0b207647-3bb3-5c05-929e-dc2a428394b9",
+        "reader_run_id": "492cd79d-d41d-4f1a-a31f-38c48f9b91c6",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 28
+        },
+        "route": [
+          "PDF_TEXT"
+        ],
+        "evidence_sha256": "3e98bc8f51977ebe528c3a5a73691de50823956c16a4ad00587753daa5fd04c1",
+        "aligned_gold_sha256": "242d7f69dec7e063ff42a463b76358750d3b7a0a6e5b930386087fb097efe951",
+        "source": {
+          "path": "records/VRSYN2-00028__text_pdf/source.pdf",
+          "sha256": "8d6972838afbfa183dbea1dd9e56ae33ef98d6df599e5c239f9f7a8499b3313b"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00028__text_pdf/source-gold.json",
+          "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00028__text_pdf/source-regions.json",
+          "sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00028__text_pdf/evidence.json",
+          "sha256": "3e98bc8f51977ebe528c3a5a73691de50823956c16a4ad00587753daa5fd04c1"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00028__text_pdf/aligned-gold-candidate.json",
+          "sha256": "242d7f69dec7e063ff42a463b76358750d3b7a0a6e5b930386087fb097efe951"
+        },
+        "source_sample_id": "VRSYN2-00028",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00028__text_pdf/source-row-regions.json",
+          "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00028__text_pdf/reader.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00028__text_pdf/reader-metadata.json",
+          "sha256": "5075955a6774ad6350ef947c43176a8944a3008abfd71ee9c9f22e918ef9147e"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00028__clean_png",
+      "path": "inputs/VRSYN2-00028__clean_png.png",
+      "condition": "clean_image",
+      "input_sha256": "b7d82a81bd9ceece387a2a0873b4f59e989c5b3a1a2e04271b54181db3e071d6",
+      "receipt_id": "8736ea8a-1631-5cdd-a5c6-79c1d5f1617d",
+      "sample_id": "VRSYN2-00028",
+      "parent_sample_id": "VRSYN2-00028",
+      "variant_id": "VRSYN2-00028__clean_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+      "ground_truth_path": "sources/VRSYN2-00028__clean_png/source-gold.json",
+      "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+      "source_regions_path": "sources/VRSYN2-00028__clean_png/source-regions.json",
+      "source_regions_sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4",
+      "source_row_regions_path": "sources/VRSYN2-00028__clean_png/source-row-regions.json",
+      "source_row_regions_sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59",
+      "transcript_path": "transcripts/VRSYN2-00028.txt",
+      "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T8A\nSố hóa đơn: 00000028\nNgày lập: 2026-04-01\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000028\nĐịa chỉ người bán: 28 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003028\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nBút bi xanh\nCây\n5\n5.000\n25.000\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 67.000\nTiền thuế GTGT: 6.700\nTổng thanh toán: 73.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00028.txt",
+        "source_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00028__clean_png",
+        "base_document_id": "VRSYN2-00028",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00028",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00028",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00028__clean.png",
+        "ground_truth_path": "labels/VRSYN2-00028.json",
+        "transcript_path": "transcripts/VRSYN2-00028.txt",
+        "render_spec_path": "render_specs/VRSYN2-00028.json",
+        "document_sha256": "b7d82a81bd9ceece387a2a0873b4f59e989c5b3a1a2e04271b54181db3e071d6",
+        "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+        "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00028__clean_png",
+        "record_id": "VRSYN2-00028__clean_png",
+        "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+        "receipt_id": "8736ea8a-1631-5cdd-a5c6-79c1d5f1617d",
+        "reader_run_id": "083e21c8-67a2-4284-ac24-241dc61b0d22",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 18,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 10
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "dc298e5b53cd4151fa7b9e31851ae4e8351c8a5ba6200c531398c4a6b70d1e83",
+        "aligned_gold_sha256": "af31e9d9b3fad982b97de4526132c033734b69170a0d12be003e21cc924bfb00",
+        "source": {
+          "path": "records/VRSYN2-00028__clean_png/source.png",
+          "sha256": "b7d82a81bd9ceece387a2a0873b4f59e989c5b3a1a2e04271b54181db3e071d6"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00028__clean_png/source-gold.json",
+          "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00028__clean_png/source-regions.json",
+          "sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00028__clean_png/evidence.json",
+          "sha256": "dc298e5b53cd4151fa7b9e31851ae4e8351c8a5ba6200c531398c4a6b70d1e83"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00028__clean_png/aligned-gold-candidate.json",
+          "sha256": "af31e9d9b3fad982b97de4526132c033734b69170a0d12be003e21cc924bfb00"
+        },
+        "source_sample_id": "VRSYN2-00028",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00028__clean_png/source-row-regions.json",
+          "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00028__clean_png/reader.log",
+          "sha256": "d75cf4822268b35bc1fb20c730d982594fa32e70e3c159eec130e2cbc11d94e8"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00028__clean_png/reader-metadata.json",
+          "sha256": "fbbffa4f9dea2303a59b56548dbc3c7f4f62d6650cbda2272baab4221dcb06a0"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00028__clean_pdf",
+      "path": "inputs/VRSYN2-00028__clean_pdf.pdf",
+      "condition": "clean_scanned_pdf",
+      "input_sha256": "3f67f89287304c0f82cd4da02b339f45ba313c64b8f19a04ff882708f0feb402",
+      "receipt_id": "0b97fa60-d93a-5554-b734-252a7838eca6",
+      "sample_id": "VRSYN2-00028",
+      "parent_sample_id": "VRSYN2-00028",
+      "variant_id": "VRSYN2-00028__clean_pdf",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+      "ground_truth_path": "sources/VRSYN2-00028__clean_pdf/source-gold.json",
+      "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+      "source_regions_path": "sources/VRSYN2-00028__clean_pdf/source-regions.json",
+      "source_regions_sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4",
+      "source_row_regions_path": "sources/VRSYN2-00028__clean_pdf/source-row-regions.json",
+      "source_row_regions_sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59",
+      "transcript_path": "transcripts/VRSYN2-00028.txt",
+      "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T8A\nSố hóa đơn: 00000028\nNgày lập: 2026-04-01\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000028\nĐịa chỉ người bán: 28 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003028\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nBút bi xanh\nCây\n5\n5.000\n25.000\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 67.000\nTiền thuế GTGT: 6.700\nTổng thanh toán: 73.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00028.txt",
+        "source_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00028__clean_pdf",
+        "base_document_id": "VRSYN2-00028",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00028",
+        "source_type": "scanned_pdf",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00028",
+        "augmentation_type": "clean",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00028__clean.pdf",
+        "ground_truth_path": "labels/VRSYN2-00028.json",
+        "transcript_path": "transcripts/VRSYN2-00028.txt",
+        "render_spec_path": "render_specs/VRSYN2-00028.json",
+        "document_sha256": "3f67f89287304c0f82cd4da02b339f45ba313c64b8f19a04ff882708f0feb402",
+        "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+        "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00028__clean_pdf",
+        "record_id": "VRSYN2-00028__clean_pdf",
+        "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+        "receipt_id": "0b97fa60-d93a-5554-b734-252a7838eca6",
+        "reader_run_id": "bfc3b55f-b311-4554-9440-997d16ec54f4",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 18,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 10
+        },
+        "route": [
+          "PDF_OCR"
+        ],
+        "evidence_sha256": "13d503bb793957d7cba04a52d7fc0784046f3961f18034814970a6467713fdb7",
+        "aligned_gold_sha256": "52c8ad85d2a912ece2394a74a81b9fb6d86c5db59a881ff5a284c0c8f58befe3",
+        "source": {
+          "path": "records/VRSYN2-00028__clean_pdf/source.pdf",
+          "sha256": "3f67f89287304c0f82cd4da02b339f45ba313c64b8f19a04ff882708f0feb402"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00028__clean_pdf/source-gold.json",
+          "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00028__clean_pdf/source-regions.json",
+          "sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00028__clean_pdf/evidence.json",
+          "sha256": "13d503bb793957d7cba04a52d7fc0784046f3961f18034814970a6467713fdb7"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00028__clean_pdf/aligned-gold-candidate.json",
+          "sha256": "52c8ad85d2a912ece2394a74a81b9fb6d86c5db59a881ff5a284c0c8f58befe3"
+        },
+        "source_sample_id": "VRSYN2-00028",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00028__clean_pdf/source-row-regions.json",
+          "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00028__clean_pdf/reader.log",
+          "sha256": "1968e2d6d6c0183fe88c33b9e44af94fbcad02b75b5eeeab78d1b15abdc48748"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00028__clean_pdf/reader-metadata.json",
+          "sha256": "7c48f98844a897331c4088758a62eef93409cae622a9be6fc67e7a90c4190cbc"
+        }
+      }
+    },
+    {
+      "id": "VRSYN2-00028__blur_png",
+      "path": "inputs/VRSYN2-00028__blur_png.png",
+      "condition": "blur_image",
+      "input_sha256": "ffd80fac9f85db4580d72d264c70a7cc647227e4af326dca3123ca3d03830347",
+      "receipt_id": "818aa223-2679-590d-a194-4d7db5666d4a",
+      "sample_id": "VRSYN2-00028",
+      "parent_sample_id": "VRSYN2-00028",
+      "variant_id": "VRSYN2-00028__blur_png",
+      "layout_id": "table_heavy",
+      "source_split": "validation",
+      "source_commit": "89281198ebaf419e511b4c99321ca3355e94fcf1",
+      "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+      "ground_truth_path": "sources/VRSYN2-00028__blur_png/source-gold.json",
+      "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+      "source_regions_path": "sources/VRSYN2-00028__blur_png/source-regions.json",
+      "source_regions_sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4",
+      "source_row_regions_path": "sources/VRSYN2-00028__blur_png/source-row-regions.json",
+      "source_row_regions_sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59",
+      "transcript_path": "transcripts/VRSYN2-00028.txt",
+      "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+      "reference": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG\nMẫu số: 1\nKý hiệu: C26T8A\nSố hóa đơn: 00000028\nNgày lập: 2026-04-01\nĐơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT\nMST người bán: 0000000028\nĐịa chỉ người bán: 28 Đường Mẫu, Thành phố Hà Nội\nNgười mua: KHÁCH HÀNG THỬ NGHIỆM\nMST người mua: 0000003028\nTên hàng / dịch vụ\nĐVT\nSL\nĐơn giá\nThành tiền\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nBút bi xanh\nCây\n5\n5.000\n25.000\nBìa hồ sơ\nCái\n3\n7.000\n21.000\nThuế suất GTGT: 10%\nCộng tiền hàng: 67.000\nTiền thuế GTGT: 6.700\nTổng thanh toán: 73.700\nTiền tệ: VND\nDỮ LIỆU GIẢ LẬP - KHÔNG CÓ GIÁ TRỊ THANH TOÁN\n",
+      "reference_status": "synthetic_source_transcript_unreviewed",
+      "reference_provenance": {
+        "method": "TV2 published visible source transcript; registry hash matched",
+        "source_path": "transcripts/VRSYN2-00028.txt",
+        "source_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "human_verified": false,
+        "not_derived_from": [
+          "OCR",
+          "KIE predictions",
+          "PDF direct text"
+        ]
+      },
+      "source": {
+        "sample_id": "VRSYN2-00028__blur_png",
+        "base_document_id": "VRSYN2-00028",
+        "dataset_family": "vietreceipt_synthetic",
+        "dataset_version": "0.2.0",
+        "original_sample_id": "VRSYN2-00028",
+        "source_type": "image",
+        "synthetic": "true",
+        "split": "validation",
+        "template_id": "table_heavy",
+        "layout_id": "table_heavy",
+        "parent_sample_id": "VRSYN2-00028",
+        "augmentation_type": "blur",
+        "annotation_version": "2.0",
+        "mapping_version": "source-spatial-candidate-0.3",
+        "document_path": "rendered/VRSYN2-00028__blur.png",
+        "ground_truth_path": "labels/VRSYN2-00028.json",
+        "transcript_path": "transcripts/VRSYN2-00028.txt",
+        "render_spec_path": "render_specs/VRSYN2-00028.json",
+        "document_sha256": "ffd80fac9f85db4580d72d264c70a7cc647227e4af326dca3123ca3d03830347",
+        "ground_truth_sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339",
+        "transcript_sha256": "0ce5de8dec40850e5fc38b20479d1d47e62c23605a971c33862b787f61a6348d",
+        "annotation_role": "source_gold_unlinked",
+        "final_eligible": "false",
+        "variant_id": "VRSYN2-00028__blur_png",
+        "record_id": "VRSYN2-00028__blur_png",
+        "source_receipt_id": "08162d8f-c0a7-5636-a23d-43d862920ac8",
+        "receipt_id": "818aa223-2679-590d-a194-4d7db5666d4a",
+        "reader_run_id": "6540de28-952c-46fb-aedd-ebf8b111d1bb",
+        "qa_status": "PENDING_REVIEW",
+        "license": "team-generated fictional synthetic",
+        "reader_status": "SUCCESS",
+        "alignment_status": "COMPLETE_CANDIDATE",
+        "alignment_counts": {
+          "CANDIDATE_REQUIRES_REVIEW": 19,
+          "SPATIAL_CANDIDATE_REQUIRES_REVIEW": 9
+        },
+        "route": [
+          "IMAGE_OCR"
+        ],
+        "evidence_sha256": "769b1b63a1dfc4440b3f3b8d58bb97b4923882146877370bc6fbce9f8a35a66b",
+        "aligned_gold_sha256": "441bc26690814efc61e2e526f3862c90009469b966ad63561e01c1669d84df82",
+        "source": {
+          "path": "records/VRSYN2-00028__blur_png/source.png",
+          "sha256": "ffd80fac9f85db4580d72d264c70a7cc647227e4af326dca3123ca3d03830347"
+        },
+        "source_gold": {
+          "path": "records/VRSYN2-00028__blur_png/source-gold.json",
+          "sha256": "81c089e65816eeacc9ec87ec41ca30d5d8713b72dff6a80c44c197a73de42339"
+        },
+        "source_regions": {
+          "path": "records/VRSYN2-00028__blur_png/source-regions.json",
+          "sha256": "8ef511350896377c386d526e3c3f1736ce049d58e2eb582fe1b73323f5da58f4"
+        },
+        "evidence": {
+          "path": "records/VRSYN2-00028__blur_png/evidence.json",
+          "sha256": "769b1b63a1dfc4440b3f3b8d58bb97b4923882146877370bc6fbce9f8a35a66b"
+        },
+        "gold": {
+          "path": "records/VRSYN2-00028__blur_png/aligned-gold-candidate.json",
+          "sha256": "441bc26690814efc61e2e526f3862c90009469b966ad63561e01c1669d84df82"
+        },
+        "source_sample_id": "VRSYN2-00028",
+        "source_row_regions": {
+          "path": "records/VRSYN2-00028__blur_png/source-row-regions.json",
+          "sha256": "61652ea3a54a879fa9b9cdd8accf994ba7d124fa348d64c41f57ec6a78004e59"
+        },
+        "reader_log": {
+          "path": "records/VRSYN2-00028__blur_png/reader.log",
+          "sha256": "3a5b05e73a5d013eb59d51cbab6953fec27d2013e9d9b344ced04b40f9b42650"
+        },
+        "reader_metadata": {
+          "path": "records/VRSYN2-00028__blur_png/reader-metadata.json",
+          "sha256": "5392cbdb9cc934ee9b1aae0c3f27e83b3ce7da3f9e952c76ae8d7650035873d3"
+        }
+      }
+    }
+  ]
+}

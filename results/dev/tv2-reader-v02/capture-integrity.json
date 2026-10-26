@@ -1,0 +1,18 @@
+{
+  "modes": {
+    "ocr_all": {
+      "git_commit": "f22a4f7974e9512052bcfdc584c7a5ea8e6a2cae",
+      "git_dirty": true,
+      "manifest_sha256": "16e3979f61d69a8ad471c063f19ebc0d8e891d4538d137991769606730ba0c3b",
+      "inference_snapshot_hashes_match": true
+    },
+    "route_aware": {
+      "git_commit": "f22a4f7974e9512052bcfdc584c7a5ea8e6a2cae",
+      "git_dirty": true,
+      "manifest_sha256": "16e3979f61d69a8ad471c063f19ebc0d8e891d4538d137991769606730ba0c3b",
+      "inference_snapshot_hashes_match": true
+    }
+  },
+  "primary_manifest_unchanged": true,
+  "source_policy": "Snapshots are the actual inference source; later manifest guards are software fixes, not a rerun."
+}

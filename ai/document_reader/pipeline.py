@@ -228,7 +228,10 @@ class DocumentReader:
                         self._check_size(*source.size)
                         image = ImageOps.exif_transpose(source).convert("RGB")
                     evidence, meta = self._image(image, receipt_id, ocr_run_id)
-                    pages, metadata = [evidence], [dict(meta, source="IMAGE_OCR")]
+                    pages, metadata = [evidence], [dict(
+                        meta, source="IMAGE_OCR", routing_reason="image_input", fallback=False,
+                        coordinate_system="normalized_exif_display_top_left",
+                    )]
                 except (
                     UnidentifiedImageError,
                     OSError,
@@ -270,6 +273,7 @@ class DocumentReader:
             )
 
     def _image(self, image, receipt_id, run_id):
+        started = time.perf_counter()
         width, height = image.size
         self._check_size(width, height)
         if self.config.max_side and max(image.size) > self.config.max_side:
@@ -281,6 +285,7 @@ class DocumentReader:
             self._orientation(image) if self.config.orientation == "auto" else (0, None)
         )
         rotated = image.rotate(-angle, expand=True) if angle else image
+        ocr_started = time.perf_counter()
         try:
             result = self.ocr.run_ocr(rotated, receipt_id=receipt_id, ocr_run_id=run_id)
         except Exception as exc:
@@ -289,6 +294,7 @@ class DocumentReader:
                 "OCR engine failed; inspect worker diagnostics",
                 retryable=True,
             ) from exc
+        ocr_ms = (time.perf_counter() - ocr_started) * 1000
         result["blocks"] = _reading_order(result["blocks"])
         for block in result["blocks"]:
             block["text"] = _clean_text(block["text"]).strip()
@@ -308,6 +314,12 @@ class DocumentReader:
             "engine": result["engine"],
             "width_px": width,
             "height_px": height,
+            "confidence_semantics": "engine_score_not_calibrated_probability",
+            "stage_latency_ms": {
+                "preprocess_orientation": (ocr_started - started) * 1000,
+                "ocr": ocr_ms,
+                "geometry_order": (time.perf_counter() - ocr_started) * 1000 - ocr_ms,
+            },
         }
 
     def _orientation(self, image):
@@ -374,7 +386,11 @@ class DocumentReader:
                         math.ceil(width * scale), math.ceil(height * scale)
                     )
                     start = time.perf_counter()
-                    blocks, usable = self._pdf_text(page)
+                    # The OCR-all comparator must bypass text extraction entirely.
+                    # Otherwise a malformed/oversized text layer can prevent OCR.
+                    blocks, usable = ([], False) if self.config.force_pdf_ocr else self._pdf_text(page)
+                    text_ms = (time.perf_counter() - start) * 1000
+                    render_ms = 0.0
                     if usable and not self.config.force_pdf_ocr:
                         evidence = {
                             "schema_version": "1.3",
@@ -397,6 +413,7 @@ class DocumentReader:
                             "confidence_semantics": "not_applicable_legacy_sentinel_1",
                         }
                     else:
+                        render_started = time.perf_counter()
                         try:
                             with closing(page.render(scale=scale)) as bitmap:
                                 image = bitmap.to_pil().convert("RGB")
@@ -404,8 +421,19 @@ class DocumentReader:
                             raise ReaderError(
                                 "PDF_RENDER_FAILED", "PDF page cannot be rendered"
                             ) from exc
+                        render_ms = (time.perf_counter() - render_started) * 1000
                         evidence, meta = self._image(image, receipt_id, run_id)
                         meta["source"] = "PDF_OCR"
+                    stages = dict(meta.get("stage_latency_ms", {}))
+                    stages.update(pdf_text=text_ms, render=render_ms)
+                    meta.update(
+                        stage_latency_ms=stages,
+                        page_duration_ms=(time.perf_counter() - start) * 1000,
+                        routing_reason=("forced_ocr" if self.config.force_pdf_ocr else
+                                        "usable_text_layer" if usable else "unusable_text_layer"),
+                        fallback=not usable and not self.config.force_pdf_ocr,
+                        coordinate_system="normalized_crop_unrotated_top_left",
+                    )
                     pages.append(evidence)
                     metadata.append(
                         dict(

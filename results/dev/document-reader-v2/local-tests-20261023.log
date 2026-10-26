@@ -1,0 +1,10 @@
+text: ok CER=0.8205128205128205 WER=1.0
+bad: failed CER=1.0 WER=1.0
+text: ok CER=0.0 WER=0.0
+bad: failed CER=1.0 WER=1.0
+bad: failed CER=1.0 WER=1.0
+good: ok CER=None WER=None
+----------------------------------------------------------------------
+Ran 81 tests in 5.581s
+
+OK

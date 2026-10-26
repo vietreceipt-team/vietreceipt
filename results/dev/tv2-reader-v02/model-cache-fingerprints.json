@@ -1,0 +1,191 @@
+{
+  "scope": "Cache byte fingerprint after capture; model names are also in inference log/config. Weights are not redistributed.",
+  "models": {
+    "PP-LCNet_x1_0_doc_ori": {
+      ".cache/huggingface/.gitignore": {
+        "sha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+        "bytes": 1
+      },
+      ".cache/huggingface/CACHEDIR.TAG": {
+        "sha256": "e8893e2dcb3f4545ef67a0a5b7b769113d38eef1aa61c7c7ba14659b02af955f",
+        "bytes": 195
+      },
+      ".cache/huggingface/download/.gitattributes.metadata": {
+        "sha256": "cc1d2db4e38ee4848dc5826ba4094869c86985dd12008dd249914d22ee27866b",
+        "bytes": 103
+      },
+      ".cache/huggingface/download/config.json.metadata": {
+        "sha256": "56c05d2657458a54ad83fc2ee7d22cb3a357f12ab2a8a0f5c0d413a74fac176f",
+        "bytes": 103
+      },
+      ".cache/huggingface/download/inference.json.metadata": {
+        "sha256": "d1ed47736c001152dd1ba0b51808c7db002df7562504381ff22cbbe5dd2bf883",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/inference.pdiparams.metadata": {
+        "sha256": "24f68ac6ec43841431d20cb82175f6f48d2b2197a16e2f88b612c89947afa4c7",
+        "bytes": 128
+      },
+      ".cache/huggingface/download/inference.yml.metadata": {
+        "sha256": "ba7cb04f34356881f3950326bc989e393c9d9fde8c33084eeeb8a5f99878254e",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/README.md.metadata": {
+        "sha256": "59a8ba982e3154d773a0fadf607aade7b1a6d6ef6d1aa061af49d91706246e91",
+        "bytes": 104
+      },
+      ".cache/huggingface/trees/d3b95a6dff5fe8a94f2748e12b61cb26818a0df8.json": {
+        "sha256": "0633bf777f159fdf67117850deca189c1e45ff17b608d395dd3f198839b089bb",
+        "bytes": 868
+      },
+      ".gitattributes": {
+        "sha256": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
+        "bytes": 1575
+      },
+      "config.json": {
+        "sha256": "e49f6be2fe4034232b05fb80d983a7b9bde4592d4a52812129c9a348057d3147",
+        "bytes": 2561
+      },
+      "inference.json": {
+        "sha256": "3580978602f309c3554508dd85d4fe09b73a7e0d80d7f9e63258f5b72c390c69",
+        "bytes": 104441
+      },
+      "inference.pdiparams": {
+        "sha256": "e8d6e7c5d264507e40e58a655779059d616b20d7441ea22047d829eb3931989c",
+        "bytes": 6754166
+      },
+      "inference.yml": {
+        "sha256": "9e195eb729a8173588cd0e8a852c8b373aa606e79e77b4ac7d8346f5426caf26",
+        "bytes": 766
+      },
+      "README.md": {
+        "sha256": "e38ea9c16eba0e14e12216418085e8974481d7c0fc3aed4e7df5cf1869c2c97a",
+        "bytes": 6850
+      }
+    },
+    "PP-OCRv3_mobile_det": {
+      ".cache/huggingface/.gitignore": {
+        "sha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+        "bytes": 1
+      },
+      ".cache/huggingface/CACHEDIR.TAG": {
+        "sha256": "e8893e2dcb3f4545ef67a0a5b7b769113d38eef1aa61c7c7ba14659b02af955f",
+        "bytes": 195
+      },
+      ".cache/huggingface/download/.gitattributes.metadata": {
+        "sha256": "3f9d928b7567aa99349f4aa21cd69dab1d0c3f28802a1b68f080450fce0b84ff",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/config.json.metadata": {
+        "sha256": "6743a826bf737920bf4d82c3bb31955e4cfc80ab436d0703bde87d16816a8746",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/inference.json.metadata": {
+        "sha256": "a68da16f8d3c5be60c6456de2c07af204ca4c38cd830aff66562f9d9e8d73943",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/inference.pdiparams.metadata": {
+        "sha256": "c6a00604e14bf422c5f73f5630715df25277d5c59bbeba5dd9babbc911f129ae",
+        "bytes": 127
+      },
+      ".cache/huggingface/download/inference.yml.metadata": {
+        "sha256": "0f59da721322c410a2e64406433330892f0d1c29702143344d6bd04797196c12",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/README.md.metadata": {
+        "sha256": "8cd445837e7fbf6516eb151aad6239168306221c64389397b2ff498c461802e9",
+        "bytes": 104
+      },
+      ".cache/huggingface/trees/58f4e5b132e34e516486fb0d0266c662feb48ca1.json": {
+        "sha256": "d8ea37b7d4ce41966db2889b27ae34066051cd1a3a56851adf94f62019c00403",
+        "bytes": 869
+      },
+      ".gitattributes": {
+        "sha256": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
+        "bytes": 1575
+      },
+      "config.json": {
+        "sha256": "c9d07ea65624c3df541a634a302fe76d53baecf98b5ee9678910b955638d7d80",
+        "bytes": 2817
+      },
+      "inference.json": {
+        "sha256": "26c59bd5c5bea8b63efecb9115c35b7eea300081bd8703dc464da4aa19825b98",
+        "bytes": 221079
+      },
+      "inference.pdiparams": {
+        "sha256": "7e9518c6ab706fe87842a8de1c098f990e67f9212b67c9ef8bc4bca6dc17b91a",
+        "bytes": 2377917
+      },
+      "inference.yml": {
+        "sha256": "ccfc8b069bb0d5505ecefa6defc54140c10bf0194fde5395aba0a1a99e5ea90f",
+        "bytes": 885
+      },
+      "README.md": {
+        "sha256": "b56d9e9d1a85aa59a69db6f5e546e69897a8c9e85d0b2076953402a7607eacc1",
+        "bytes": 12268
+      }
+    },
+    "latin_PP-OCRv3_mobile_rec": {
+      ".cache/huggingface/.gitignore": {
+        "sha256": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+        "bytes": 1
+      },
+      ".cache/huggingface/CACHEDIR.TAG": {
+        "sha256": "e8893e2dcb3f4545ef67a0a5b7b769113d38eef1aa61c7c7ba14659b02af955f",
+        "bytes": 195
+      },
+      ".cache/huggingface/download/.gitattributes.metadata": {
+        "sha256": "a6cba92782ead91676ab8a010c31478839e28cb577ebd05ec4b4c22403300d83",
+        "bytes": 103
+      },
+      ".cache/huggingface/download/config.json.metadata": {
+        "sha256": "a6d374b3804a7f0768825a7debf04d0152d7403625eabe4224dfa8a5151699a4",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/inference.json.metadata": {
+        "sha256": "0ee4d28c42fdd16d46c87beb8545580f40a970b30cd8126b5ff1bedf4b54a736",
+        "bytes": 103
+      },
+      ".cache/huggingface/download/inference.pdiparams.metadata": {
+        "sha256": "e732b4c61602c7bad3bbb93f1a6078140aedfda30f0b40927f9d40a0442d96a5",
+        "bytes": 128
+      },
+      ".cache/huggingface/download/inference.yml.metadata": {
+        "sha256": "0030c385977af12bc932eecfdf541719c7b260bb768c90b137c12bd867f4c00d",
+        "bytes": 104
+      },
+      ".cache/huggingface/download/README.md.metadata": {
+        "sha256": "cfb2faa03ec29022fa9b54f21a6ec4f0f663cb1ddd05a4752c4a69a943b3097c",
+        "bytes": 104
+      },
+      ".cache/huggingface/trees/d90a4c51cd2c2a4cf1237426c220330bbe698198.json": {
+        "sha256": "909e26a6ad3c149f9c43b76b3bd935a334c15ce0c96e7be19117bfa2f2dbd72b",
+        "bytes": 869
+      },
+      ".gitattributes": {
+        "sha256": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
+        "bytes": 1575
+      },
+      "config.json": {
+        "sha256": "c82fc54a5c8e8d80c946f1302e70cf91d31fb1b787702f3ef2264102affc3819",
+        "bytes": 5677
+      },
+      "inference.json": {
+        "sha256": "022b9fd837182ee83bb699d3d1cee7d05811997c887cae179a8c128ea29da3fa",
+        "bytes": 168414
+      },
+      "inference.pdiparams": {
+        "sha256": "fa6f22a8b2a669c7d5b4dfd2607491abd4cd2467adf7077c9cc70ce8c47b61d9",
+        "bytes": 8940218
+      },
+      "inference.yml": {
+        "sha256": "f193ba660245a417090b757722f955930a2af750ac9258166cc006fe147e6794",
+        "bytes": 1984
+      },
+      "README.md": {
+        "sha256": "007528e844e94c03653c8d1d80e5f38b39de89bebed451b8d9af87da31a5160a",
+        "bytes": 6751
+      }
+    }
+  }
+}

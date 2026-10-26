@@ -1,0 +1,239 @@
+{
+  "policy": "Six illustrative text differences, not six independent failure types or a measured KIE error rate. Matching is a candidate only; no gold is modified.",
+  "examples": [
+    {
+      "id": "F01",
+      "sample_id": "VRSYN2-00004__blur_png",
+      "base_document_id": "VRSYN2-00004",
+      "mode": "ocr_all",
+      "category": "diacritics/substitution",
+      "source_entry_key": "title",
+      "expected_visible_text": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG",
+      "actual_text": "HOADO'NGIATR!GIA TANG",
+      "receipt_id": "bc0d34d0-1c34-5b72-9304-468072fcb05e",
+      "ocr_run_id": "2345c435-f038-470e-bf7a-22a08afb8a19",
+      "page_index": 0,
+      "block_id": "p0_b000000",
+      "reading_order": 0,
+      "polygon": [
+        {
+          "x": 0.370546,
+          "y": 0.029524
+        },
+        {
+          "x": 0.629454,
+          "y": 0.029524
+        },
+        {
+          "x": 0.629454,
+          "y": 0.052381
+        },
+        {
+          "x": 0.370546,
+          "y": 0.052381
+        }
+      ],
+      "evidence_path": "paired-20261024/ocr_all/predictions/VRSYN2-00004__blur_png.json",
+      "source_sha256": "9436c376ab83d827b5076f8d6dc6d9b94becb082838ba4141ca78a2ec9d4b3e1",
+      "evidence_sha256": "76eb9c9e98ba280987fc2c79bbeab2df2a62329b09377e8e908fdb0c6b0490e6",
+      "status": "diagnostic text difference; source overlay spot inspection; independent gold/link review pending",
+      "kie_correctness": null,
+      "overlay_path": "overlays/F01.png"
+    },
+    {
+      "id": "F02",
+      "sample_id": "VRSYN2-00004__blur_png",
+      "base_document_id": "VRSYN2-00004",
+      "mode": "ocr_all",
+      "category": "label/spacing/diacritics",
+      "source_entry_key": "fields.invoice_symbol",
+      "expected_visible_text": "Ký hiệu: C26T4A",
+      "actual_text": "Ky hiuC26T4A",
+      "receipt_id": "bc0d34d0-1c34-5b72-9304-468072fcb05e",
+      "ocr_run_id": "2345c435-f038-470e-bf7a-22a08afb8a19",
+      "page_index": 0,
+      "block_id": "p0_b000003",
+      "reading_order": 3,
+      "polygon": [
+        {
+          "x": 0.032462,
+          "y": 0.108571
+        },
+        {
+          "x": 0.126683,
+          "y": 0.108571
+        },
+        {
+          "x": 0.126683,
+          "y": 0.127619
+        },
+        {
+          "x": 0.032462,
+          "y": 0.127619
+        }
+      ],
+      "evidence_path": "paired-20261024/ocr_all/predictions/VRSYN2-00004__blur_png.json",
+      "source_sha256": "9436c376ab83d827b5076f8d6dc6d9b94becb082838ba4141ca78a2ec9d4b3e1",
+      "evidence_sha256": "76eb9c9e98ba280987fc2c79bbeab2df2a62329b09377e8e908fdb0c6b0490e6",
+      "status": "diagnostic text difference; source overlay spot inspection; independent gold/link review pending",
+      "kie_correctness": null,
+      "overlay_path": "overlays/F02.png"
+    },
+    {
+      "id": "F03",
+      "sample_id": "VRSYN2-00010__clean_pdf",
+      "base_document_id": "VRSYN2-00010",
+      "mode": "ocr_all",
+      "category": "diacritics",
+      "source_entry_key": "fields.seller_address",
+      "expected_visible_text": "Địa chỉ người bán: 10 Đường Mẫu, Thành phố Hà Nội",
+      "actual_text": "Dia chi ngui bän: 10 Duöng Mau, Thanh phö Ha Noi",
+      "receipt_id": "de5d02de-3c31-544c-a96f-210a7e019b3c",
+      "ocr_run_id": "ec0cfa5b-64d2-4a80-84dd-c27dfc0414ca",
+      "page_index": 0,
+      "block_id": "p0_b000006",
+      "reading_order": 6,
+      "polygon": [
+        {
+          "x": 0.45939,
+          "y": 0.134042
+        },
+        {
+          "x": 0.743802,
+          "y": 0.134042
+        },
+        {
+          "x": 0.743802,
+          "y": 0.149126
+        },
+        {
+          "x": 0.45939,
+          "y": 0.149126
+        }
+      ],
+      "evidence_path": "paired-20261024/ocr_all/predictions/VRSYN2-00010__clean_pdf.json",
+      "source_sha256": "f7977ccb4682c9ce11e416b82294989aebf6f92d19e5dfbe314521913872fae4",
+      "evidence_sha256": "2d2a0e12eed7a4f6243beed2ff9c13070825d368757b3f458824471d5ad9faae",
+      "status": "diagnostic text difference; source overlay spot inspection; independent gold/link review pending",
+      "kie_correctness": null,
+      "overlay_path": "overlays/F03.png"
+    },
+    {
+      "id": "F04",
+      "sample_id": "VRSYN2-00016__blur_png",
+      "base_document_id": "VRSYN2-00016",
+      "mode": "ocr_all",
+      "category": "diacritics/spacing",
+      "source_entry_key": "line_items.0.description",
+      "expected_visible_text": "Sổ tay văn phòng",
+      "actual_text": "s tay van phong",
+      "receipt_id": "f19572be-5fa0-52cd-b9fe-33f63466a980",
+      "ocr_run_id": "ea1d79cd-d87e-4b10-b6f2-2b04e7667eba",
+      "page_index": 0,
+      "block_id": "p0_b000015",
+      "reading_order": 15,
+      "polygon": [
+        {
+          "x": 0.034046,
+          "y": 0.268571
+        },
+        {
+          "x": 0.119557,
+          "y": 0.271429
+        },
+        {
+          "x": 0.118765,
+          "y": 0.291429
+        },
+        {
+          "x": 0.033254,
+          "y": 0.289524
+        }
+      ],
+      "evidence_path": "paired-20261024/ocr_all/predictions/VRSYN2-00016__blur_png.json",
+      "source_sha256": "2eaebf3fa02c8932e2efb1bb40c6a27acc6823f5d5533fbfda5a80b108356c11",
+      "evidence_sha256": "d8cd627c00636988da326adb7b778aa4f03590ee9e645cef7c2008a1c2fa23d5",
+      "status": "diagnostic text difference; source overlay spot inspection; independent gold/link review pending",
+      "kie_correctness": null,
+      "overlay_path": "overlays/F04.png"
+    },
+    {
+      "id": "F05",
+      "sample_id": "VRSYN2-00022__text_pdf",
+      "base_document_id": "VRSYN2-00022",
+      "mode": "ocr_all",
+      "category": "diacritics",
+      "source_entry_key": "fields.seller_name",
+      "expected_visible_text": "Đơn vị bán hàng: CỬA HÀNG MẪU SAO VIỆT",
+      "actual_text": "Do'n vi bän häng: CU'A HANG MAU SAO VIET",
+      "receipt_id": "7fc962bc-7191-5574-924c-eb771647a776",
+      "ocr_run_id": "26751db2-bf8f-43e0-b7b1-a372de3ab817",
+      "page_index": 0,
+      "block_id": "p0_b000002",
+      "reading_order": 2,
+      "polygon": [
+        {
+          "x": 0.458743,
+          "y": 0.083805
+        },
+        {
+          "x": 0.705002,
+          "y": 0.08329
+        },
+        {
+          "x": 0.705002,
+          "y": 0.099229
+        },
+        {
+          "x": 0.458743,
+          "y": 0.099743
+        }
+      ],
+      "evidence_path": "paired-20261024/ocr_all/predictions/VRSYN2-00022__text_pdf.json",
+      "source_sha256": "c21443bfc0deda22f26074867775c956b926ed216c99e29c8b2f29b28b78ed28",
+      "evidence_sha256": "d5bdf5c0d73d9fdaf655d384e673050f60019bd3d4fc0f6ad07521d65d5badbb",
+      "status": "diagnostic text difference; source overlay spot inspection; independent gold/link review pending",
+      "kie_correctness": null,
+      "overlay_path": "overlays/F05.png"
+    },
+    {
+      "id": "F06",
+      "sample_id": "VRSYN2-00028__blur_png",
+      "base_document_id": "VRSYN2-00028",
+      "mode": "ocr_all",
+      "category": "diacritics/substitution",
+      "source_entry_key": "title",
+      "expected_visible_text": "HÓA ĐƠN GIÁ TRỊ GIA TĂNG",
+      "actual_text": "HOADO'NGIATR!GIATANG",
+      "receipt_id": "818aa223-2679-590d-a194-4d7db5666d4a",
+      "ocr_run_id": "2b9c8fdd-6897-4e57-b5a7-91d1522ef595",
+      "page_index": 0,
+      "block_id": "p0_b000000",
+      "reading_order": 0,
+      "polygon": [
+        {
+          "x": 0.370546,
+          "y": 0.029524
+        },
+        {
+          "x": 0.629454,
+          "y": 0.029524
+        },
+        {
+          "x": 0.629454,
+          "y": 0.052381
+        },
+        {
+          "x": 0.370546,
+          "y": 0.052381
+        }
+      ],
+      "evidence_path": "paired-20261024/ocr_all/predictions/VRSYN2-00028__blur_png.json",
+      "source_sha256": "ffd80fac9f85db4580d72d264c70a7cc647227e4af326dca3123ca3d03830347",
+      "evidence_sha256": "3691d1b4dfa93d101ea349a93199e1a9f049b93b6f6002efa330100b07c33b40",
+      "status": "diagnostic text difference; source overlay spot inspection; independent gold/link review pending",
+      "kie_correctness": null,
+      "overlay_path": "overlays/F06.png"
+    }
+  ]
+}

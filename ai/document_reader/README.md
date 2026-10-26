@@ -129,3 +129,43 @@ processes and enforce deployment-level timeouts in TV5.
 The CI suite uses a clearly labeled fake OCR engine and real PDF extraction and
 rendering. Real-model results, if provided, are separate evidence; CI passing
 does not demonstrate real OCR quality or the deployed end-to-end workflow.
+
+## Paired route experiment — issue #48 (23/10/2026)
+
+```sh
+python -m scripts.compare_pdf_routes --manifest results/tv3-fixtures/manifest.json --output results/dev/document-reader-v2/local-paired-run --orientation auto
+python -m scripts.verify_reader_handoff --run-dir results/dev/document-reader-v2/local-paired-run --output results/dev/document-reader-v2/local-handoff-check
+python -m unittest tests.test_compare_pdf_routes tests.test_document_reader tests.test_ocr_contract tests.test_ocr_week2 -v
+```
+
+Both modes read identical bytes, with matching input SHA-256 and stable receipt
+identity but separate run UUIDs. `ocr_all` bypasses the PDF text layer completely;
+`route_aware` uses the existing per-page router. All images stay on the OCR path.
+The script accepts development/dev/validation only, never a final test manifest.
+Manifest sample paths must stay inside the manifest directory. Supply an optional
+`receipt_id` per sample to retain TV2's existing canonical UUID.
+
+Each mode keeps the complete predictions, page audit, frozen manifest, input
+hashes, package/configuration information and metrics. Top-level outputs:
+
+- `comparison.json/csv`: paired CER/WER, failure status, character deletions,
+  substitutions and insertions, timings and cold-start markers.
+- `pages.csv`: actual route, fallback, reason, PDF extraction/render/OCR/orientation
+  latency; PDF text confidence is empty (`N/A`), while its wire sentinel remains 1.
+- `handoff.json`: exact receipt/run IDs, source/evidence hashes and prediction
+  locations for TV2/TV4. Ground-truth alignment remains pending TV2 QA.
+- `error_examples.json`: text differences with contexts and actual page/block IDs,
+  polygons and reading order. These are review candidates; geometry and order
+  cannot be diagnosed from CER alone. Never treat an absent block as ground-truth
+  `NOT_PRESENT`.
+- `runtime.json`: native results pointer and explicit Docker smoke status.
+
+Each mode runs serially in a fresh reader; the first OCR request includes lazy
+model startup and is marked `cold_start_candidate`. Do not mix that request with
+warm inference for a speedup claim. One pass is a diagnostic, not a latency
+distribution. The command exits nonzero on any unexpected read failure while
+preserving that sample in denominators (empty prediction when referenced).
+
+The generator v1.1 adds tilted image, two-page text PDF and two-page scan PDF to
+the existing single-template diagnostics. It does not replace TV2's independent
+development set. See [handoff and runtime notes](../../docs/tv3-issue48-handoff.md).
