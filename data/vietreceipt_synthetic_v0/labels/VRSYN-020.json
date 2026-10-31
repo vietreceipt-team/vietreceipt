@@ -1,0 +1,97 @@
+{
+  "annotation_schema_version": "2.0",
+  "receipt_id": "82a41d1f-c492-5ac0-924b-8c5eb1e78bb8",
+  "dataset_family": "vietreceipt_synthetic",
+  "dataset_snapshot": "v0.1",
+  "sample_id": "VRSYN-020",
+  "synthetic": true,
+  "split": "validation",
+  "mapping_version": "vietreceipt-canonical-v2",
+  "template_id": "layout_b",
+  "parent_sample_id": null,
+  "fields": {
+    "seller_name": {
+      "annotation_status": "PRESENT",
+      "raw_value": "Cua hang Sao Viet",
+      "normalized_value": "Cua hang Sao Viet",
+      "source_block_ids": []
+    },
+    "buyer_name": {
+      "annotation_status": "PRESENT",
+      "raw_value": "Cong ty Demo Ha Noi",
+      "normalized_value": "Cong ty Demo Ha Noi",
+      "source_block_ids": []
+    },
+    "invoice_number": {
+      "annotation_status": "PRESENT",
+      "raw_value": "HD-0020",
+      "normalized_value": "HD-0020",
+      "source_block_ids": []
+    },
+    "invoice_date": {
+      "annotation_status": "PRESENT",
+      "raw_value": "2026-08-20",
+      "normalized_value": "2026-08-20",
+      "source_block_ids": []
+    },
+    "subtotal": {
+      "annotation_status": "PRESENT",
+      "raw_value": 36000,
+      "normalized_value": 36000,
+      "source_block_ids": []
+    },
+    "vat_rate": {
+      "annotation_status": "PRESENT",
+      "raw_value": "10%",
+      "normalized_value": "10%",
+      "source_block_ids": []
+    },
+    "tax_amount": {
+      "annotation_status": "PRESENT",
+      "raw_value": 3600,
+      "normalized_value": 3600,
+      "source_block_ids": []
+    },
+    "total_amount": {
+      "annotation_status": "PRESENT",
+      "raw_value": 39600,
+      "normalized_value": 39600,
+      "source_block_ids": []
+    }
+  },
+  "line_items": [
+    {
+      "line_id": "VRSYN-020-L01",
+      "description": {
+        "annotation_status": "PRESENT",
+        "raw_value": "So tay",
+        "normalized_value": "So tay",
+        "source_block_ids": []
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "raw_value": "quyen",
+        "normalized_value": "quyen",
+        "source_block_ids": []
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "raw_value": 2,
+        "normalized_value": 2,
+        "source_block_ids": []
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "raw_value": 18000,
+        "normalized_value": 18000,
+        "source_block_ids": []
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "raw_value": 36000,
+        "normalized_value": 36000,
+        "source_block_ids": []
+      }
+    }
+  ]
+}
