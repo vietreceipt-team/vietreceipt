@@ -19,6 +19,8 @@ from ai.kie.v2.config import (
     BASELINE_GROUPING,
     CONFIGURATION,
     GROUPING_CONFIGURATIONS,
+    HEADER_CONFIGURATIONS,
+    HEADER_LAYOUT_VARIANT,
     HEADER_FIELDS,
     INTERVAL_GROUPING,
     LINE_FIELDS,
@@ -138,6 +140,49 @@ class EvaluationV2Tests(unittest.TestCase):
 
     def test_absent_gold_fail_closed(self):
         self.assert_waiting(evaluate(self.base / "absent.json"))
+
+    def test_header_ab_exact_protocol_and_final_lock(self):
+        self.prepare()
+        path = self.base / "manifest.json"
+        path.write_text(json.dumps(self.manifest))
+        self.assert_waiting(evaluate(path, header_comparison=True))
+        self.manifest["experiment"] = {
+            "protocol": "header-layout-ab-0.1",
+            "evaluator_version": VERSION,
+            "configurations": copy.deepcopy(HEADER_CONFIGURATIONS),
+        }
+        path.write_text(json.dumps(self.manifest))
+        report = evaluate(path, header_comparison=True)
+        self.assertEqual(report["status"], "COMPLETED", report)
+        self.assertEqual(report["evaluated"], 1)
+        self.assertEqual(report["result_scope"], "synthetic_diagnostic")
+        self.assertEqual(
+            set(report["variants"]), {BASELINE_GROUPING, HEADER_LAYOUT_VARIANT}
+        )
+        self.assertEqual(report["delta"]["header_micro_accuracy"], 0)
+        self.assertEqual(
+            report["variants"][BASELINE_GROUPING]["metrics"]["headers"],
+            report["variants"][HEADER_LAYOUT_VARIANT]["metrics"]["headers"],
+        )
+        command = [
+            sys.executable,
+            "scripts/evaluate_invoice_kie.py",
+            "--manifest",
+            str(path),
+            "--compare-header",
+            "--output",
+            str(self.base / "header-run"),
+        ]
+        process = subprocess.run(command, capture_output=True, text=True)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        with (self.base / "header-run/summary.csv").open() as handle:
+            summary = {row["metric"]: row for row in csv.DictReader(handle)}
+        self.assertEqual(float(summary["header_micro_accuracy"]["delta"]), 0)
+        self.manifest["split"] = "test"
+        path.write_text(json.dumps(self.manifest))
+        with patch("ai.kie.v2.evaluation.load_artifact") as loader:
+            self.assert_waiting(evaluate(path, header_comparison=True))
+            loader.assert_not_called()
 
     def test_empty_unverified_unfrozen_and_wrong_config(self):
         self.prepare()
@@ -609,9 +654,9 @@ class EvaluationV2Tests(unittest.TestCase):
         self.assert_waiting(self.run_ab())
         self.authorize_ab()
         original = copy.deepcopy(self.manifest)
-        self.manifest["experiment"]["configurations"][INTERVAL_GROUPING]["version"] = (
-            "other"
-        )
+        self.manifest["experiment"]["configurations"][INTERVAL_GROUPING][
+            "version"
+        ] = "other"
         self.assert_waiting(self.run_ab())
         self.manifest = original
         path = self.base / "manifest.json"

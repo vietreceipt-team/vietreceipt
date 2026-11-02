@@ -15,12 +15,15 @@ from uuid import UUID, uuid5
 
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
-from . import extract_invoice, extract_with_grouping
+from . import extract_invoice, extract_with_grouping, extract_with_layout
 from .config import (
     BASELINE_GROUPING,
     CONFIGURATION,
     GROUPING_CONFIGURATIONS,
     GROUPING_EXTRACTORS,
+    HEADER_CONFIGURATIONS,
+    HEADER_EXTRACTORS,
+    HEADER_LAYOUT_VARIANT,
     HEADER_FIELDS,
     INTERVAL_GROUPING,
     LINE_FIELDS,
@@ -180,13 +183,19 @@ def metrics(pairs, *, matches_by_document=None):
                 category = (
                     "NO_CANDIDATE"
                     if "NO_CANDIDATE" in reasons
-                    else "ROLE_CONFUSION"
-                    if "SOURCE_ROLE_UNCLEAR" in reasons
-                    else "NORMALIZATION_ERROR"
-                    if "NORMALIZATION_FAILED" in reasons
-                    else "MULTIPLE_CANDIDATES"
-                    if "MULTIPLE_CANDIDATES" in reasons
-                    else "WRONG_CANDIDATE"
+                    else (
+                        "ROLE_CONFUSION"
+                        if "SOURCE_ROLE_UNCLEAR" in reasons
+                        else (
+                            "NORMALIZATION_ERROR"
+                            if "NORMALIZATION_FAILED" in reasons
+                            else (
+                                "MULTIPLE_CANDIDATES"
+                                if "MULTIPLE_CANDIDATES" in reasons
+                                else "WRONG_CANDIDATE"
+                            )
+                        )
+                    )
                 )
                 errors[category] += 1
         precision = ratio(count["true_positive"], count["predicted_present"])
@@ -483,8 +492,23 @@ def implementation_digest():
     return digest.hexdigest()
 
 
-def _experiment(manifest, comparison, grouping):
+def _experiment(manifest, comparison, grouping, header_comparison=False):
     """A new opt-in manifest contract; legacy single-config gate stays strict."""
+    if header_comparison:
+        if manifest["split"] not in {"train", "validation"}:
+            raise ValueError("Header A/B tuning is restricted to train/validation")
+        expected = {
+            "protocol": "header-layout-ab-0.1",
+            "evaluator_version": VERSION,
+            "configurations": HEADER_CONFIGURATIONS,
+        }
+        if manifest.get("experiment") != expected:
+            raise ValueError(
+                "Header A/B requires exact reviewed experiment declaration"
+            )
+        if manifest["configuration"] != CONFIGURATION:
+            raise ValueError("Header A/B manifest must retain baseline anchor")
+        return [BASELINE_GROUPING, HEADER_LAYOUT_VARIANT]
     if comparison:
         if manifest["split"] not in {"train", "validation"}:
             raise ValueError(
@@ -590,7 +614,13 @@ def _delta(baseline, variant):
     return None
 
 
-def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPING):
+def evaluate(
+    manifest_path: Path,
+    *,
+    comparison=False,
+    grouping=BASELINE_GROUPING,
+    header_comparison=False,
+):
     report = {
         "status": "WAITING_FOR_VERIFIED_V2_GOLD",
         "metrics": None,
@@ -615,7 +645,8 @@ def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPIN
         "protocol_status": "PROPOSED_PENDING_TV1_TV2_CONFIRMATION",
         "extractor": dict(GROUPING_EXTRACTORS.get(grouping, {})),
         "configuration": dict(GROUPING_CONFIGURATIONS.get(grouping, {})),
-        "comparison": comparison,
+        "comparison": comparison or header_comparison,
+        "header_comparison": header_comparison,
         "grouping": grouping,
         "manifest": str(manifest_path),
         "git_commit": None,
@@ -631,6 +662,8 @@ def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPIN
             raise ValueError("Unknown grouping")
         if comparison and grouping != BASELINE_GROUPING:
             raise ValueError("A/B always uses the baseline anchor; omit grouping")
+        if header_comparison and (comparison or grouping != BASELINE_GROUPING):
+            raise ValueError("Header A/B uses the baseline anchor only")
         report["git_commit"] = subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
         ).strip()
@@ -686,7 +719,7 @@ def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPIN
             or manifest["sample_count"] != len(manifest["records"])
         ):
             raise ValueError("Manifest must be frozen, verified and complete")
-        variants = _experiment(manifest, comparison, grouping)
+        variants = _experiment(manifest, comparison, grouping, header_comparison)
         raw_protocol = manifest.get("raw_value_protocol")
         if raw_protocol not in (None, "selected-value-text-v1"):
             raise ValueError("Unsupported raw_value_protocol")
@@ -769,9 +802,9 @@ def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPIN
                     {
                         "record_index": index,
                         "stage": "eligibility",
-                        "sample_id": gold.get("sample_id")
-                        if isinstance(gold, dict)
-                        else None,
+                        "sample_id": (
+                            gold.get("sample_id") if isinstance(gold, dict) else None
+                        ),
                         "artifacts": record,
                         "reason": f"{type(exc).__name__}: {exc}",
                     }
@@ -800,6 +833,10 @@ def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPIN
                         run = uuid5(UUID(gold["receipt_id"]), VERSION + mode)
                         if name == BASELINE_GROUPING:
                             result = extract_invoice(
+                                copy.deepcopy(source), kie_run_id=run
+                            )
+                        elif name == HEADER_LAYOUT_VARIANT:
+                            result = extract_with_layout(
                                 copy.deepcopy(source), kie_run_id=run
                             )
                         else:
@@ -863,8 +900,18 @@ def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPIN
                     for label, pairs in buckets.items()
                 }
             summaries[name] = {
-                "configuration": dict(GROUPING_CONFIGURATIONS[name]),
-                "extractor": dict(GROUPING_EXTRACTORS[name]),
+                "configuration": dict(
+                    (
+                        HEADER_CONFIGURATIONS
+                        if header_comparison
+                        else GROUPING_CONFIGURATIONS
+                    )[name]
+                ),
+                "extractor": dict(
+                    (HEADER_EXTRACTORS if header_comparison else GROUPING_EXTRACTORS)[
+                        name
+                    ]
+                ),
                 "metrics": real,
                 "modes": {"real": real, "oracle": oracle},
                 "mode_counts": {
@@ -887,14 +934,18 @@ def evaluate(manifest_path: Path, *, comparison=False, grouping=BASELINE_GROUPIN
             propagation_gap=selected["propagation_gap"],
             evaluated=len(prepared),
             variants=summaries,
-            result_scope="synthetic_diagnostic"
-            if manifest["synthetic"]
-            else "frozen_module_evaluation",
+            result_scope=(
+                "synthetic_diagnostic"
+                if manifest["synthetic"]
+                else "frozen_module_evaluation"
+            ),
         )
-        if comparison:
+        if comparison or header_comparison:
             report["delta"] = _delta(
                 summaries[BASELINE_GROUPING]["metrics"],
-                summaries[INTERVAL_GROUPING]["metrics"],
+                summaries[
+                    HEADER_LAYOUT_VARIANT if header_comparison else INTERVAL_GROUPING
+                ]["metrics"],
             )
         report["coverage"].update(
             evaluated=len(prepared),
