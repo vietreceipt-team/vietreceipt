@@ -11,6 +11,8 @@ from ai.kie.v2.evaluation import VERSION, evaluate
 from ai.kie.v2.config import (
     BASELINE_GROUPING,
     GROUPING_CONFIGURATIONS,
+    HEADER_CONFIGURATIONS,
+    HEADER_LAYOUT_VARIANT,
     INTERVAL_GROUPING,
 )
 
@@ -51,11 +53,14 @@ def write_report(report, output):
                 else {}
             )
         )
+        variant_name = (
+            HEADER_LAYOUT_VARIANT
+            if report.get("header_comparison")
+            else INTERVAL_GROUPING
+        )
         variant = dict(
             flatten_metrics(
-                (report.get("variants") or {})
-                .get(INTERVAL_GROUPING, {})
-                .get("metrics", {})
+                (report.get("variants") or {}).get(variant_name, {}).get("metrics", {})
             )
         )
         delta = dict(flatten_metrics(report.get("delta") or {}))
@@ -164,11 +169,33 @@ def main():
         help="Paired development A/B; requires manifest experiment authorization",
     )
     parser.add_argument(
+        "--compare-header",
+        action="store_true",
+        help="Paired header layout A/B on verified train/validation gold",
+    )
+    parser.add_argument(
+        "--print-header-experiment",
+        action="store_true",
+        help="Print proposed header A/B declaration; does not grant QA approval",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         help="New directory for report.json and summary/samples/failures CSV",
     )
     args = parser.parse_args()
+    if args.print_header_experiment:
+        print(
+            json.dumps(
+                {
+                    "protocol": "header-layout-ab-0.1",
+                    "evaluator_version": VERSION,
+                    "configurations": HEADER_CONFIGURATIONS,
+                },
+                indent=2,
+            )
+        )
+        return 0
     if args.print_experiment:
         print(
             json.dumps(
@@ -183,9 +210,18 @@ def main():
         return 0
     if args.compare and args.grouping != BASELINE_GROUPING:
         parser.error("--compare always runs both configurations; omit --grouping")
+    if args.compare_header and (args.compare or args.grouping != BASELINE_GROUPING):
+        parser.error(
+            "--compare-header uses baseline grouping and cannot combine with --compare"
+        )
     if args.output and args.output.exists():
         parser.error("--output must be a new directory")
-    report = evaluate(args.manifest, comparison=args.compare, grouping=args.grouping)
+    report = evaluate(
+        args.manifest,
+        comparison=args.compare,
+        grouping=args.grouping,
+        header_comparison=args.compare_header,
+    )
     if args.output:
         write_report(report, args.output)
     print(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False))

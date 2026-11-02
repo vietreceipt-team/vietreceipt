@@ -75,9 +75,11 @@ effective values and verification are not TV4 machine output.
 ## Architecture and decisions
 
 1. `evidence.py` validates and flattens pages in page/reading order.
-2. `extraction.py` identifies table regions, generates label/value candidates and
-   identifies seller/buyer roles using preceding section anchors and relative
+2. `extraction.py` identifies table regions; `header.py` generates header
+   label/value candidates and identifies seller/buyer roles using preceding section anchors and relative
    horizontal/vertical distance. Tied role anchors produce review uncertainty.
+   The opt-in header layout experiment is documented in
+   [kie-v2-header-layout-experiment.md](kie-v2-header-layout-experiment.md).
 3. `cells.py` ranks candidates deterministically; source order breaks equal-score
    ties. Competing normalized values within 0.1 score produce AMBIGUOUS, preserving
    evidence from the competitors. Equivalent normalized values are not conflicts.

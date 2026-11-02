@@ -1,0 +1,30 @@
+{
+  "status": "UNSCORED_REPLAY",
+  "gold_used": false,
+  "metrics": null,
+  "split": "train",
+  "manifest_sha256": "cdb8d9f591cd5ad4e7ed2cae661367e9e5ec7fdb468b67805f0d45101453ea9d",
+  "qa_status": "PENDING_REVIEW",
+  "records": 60,
+  "processed": 60,
+  "routes": {
+    "image": 30,
+    "scanned_pdf": 15,
+    "text_pdf": 15
+  },
+  "changed_samples": 24,
+  "changed_fields": {
+    "invoice_number": 24
+  },
+  "status_transitions": {
+    "invoice_number:AMBIGUOUS->PRESENT": 24
+  },
+  "baseline_configuration": {
+    "name": "invoice-baseline",
+    "version": "2.1.0"
+  },
+  "layout_configuration": {
+    "name": "invoice-layout-header",
+    "version": "0.1.0"
+  }
+}

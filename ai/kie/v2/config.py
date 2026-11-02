@@ -27,6 +27,10 @@ MONEY_FIELDS = {
 }
 EXTRACTOR = {"name": "deterministic-invoice-kie", "version": "2.0.4"}
 CONFIGURATION = {"name": "invoice-baseline", "version": "2.1.0"}
+LAYOUT_CONFIGURATION = {"name": "invoice-layout-header", "version": "0.1.0"}
+LAYOUT_EXTRACTOR = {"name": "deterministic-invoice-kie", "version": "2.3.0"}
+LAYOUT_SCORE_VERSION = "invoice-layout-heuristic-0.1.0"
+HEADER_LAYOUT_VARIANT = "layout_header_v0_1"
 BASELINE_GROUPING = "geometry_grouping_v2"
 INTERVAL_GROUPING = "column_interval_grouping_v2_1"
 GROUPING_CONFIGURATIONS = {
@@ -36,6 +40,14 @@ GROUPING_CONFIGURATIONS = {
 GROUPING_EXTRACTORS = {
     BASELINE_GROUPING: EXTRACTOR,
     INTERVAL_GROUPING: {"name": "deterministic-invoice-kie", "version": "2.2.0"},
+}
+HEADER_CONFIGURATIONS = {
+    BASELINE_GROUPING: CONFIGURATION,
+    HEADER_LAYOUT_VARIANT: LAYOUT_CONFIGURATION,
+}
+HEADER_EXTRACTORS = {
+    BASELINE_GROUPING: EXTRACTOR,
+    HEADER_LAYOUT_VARIANT: LAYOUT_EXTRACTOR,
 }
 REVIEW_VERSION = "invoice-review-2.0.0"
 SCORE_VERSION = "invoice-heuristic-2.0.0"

@@ -13,6 +13,7 @@ class Candidate:
     blocks: tuple[Block, ...]
     explicit_role: bool = True
     aligned: bool = True
+    layout_penalty: float = 0.0
 
 
 def score(candidate: Candidate, normalizable: bool) -> float:
@@ -28,7 +29,8 @@ def score(candidate: Candidate, normalizable: bool) -> float:
             + 0.25 * candidate.explicit_role
             + 0.2 * candidate.aligned
             + 0.15 * normalizable
-            - 0.2 * quality_penalty,
+            - 0.2 * quality_penalty
+            - candidate.layout_penalty,
         ),
         4,
     )
@@ -40,7 +42,14 @@ def add_reason(cell, reason):
     cell["machine_needs_review"] = True
 
 
-def select(field: str, candidates: list[Candidate], *, currency=None, absent=False):
+def select(
+    field: str,
+    candidates: list[Candidate],
+    *,
+    currency=None,
+    absent=False,
+    layout_aware=False
+):
     cell = {
         "raw_text": None,
         "predicted_value": None,
@@ -89,6 +98,16 @@ def select(field: str, candidates: list[Candidate], *, currency=None, absent=Fal
             result[0] == value if value is not None else other.value == best.value
         )
         if (
+            layout_aware
+            and best.layout_penalty == 0
+            and other.layout_penalty > 0
+            and not equivalent
+        ):
+            # Keep conflicting source evidence and request review, while using
+            # the stronger region signal for the machine prediction.
+            reasons.append("MULTIPLE_CANDIDATES")
+            selected.append(other)
+        elif (
             field == "currency" or best_score - other_score <= TIE_MARGIN
         ) and not equivalent:
             status = "AMBIGUOUS"
