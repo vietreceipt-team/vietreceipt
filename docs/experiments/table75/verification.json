@@ -1,0 +1,37 @@
+{
+  "table_default_gate": {
+    "exit_code": 2,
+    "status": "NOT_SCORED",
+    "metrics": null
+  },
+  "existing_invoice_gate": {
+    "exit_code": 2,
+    "status": "WAITING_FOR_VERIFIED_V2_GOLD",
+    "metrics": null
+  },
+  "date": "2026-11-03",
+  "implementation_commit": "37c944595886590dd67c025253db692715c9b3c6",
+  "kie_tests": {
+    "command": "python -m unittest discover -s tests -p test_kie*.py -q",
+    "run": 154,
+    "passed": 154,
+    "skipped": 0
+  },
+  "adapter_review": {
+    "head": "ad442a809e1b276417e8b7b24529f480059763eb",
+    "run": 34,
+    "passed": 34,
+    "dispatch_integrated": false
+  },
+  "shared_contracts": "PASS",
+  "ruff": "PASS",
+  "ruff_format": "PASS",
+  "whitespace": "PASS",
+  "artifact_sha256": {
+    "docs/experiments/table75/comparison.json": "61ca2c0c3ba6664b328f334c43d49cebc9a5a71259e08e752c6a9c6db7d6eaf6",
+    "docs/experiments/table75/not-scored.json": "ed957b2925986ca467d2ccdeb463ee08dea3240eb752580c15d2465276a2ff54",
+    "tests/fixtures/table_structure/provenance.json": "7bbc0d0762bc0b7f499d3eb90bf95d9a0eb9ee838aaf4da0a232ce5063018c51"
+  },
+  "official_benchmark": "NOT_SCORED",
+  "remote_ci": "PENDING_PUBLICATION"
+}
