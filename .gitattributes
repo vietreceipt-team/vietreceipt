@@ -1,0 +1,10 @@
+# Byte-hashed evidence must survive Windows checkouts unchanged.
+tests/fixtures/kie49/reader-tv2/*.json text eol=lf
+tests/fixtures/table_structure/*.json text eol=lf
+tests/fixtures/table_structure/*.png binary
+docs/experiments/table75/*.json text eol=lf
+
+# Keep implementation fingerprints portable across Windows and Linux.
+ai/table/structure.py text eol=lf
+scripts/*table_structure*.py text eol=lf
+tests/*table_structure*.py text eol=lf

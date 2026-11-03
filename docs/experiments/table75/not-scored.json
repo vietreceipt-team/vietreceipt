@@ -1,0 +1,701 @@
+{
+  "status": "NOT_SCORED",
+  "metrics": null,
+  "reason": "No independently QA-reviewed Table development gold or signed comparison protocol; no final test inspected.",
+  "scope": "synthetic table-only development software diagnostics; supplied Layout regions and evidence; no OCR/pixel ruling detection",
+  "evaluator": "invoice-evaluation-2.2.0",
+  "matching_version": "source-overlap-cardinality-1.0",
+  "git_commit": "37c944595886590dd67c025253db692715c9b3c6",
+  "python": "3.13.7",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "dependencies": {
+    "jsonschema": "4.26.0",
+    "Pillow": "11.3.0",
+    "reportlab": "4.4.10",
+    "pypdfium2": "5.12.1"
+  },
+  "source_manifest_sha256": "7bbc0d0762bc0b7f499d3eb90bf95d9a0eb9ee838aaf4da0a232ce5063018c51",
+  "implementation_hash_encoding": "Git canonical source bytes; CRLF normalized to LF",
+  "implementation_sha256": {
+    "ai/table/structure.py": "d47bdff12d32508c9b87df3dd4cc61a2ece5ad040837ca66d7328b5a3edc8864",
+    "scripts/evaluate_table_structure.py": "90c713808063468e33352d1b7999cb0e054621333eb7ff908f4f3a53ae896161",
+    "scripts/generate_table_structure_sources.py": "508b399724f1a8e1bd8a673b1a388e190b0a62d8fa04df05a279337d550126f4",
+    "tests/kie_table_structure_fixtures.py": "097ccfbc2b22d052716cc22b8e9f059996507939efaf5f2dfda3d4972cd3e80d",
+    "ai/kie/v2/evaluation.py": "3fad69fb574487f3bc668cf846ffb13a510b102863182212dbfd7398ea81d04c",
+    "ai/kie/v2/extraction.py": "a4e4642eb2e4045d60d57026f294ce0fb8a806ffcb7d5506a04ac05fef9bc28d",
+    "ai/kie/v2/grouping.py": "f996efea6c1e5512d66f6cad958e8a52cf0ab0e0759442b61d6f54ee7936a091",
+    "ai/kie/v2/evidence.py": "2c8e3d423812df6ff84fca279b8e74bbf8dc867690fc18332cef004626a3c7dd",
+    "ai/kie/v2/cells.py": "45731ad6db866e71e70e06bac0844f00058b05d9343852544bbbeb3c2b7db617",
+    "ai/kie/v2/normalization.py": "0b818617c42d4fc69d6949d5ccccddd23d11cd676aa363a85ae52dcc409c959f",
+    "ai/kie/v2/config.py": "20e569627d644ca8f8823a4ab4f1680d3081c6249072ba3cc1cc4943fefaac61",
+    "tests/kie_v2_fixtures.py": "147c46e085a078b221c6c51bdcb20314153239af5ff41fd16ec9ae2076a110c7"
+  },
+  "sample_count": 16,
+  "base_document_count": 13,
+  "template_count": 1,
+  "split": "development",
+  "synthetic": true,
+  "timing_scope": "region API including evidence validation; excludes OCR/Layout/model time; sequential alternating strategy order, no warmup",
+  "repeats_per_sample": 5,
+  "variants": {
+    "geometry_grouping_v2": {
+      "configuration": {
+        "name": "invoice-baseline",
+        "version": "2.1.0"
+      },
+      "currency": "VND (explicit synthetic scene)",
+      "failure_count": 0,
+      "failures": [],
+      "duration_ms_median": 3.3259,
+      "no_rows_samples": 2,
+      "synthetic_diagnostics": null
+    },
+    "conservative_intervals_v1": {
+      "configuration": {
+        "name": "conservative-intervals",
+        "version": "1.0.0"
+      },
+      "currency": "VND (explicit synthetic scene)",
+      "failure_count": 0,
+      "failures": [],
+      "duration_ms_median": 3.3941999999999997,
+      "no_rows_samples": 2,
+      "synthetic_diagnostics": null
+    }
+  },
+  "samples": [
+    {
+      "sample_id": "bordered",
+      "base_document_id": "ruling-base-1",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "72fcbadd9463c11a8d833ad6e1d4a1edd703c27bd0ff3672e87ca9fb13115680",
+      "expected_sha256": "d474e3427f3a07edd71dad79611cff0edde0db06c8ffc527ba3840c2c2e6ddc3",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.8221,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.7005,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "borderless",
+      "base_document_id": "ruling-base-1",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "72fcbadd9463c11a8d833ad6e1d4a1edd703c27bd0ff3672e87ca9fb13115680",
+      "expected_sha256": "d474e3427f3a07edd71dad79611cff0edde0db06c8ffc527ba3840c2c2e6ddc3",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.6688,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.5209,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "horizontal",
+      "base_document_id": "ruling-base-1",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "72fcbadd9463c11a8d833ad6e1d4a1edd703c27bd0ff3672e87ca9fb13115680",
+      "expected_sha256": "d474e3427f3a07edd71dad79611cff0edde0db06c8ffc527ba3840c2c2e6ddc3",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.1118,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.2594,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "vertical",
+      "base_document_id": "ruling-base-1",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "72fcbadd9463c11a8d833ad6e1d4a1edd703c27bd0ff3672e87ca9fb13115680",
+      "expected_sha256": "d474e3427f3a07edd71dad79611cff0edde0db06c8ffc527ba3840c2c2e6ddc3",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.2667,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.42,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "84134de8c13d0eb2205ed35153d263982209df216729ad90c2a3e5bb5e48efcc",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "wrapped-description",
+      "base_document_id": "synthetic-wrapped-description",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "71729f1dd5508d526f1643434644b886c407dd79046d9ad981f92613d7b61eb2",
+      "expected_sha256": "1f4d4c3192b05ae66fc1dfab6e186e4462bd42bed282dc7de861df611529238f",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.5504,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 2,
+          "prediction_sha256": "c2d84c256ee03b2911725e109e5e6eac894fccd0f0795099af3db09c74853d03",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.5341,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 2,
+          "prediction_sha256": "c2d84c256ee03b2911725e109e5e6eac894fccd0f0795099af3db09c74853d03",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "staggered-quantity",
+      "base_document_id": "synthetic-staggered-quantity",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "620f2309c4997cc0b6a08ad15dc1a93e9f193fbbf116a4e90bf01f843a5671b4",
+      "expected_sha256": "d474e3427f3a07edd71dad79611cff0edde0db06c8ffc527ba3840c2c2e6ddc3",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.6856,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 2,
+          "prediction_sha256": "698855c6de4cf7b028fb33635dc01af36d37f216c04021991cdc49f09339d620",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.4047,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 3,
+          "prediction_sha256": "0a18a236f919d8db6b814b4a952bf13039d7736118fd319c1ab87cc4b557b3fb",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "split-description",
+      "base_document_id": "synthetic-split-description",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "d57f3da3e1be6301bfa0a6c63c68d3587897aedd0da59f2fe0ca3258d1c66609",
+      "expected_sha256": "b47cb4f39f6a6e500fe4f37f441bee34617a9528b5f59bee374f47469245e6a6",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.6177,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "099c799116fb56ee9df327a81c43d64f9c36025a30d2b3a00d7322f53b859883",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.6419,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "099c799116fb56ee9df327a81c43d64f9c36025a30d2b3a00d7322f53b859883",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "split-number",
+      "base_document_id": "synthetic-split-number",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "b083f87ad3650210fe461881e395108a680ea4c8fda24238a6cabc63dd2a87ae",
+      "expected_sha256": "20161a34fb38ca1c5505bd3119b7616c4d8b9fdc63ef66f3f6b49805e127a87c",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.5743,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 2,
+          "prediction_sha256": "61f56cac729e85bc583fa5bff490861b903ab30d5dd92e7eb1fe311f6e09e2f4",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.3576,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 2,
+          "prediction_sha256": "85d6eed5567b95585c5becac6aa8e60490c446ea35d7bbbc4e6eb523cdb289b7",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "merged-numbers",
+      "base_document_id": "synthetic-merged-numbers",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "356cc769796b96a970124109576d16b8daab836e2066526994a05bc6bda0aa4d",
+      "expected_sha256": "07afbcf5d4a833199b704250cc54482e35c0de6656be2a99189c0fe92c17600a",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 3.171,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 2,
+          "prediction_sha256": "ba15ba7ced1a8d57d54bc51abea5dbad8c0a6d955749db8b76ef1f3acfb491f0",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 3.3404,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 2,
+          "prediction_sha256": "ac96dabc268ab8729c9eefc3bb058287faaa0c92db775b96aac489a9a8da744c",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "missing-unit-column",
+      "base_document_id": "synthetic-missing-unit-column",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "0d10604d8555517f4ed7c5cb6477ecdbf3985b0b116e9fb3c9cbec2975103e91",
+      "expected_sha256": "c6ca02d5e2bca84430c9db758d00a762b922ffd7d9a540b38047a89d51b2294c",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 1.8195,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 1,
+          "prediction_sha256": "128e90c9b2ac49e478d82ed22236e9f44adcb0efe60a0c201125d36ce4fdf759",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 1.756,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 1,
+          "prediction_sha256": "128e90c9b2ac49e478d82ed22236e9f44adcb0efe60a0c201125d36ce4fdf759",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "missing-unit-cell",
+      "base_document_id": "synthetic-missing-unit-cell",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "2b116a9c3a01724402a3c02bb8de70631ca63159632dd49ae3d7b4d8a1fb1c66",
+      "expected_sha256": "fd6fdc8c2a07b61d53b1df496e2f892b1892b53564a1dc4192028bf08eb869a1",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 2.0455,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 1,
+          "prediction_sha256": "cc3a099c3f21a7793127b0d1f69d735c9b5d6af8d9d79fa695bae17ac7caf10b",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 1.8803,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 1,
+          "prediction_sha256": "cc3a099c3f21a7793127b0d1f69d735c9b5d6af8d9d79fa695bae17ac7caf10b",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "ambiguous-partial-next-item",
+      "base_document_id": "synthetic-ambiguous-partial-next-item",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "e0e45c7aeb0106f7acb5c436bab22e1184eb0a9fdbdb6d9251fd9a261ccb1b0f",
+      "expected_sha256": "d0d335d2252ae0bbebd61c97719385362e93ed08f1032e1a1557770e3ed6ce23",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 2.4357,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 1,
+          "prediction_sha256": "d7a217a022ab4b3d1f29363b19835f64539a5b20c92d3b6b23e112395df6fe0b",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 2.323,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 1,
+          "predicted_rows": 1,
+          "prediction_sha256": "d7a217a022ab4b3d1f29363b19835f64539a5b20c92d3b6b23e112395df6fe0b",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "repeated-header",
+      "base_document_id": "synthetic-repeated-header",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "2f2c7e7c5e8afb3975664e6455095f62afceb94955291fa13d6416aea75f335c",
+      "expected_sha256": "ad183b8fd1950de24ea860e8d27ce63ba9fa5895bac3f5cab7ab5a65922d2fa5",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 4.1278,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "7a7c9ea4610dfbbc160171fdd382926ada9963903f3d58d4d5dee59effef6cf4",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 4.2789,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "7a7c9ea4610dfbbc160171fdd382926ada9963903f3d58d4d5dee59effef6cf4",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "multiple-pages",
+      "base_document_id": "synthetic-multiple-pages",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "80a6db63eb4c3cfc4e468a81c205f19cd72541588b4e28dafb768f00c8bf337a",
+      "expected_sha256": "0e5e121550913f110386331c15a2218a9716fa3ee6008252fccde5b8a7ea1e6c",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        },
+        {
+          "page_index": 1,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 8.0169,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "a7a853304f6c58636d650550a231e32a1acb647da1b8fa905895419b73b4679f",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 8.3904,
+          "failure": null,
+          "no_rows_regions": 0,
+          "review_regions": 0,
+          "predicted_rows": 2,
+          "prediction_sha256": "a7a853304f6c58636d650550a231e32a1acb647da1b8fa905895419b73b4679f",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "unheaded",
+      "base_document_id": "synthetic-unheaded",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "cf19a4a344b9a3c26c871e69b43a415011aaadc96e9dac54ce564efbdd41213a",
+      "expected_sha256": "98e7cf9b33fbc8ea5a636b8d38e3abb8037a9dc7e05f0d2c3aebc5dae7d3d969",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "geometry_grouping_v2": {
+          "duration_ms_median": 1.2048,
+          "failure": null,
+          "no_rows_regions": 1,
+          "review_regions": 1,
+          "predicted_rows": 0,
+          "prediction_sha256": "34da521209d6211952aab8fba4a3e5d0996a0bd2a375a717a7546799f880b23e",
+          "synthetic_diagnostics": null
+        },
+        "conservative_intervals_v1": {
+          "duration_ms_median": 1.2219,
+          "failure": null,
+          "no_rows_regions": 1,
+          "review_regions": 1,
+          "predicted_rows": 0,
+          "prediction_sha256": "34da521209d6211952aab8fba4a3e5d0996a0bd2a375a717a7546799f880b23e",
+          "synthetic_diagnostics": null
+        }
+      }
+    },
+    {
+      "sample_id": "empty",
+      "base_document_id": "synthetic-empty",
+      "template_id": "synthetic-five-column-1",
+      "split": "development",
+      "evidence_sha256": "330f9e9b3d8a549590df8ea35eabba3cb7f013bd73df8af9015a2e174b53cc46",
+      "expected_sha256": "620d403ec8ad69d4a98a8977983ff8f613773c03058db83d904fedcc343c9fef",
+      "layout_regions": [
+        {
+          "page_index": 0,
+          "bbox": [
+            0,
+            0.18,
+            1,
+            0.6
+          ]
+        }
+      ],
+      "variants": {
+        "conservative_intervals_v1": {
+          "duration_ms_median": 0.2624,
+          "failure": null,
+          "no_rows_regions": 1,
+          "review_regions": 1,
+          "predicted_rows": 0,
+          "prediction_sha256": "34da521209d6211952aab8fba4a3e5d0996a0bd2a375a717a7546799f880b23e",
+          "synthetic_diagnostics": null
+        },
+        "geometry_grouping_v2": {
+          "duration_ms_median": 0.2418,
+          "failure": null,
+          "no_rows_regions": 1,
+          "review_regions": 1,
+          "predicted_rows": 0,
+          "prediction_sha256": "34da521209d6211952aab8fba4a3e5d0996a0bd2a375a717a7546799f880b23e",
+          "synthetic_diagnostics": null
+        }
+      }
+    }
+  ]
+}

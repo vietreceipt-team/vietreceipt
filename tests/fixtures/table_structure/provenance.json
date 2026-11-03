@@ -1,0 +1,76 @@
+{
+  "version": "synthetic-table-rulings-1.0.0",
+  "synthetic": true,
+  "license": "project-authored synthetic software fixtures; no private data",
+  "generator": "scripts/generate_table_structure_sources.py",
+  "generator_sha256": "508b399724f1a8e1bd8a673b1a388e190b0a62d8fa04df05a279337d550126f4",
+  "pillow_version": "11.3.0",
+  "split": "development",
+  "base_document_id": "ruling-base-1",
+  "template_id": "synthetic-five-column-1",
+  "qa_status": "NOT_INDEPENDENTLY_REVIEWED",
+  "evidence_origin": "literal scene coordinates; NOT an OCR run",
+  "coordinate_system": "normalized original page; top-left origin",
+  "records": [
+    {
+      "ruling": "bordered",
+      "evidence": {
+        "path": "bordered.evidence.json",
+        "sha256": "4fb64e519e9e42e75663a20fa85c6790cb84e1dcf3d5ed1ab35dac05342147d4"
+      },
+      "expected": {
+        "path": "bordered.expected.json",
+        "sha256": "92ed6ca0c812a4df8466ae64a71abd0017cd95dc659102560c39966086e70a70"
+      },
+      "image": {
+        "path": "bordered.png",
+        "sha256": "dbc381187bd11a2703528aa33c647b3b4fcebf70483624db3eab8f18090b8fa7"
+      }
+    },
+    {
+      "ruling": "borderless",
+      "evidence": {
+        "path": "borderless.evidence.json",
+        "sha256": "4fb64e519e9e42e75663a20fa85c6790cb84e1dcf3d5ed1ab35dac05342147d4"
+      },
+      "expected": {
+        "path": "borderless.expected.json",
+        "sha256": "92ed6ca0c812a4df8466ae64a71abd0017cd95dc659102560c39966086e70a70"
+      },
+      "image": {
+        "path": "borderless.png",
+        "sha256": "653705b8ba04ca06543fd772a261be7239090acc41b6713b1ac543873d2688d1"
+      }
+    },
+    {
+      "ruling": "horizontal",
+      "evidence": {
+        "path": "horizontal.evidence.json",
+        "sha256": "4fb64e519e9e42e75663a20fa85c6790cb84e1dcf3d5ed1ab35dac05342147d4"
+      },
+      "expected": {
+        "path": "horizontal.expected.json",
+        "sha256": "92ed6ca0c812a4df8466ae64a71abd0017cd95dc659102560c39966086e70a70"
+      },
+      "image": {
+        "path": "horizontal.png",
+        "sha256": "0a88c2157534b4e8ac457336c1d469fcd34a69d29c309839f66edd5302a82e3c"
+      }
+    },
+    {
+      "ruling": "vertical",
+      "evidence": {
+        "path": "vertical.evidence.json",
+        "sha256": "4fb64e519e9e42e75663a20fa85c6790cb84e1dcf3d5ed1ab35dac05342147d4"
+      },
+      "expected": {
+        "path": "vertical.expected.json",
+        "sha256": "92ed6ca0c812a4df8466ae64a71abd0017cd95dc659102560c39966086e70a70"
+      },
+      "image": {
+        "path": "vertical.png",
+        "sha256": "55cd66595cf68fd39c561c13a4c2f7814d2b63195a289e20b5b307b708e66f68"
+      }
+    }
+  ]
+}
