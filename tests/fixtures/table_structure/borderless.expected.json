@@ -1,0 +1,170 @@
+{
+  "fields": {
+    "invoice_template_number": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "invoice_symbol": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "invoice_number": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "invoice_date": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "seller_name": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "seller_tax_id": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "seller_address": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "buyer_name": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "buyer_tax_id": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "subtotal": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "tax_amount": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "total_amount": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    },
+    "currency": {
+      "annotation_status": "UNKNOWN",
+      "normalized_value": null,
+      "raw_value": null,
+      "source_block_ids": []
+    }
+  },
+  "line_items": [
+    {
+      "line_id": "source-row-0",
+      "description": {
+        "annotation_status": "PRESENT",
+        "normalized_value": "Service A",
+        "raw_value": "Service A",
+        "source_block_ids": [
+          "p0_b5"
+        ]
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "normalized_value": "box",
+        "raw_value": "box",
+        "source_block_ids": [
+          "p0_b6"
+        ]
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "normalized_value": 2,
+        "raw_value": "2",
+        "source_block_ids": [
+          "p0_b7"
+        ]
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "normalized_value": 50000,
+        "raw_value": "50000",
+        "source_block_ids": [
+          "p0_b8"
+        ]
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "normalized_value": 100000,
+        "raw_value": "100000",
+        "source_block_ids": [
+          "p0_b9"
+        ]
+      }
+    },
+    {
+      "line_id": "source-row-1",
+      "description": {
+        "annotation_status": "PRESENT",
+        "normalized_value": "Service B",
+        "raw_value": "Service B",
+        "source_block_ids": [
+          "p0_b10"
+        ]
+      },
+      "unit": {
+        "annotation_status": "PRESENT",
+        "normalized_value": "pack",
+        "raw_value": "pack",
+        "source_block_ids": [
+          "p0_b11"
+        ]
+      },
+      "quantity": {
+        "annotation_status": "PRESENT",
+        "normalized_value": 3,
+        "raw_value": "3",
+        "source_block_ids": [
+          "p0_b12"
+        ]
+      },
+      "unit_price": {
+        "annotation_status": "PRESENT",
+        "normalized_value": 20000,
+        "raw_value": "20000",
+        "source_block_ids": [
+          "p0_b13"
+        ]
+      },
+      "amount": {
+        "annotation_status": "PRESENT",
+        "normalized_value": 60000,
+        "raw_value": "60000",
+        "source_block_ids": [
+          "p0_b14"
+        ]
+      }
+    }
+  ]
+}
