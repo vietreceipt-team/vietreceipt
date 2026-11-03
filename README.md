@@ -169,3 +169,8 @@ items, with immutable evidence, explicit uncertainty and arithmetic review warni
 V1 remains available. See [running, contracts and limitations](docs/kie-v2.md).
 Examples/tests are explicitly synthetic; frozen V2 evaluation fails closed with
 `WAITING_FOR_VERIFIED_V2_GOLD` until verified external data is provided.
+
+Experimental region-scoped Table adapter: `ai.table:extract_table` accepts an
+explicit Layout bounding box and original Reader evidence. See the
+[Table handoff and proposed work split](docs/table-work-split.md) for its interface,
+limitations and the next steps for structure extraction and integration.

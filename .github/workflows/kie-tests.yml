@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "ai/kie/**"
+      - "ai/table/**"
       - "data/kie_evaluation/**"
       - "scripts/evaluate_kie.py"
       - "scripts/evaluate_invoice_kie.py"
@@ -23,6 +24,7 @@ on:
     branches: [main]
     paths:
       - "ai/kie/**"
+      - "ai/table/**"
       - "data/kie_evaluation/**"
       - "scripts/evaluate_kie.py"
       - "scripts/evaluate_invoice_kie.py"
@@ -70,6 +72,7 @@ jobs:
             tests.test_kie_evaluation \
             tests.test_kie_artifacts \
             tests.test_kie_v2 \
+            tests.test_kie_table \
             tests.test_kie_v2_evaluation \
             tests.test_kie_v2_grouping \
             tests.test_kie_v2_source_evaluation \
