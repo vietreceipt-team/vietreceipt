@@ -9,7 +9,7 @@ from uuid import UUID
 from ai.kie.v2 import extract_with_grouping
 from ai.kie.v2.config import GROUPING_CONFIGURATIONS, HEADER_FIELDS, LINE_FIELDS
 from ai.kie.v2.evaluation import metrics, validate_gold
-from ai.table import extract_table
+from ai.table import extract_invoice_with_tables, extract_table
 from tests.kie_v2_fixtures import KIE_RUN, OCR_RUN, RECEIPT
 
 
@@ -125,6 +125,14 @@ class ReaderGroupingTests(unittest.TestCase):
             self.assertEqual(table["status"], "EXTRACTED")
             self.assertEqual(len(table["line_items"]), 2)
             self.assertEqual(table["line_items"], result["line_items"])
+            combined = extract_invoice_with_tables(
+                evidence,
+                kie_run_id=KIE_RUN,
+                regions=[{"page_index": 0, "bbox": [0.05, 0.17, 0.95, 0.32]}],
+                grouping=grouping,
+            )
+            self.assertEqual(combined["fields"], result["fields"])
+            self.assertEqual(combined["line_items"], result["line_items"])
         self.assertEqual(evidence, before)
 
     def test_real_reader_output_alignment_and_both_groupings(self):

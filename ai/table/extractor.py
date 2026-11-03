@@ -27,6 +27,19 @@ def extract_table(
     silently truncating an OCR block could lose cells or alter source evidence.
     The caller owns currency provenance and whole-invoice consistency checks.
     """
+    if grouping not in GROUPING_CONFIGURATIONS:
+        raise ValueError(f"Unknown grouping: {grouping}")
+    if currency is not None and not isinstance(currency, str):
+        raise ValueError("currency must be a canonical currency string or None")
+    blocks = flatten(evidence)
+    page_count = (
+        len(evidence["pages"]) if evidence["schema_version"] == "document-2.0" else 1
+    )
+    selected = _select_region(blocks, page_count, page_index, bbox)
+    return _extract_region(evidence, selected, page_index, bbox, currency, grouping)
+
+
+def _select_region(blocks, page_count, page_index, bbox):
     if type(page_index) is not int or page_index < 0:
         raise ValueError("page_index must be a nonnegative integer")
     if (
@@ -38,15 +51,6 @@ def extract_table(
     left, top, right, bottom = bbox
     if not (0 <= left < right <= 1 and 0 <= top < bottom <= 1):
         raise ValueError("bbox must have positive area within [0, 1]")
-    if grouping not in GROUPING_CONFIGURATIONS:
-        raise ValueError(f"Unknown grouping: {grouping}")
-    if currency is not None and not isinstance(currency, str):
-        raise ValueError("currency must be a canonical currency string or None")
-
-    blocks = flatten(evidence)
-    page_count = (
-        len(evidence["pages"]) if evidence["schema_version"] == "document-2.0" else 1
-    )
     if page_index >= page_count:
         raise ValueError("page_index is outside the evidence document")
     selected = []
@@ -69,7 +73,10 @@ def extract_table(
             raise ValueError(f"Region boundary crosses source block: {block.block_id}")
         if contained:
             selected.append(block)
+    return selected
 
+
+def _extract_region(evidence, selected, page_index, bbox, currency, grouping):
     options = {}
     grouper = None
     if grouping == INTERVAL_GROUPING:

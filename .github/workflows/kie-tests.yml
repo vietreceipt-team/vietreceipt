@@ -73,6 +73,7 @@ jobs:
             tests.test_kie_artifacts \
             tests.test_kie_v2 \
             tests.test_kie_table \
+            tests.test_kie_table_pipeline \
             tests.test_kie_v2_evaluation \
             tests.test_kie_v2_grouping \
             tests.test_kie_v2_source_evaluation \

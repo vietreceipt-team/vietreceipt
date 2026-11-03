@@ -171,6 +171,8 @@ Examples/tests are explicitly synthetic; frozen V2 evaluation fails closed with
 `WAITING_FOR_VERIFIED_V2_GOLD` until verified external data is provided.
 
 Experimental region-scoped Table adapter: `ai.table:extract_table` accepts an
-explicit Layout bounding box and original Reader evidence. See the
-[Table handoff and proposed work split](docs/table-work-split.md) for its interface,
-limitations and the next steps for structure extraction and integration.
+explicit Layout bounding box and original Reader evidence.
+`ai.table:extract_invoice_with_tables` combines multiple explicit regions into a
+validated V2 invoice with unique row IDs and whole-invoice consistency checks.
+See the [Table handoff and work split](docs/table-work-split.md) for the interfaces,
+limitations and structure extraction tasks.

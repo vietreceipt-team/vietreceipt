@@ -22,7 +22,9 @@ def extract_invoice(evidence: dict, *, kie_run_id: UUID) -> dict:
     )
 
 
-def extract_with_grouping(evidence: dict, *, kie_run_id: UUID, grouping: str) -> dict:
+def extract_with_grouping(
+    evidence: dict, *, kie_run_id: UUID, grouping: str, layout_regions=None
+) -> dict:
     """Explicit experimental entry point; the worker provider stays baseline."""
     if grouping not in GROUPING_CONFIGURATIONS:
         raise ValueError(f"Unknown grouping: {grouping}")
@@ -40,6 +42,15 @@ def extract_with_grouping(evidence: dict, *, kie_run_id: UUID, grouping: str) ->
         )
     else:
         regions, excluded = table_regions(blocks)
+    prepared_tables = None
+    if layout_regions is not None:
+        from ai.table.pipeline import _prepare_tables
+
+        prepared_tables = _prepare_tables(evidence, blocks, layout_regions)
+        # Explicit Layout table blocks cannot become header/footer candidates.
+        excluded.update(
+            block.block_id for _, _, selected in prepared_tables for block in selected
+        )
     candidates = header_candidates(blocks, excluded)
     currency_cell = select("currency", candidates["currency"])
     currency = currency_cell["normalized_value"]
@@ -70,7 +81,16 @@ def extract_with_grouping(evidence: dict, *, kie_run_id: UUID, grouping: str) ->
         from .grouping import interval_columns
 
         line_grouper = interval_columns
-    lines, taxes = extract_tables(regions, currency, line_grouper=line_grouper)
+    selected_regions = (
+        [region for region in regions if region[0] == "tax"]
+        if prepared_tables is not None
+        else regions
+    )
+    lines, taxes = extract_tables(selected_regions, currency, line_grouper=line_grouper)
+    if prepared_tables is not None:
+        from ai.table.pipeline import _extract_prepared_tables
+
+        lines = _extract_prepared_tables(evidence, prepared_tables, currency, grouping)
     taxes.extend(inline_taxes(blocks, excluded, currency))
     result = {
         "schema_version": "2.0",
@@ -83,6 +103,12 @@ def extract_with_grouping(evidence: dict, *, kie_run_id: UUID, grouping: str) ->
         "line_items": lines,
         "tax_breakdown": taxes,
     }
+    if prepared_tables is not None:
+        result["extractor"] = {"name": "layout-region-invoice-kie", "version": "0.1.0"}
+        result["configuration"] = {
+            "name": "layout-regions-" + GROUPING_CONFIGURATIONS[grouping]["name"],
+            "version": "0.1.0",
+        }
     check(result)
     from .contract import validate_result
 
